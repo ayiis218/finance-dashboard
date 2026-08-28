@@ -120,8 +120,19 @@ model Receivable {
   type       ReceivableType
   date       DateTime
   note       String?
-  isSettled  Boolean        @default(false)
+  isSettled  Boolean        @default(false) // override manual, mis. dihapuskan/write-off
+  payments   RepaymentEntry[]
   createdAt  DateTime       @default(now())
+}
+
+model RepaymentEntry {
+  id           String     @id @default(cuid())
+  receivable   Receivable @relation(fields: [receivableId], references: [id], onDelete: Cascade)
+  receivableId String
+  date         DateTime
+  amount       Decimal
+  note         String?
+  createdAt    DateTime   @default(now())
 }
 
 model BudgetCategory {
@@ -155,17 +166,39 @@ model CashflowForecast {
 model SavingsGoal {
   id           String             @id @default(cuid())
   name         String // "Wedding", "Eid 2026", dll
-  targetAmount Decimal
+  targetAmount Decimal // otomatis mengikuti total GoalItem jika sudah ada rincian
   tenorMonths  Int
   startDate    DateTime
   entries      SavingsGoalEntry[]
+  items        GoalItem[]
   createdAt    DateTime           @default(now())
 }
 
 model SavingsGoalEntry {
-  id     String      @id @default(cuid())
-  goal   SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
-  goalId String
-  month  DateTime
-  amount Decimal
+  id          String      @id @default(cuid())
+  goal        SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  goalId      String
+  month       DateTime
+  amount      Decimal
+  contributor String? // opsional: nama penabung, kosong = tidak dipecah per orang
+}
+
+enum GoalItemStatus {
+  PLANNED
+  BOOKED
+  PAID
+}
+
+model GoalItem {
+  id            String         @id @default(cuid())
+  goal          SavingsGoal    @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  goalId        String
+  category      String // "Mahar", "Catering", "THR", "Santunan", dll
+  name          String // "Cincin", "Fotografer", nama individu, dll
+  budgetAmount  Decimal
+  actualAmount  Decimal?       @default(0)
+  status        GoalItemStatus @default(PLANNED)
+  note          String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }

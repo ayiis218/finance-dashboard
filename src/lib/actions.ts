@@ -151,6 +151,29 @@ export async function deleteReceivable(id: string) {
   revalidatePath("/");
 }
 
+const repaymentEntrySchema = z.object({
+  receivableId: z.string().min(1),
+  date: z.coerce.date(),
+  amount: z.coerce.number().positive(),
+  note: z.string().optional(),
+});
+
+export async function createRepaymentEntry(formData: FormData) {
+  const data = repaymentEntrySchema.parse({
+    receivableId: formData.get("receivableId"),
+    date: formData.get("date"),
+    amount: formData.get("amount"),
+    note: formData.get("note") || undefined,
+  });
+  await prisma.repaymentEntry.create({ data });
+  revalidatePath("/receivables");
+}
+
+export async function deleteRepaymentEntry(id: string) {
+  await prisma.repaymentEntry.delete({ where: { id } });
+  revalidatePath("/receivables");
+}
+
 const savingsGoalSchema = z.object({
   name: z.string().min(1),
   targetAmount: z.coerce.number().positive(),
@@ -178,6 +201,7 @@ const savingsGoalEntrySchema = z.object({
   goalId: z.string().min(1),
   month: z.coerce.date(),
   amount: z.coerce.number().positive(),
+  contributor: z.string().optional(),
 });
 
 export async function addSavingsGoalEntry(formData: FormData) {
@@ -185,7 +209,67 @@ export async function addSavingsGoalEntry(formData: FormData) {
     goalId: formData.get("goalId"),
     month: formData.get("month"),
     amount: formData.get("amount"),
+    contributor: formData.get("contributor") || undefined,
   });
   await prisma.savingsGoalEntry.create({ data });
+  revalidatePath("/goals");
+  revalidatePath(`/goals/${data.goalId}`);
+}
+
+async function syncGoalTargetToItems(goalId: string) {
+  const items = await prisma.goalItem.findMany({ where: { goalId } });
+  if (items.length === 0) return;
+  const total = items.reduce((sum, i) => sum + Number(i.budgetAmount), 0);
+  await prisma.savingsGoal.update({
+    where: { id: goalId },
+    data: { targetAmount: total },
+  });
+}
+
+const goalItemSchema = z.object({
+  goalId: z.string().min(1),
+  category: z.string().min(1),
+  name: z.string().min(1),
+  budgetAmount: z.coerce.number().positive(),
+  note: z.string().optional(),
+});
+
+export async function createGoalItem(formData: FormData) {
+  const data = goalItemSchema.parse({
+    goalId: formData.get("goalId"),
+    category: formData.get("category"),
+    name: formData.get("name"),
+    budgetAmount: formData.get("budgetAmount"),
+    note: formData.get("note") || undefined,
+  });
+  await prisma.goalItem.create({ data });
+  await syncGoalTargetToItems(data.goalId);
+  revalidatePath(`/goals/${data.goalId}`);
+  revalidatePath("/goals");
+}
+
+export async function updateGoalItemStatus(
+  id: string,
+  goalId: string,
+  status: "PLANNED" | "BOOKED" | "PAID",
+) {
+  const item = await prisma.goalItem.findUniqueOrThrow({ where: { id } });
+  await prisma.goalItem.update({
+    where: { id },
+    data: {
+      status,
+      actualAmount:
+        status === "PAID" && Number(item.actualAmount) === 0
+          ? item.budgetAmount
+          : item.actualAmount,
+    },
+  });
+  revalidatePath(`/goals/${goalId}`);
+}
+
+export async function deleteGoalItem(id: string, goalId: string) {
+  await prisma.goalItem.delete({ where: { id } });
+  await syncGoalTargetToItems(goalId);
+  revalidatePath(`/goals/${goalId}`);
   revalidatePath("/goals");
 }

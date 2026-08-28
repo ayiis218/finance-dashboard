@@ -19,19 +19,32 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
-import { SettleToggle } from "@/components/settle-toggle";
-import { prisma } from "@/lib/prisma";
+import { RepaymentDialog } from "@/components/repayment-dialog";
+import { MarkSettledButton } from "@/components/mark-settled-button";
+import { getReceivablesWithStatus } from "@/lib/queries";
 import {
   createReceivable,
+  createRepaymentEntry,
   deleteReceivable,
+  deleteRepaymentEntry,
   toggleReceivableSettled,
 } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
 
+const STATUS_LABEL = {
+  BELUM_LUNAS: "Belum Lunas",
+  CICILAN_BERJALAN: "Cicilan Berjalan",
+  LUNAS: "Lunas",
+} as const;
+
+const STATUS_VARIANT = {
+  BELUM_LUNAS: "destructive",
+  CICILAN_BERJALAN: "secondary",
+  LUNAS: "default",
+} as const;
+
 export default async function ReceivablesPage() {
-  const receivables = await prisma.receivable.findMany({
-    orderBy: [{ isSettled: "asc" }, { date: "desc" }],
-  });
+  const receivables = await getReceivablesWithStatus();
 
   return (
     <Card>
@@ -85,13 +98,14 @@ export default async function ReceivablesPage() {
               <TableHead>Nama</TableHead>
               <TableHead>Tipe</TableHead>
               <TableHead className="text-right">Jumlah</TableHead>
-              <TableHead>Lunas</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-center">Cicilan</TableHead>
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {receivables.map((r) => (
-              <TableRow key={r.id} className={r.isSettled ? "opacity-50" : ""}>
+              <TableRow key={r.id} className={r.status === "LUNAS" ? "opacity-50" : ""}>
                 <TableCell>{r.personName}</TableCell>
                 <TableCell>
                   <Badge variant={r.type === "PIUTANG" ? "default" : "destructive"}>
@@ -99,12 +113,39 @@ export default async function ReceivablesPage() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatIDR(Number(r.amount))}
+                  <div className="flex flex-col items-end">
+                    <span>{formatIDR(Number(r.amount))}</span>
+                    {r.totalPaid > 0 && r.status !== "LUNAS" && (
+                      <span className="text-xs text-muted-foreground">
+                        terbayar {formatIDR(r.totalPaid)}
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
-                  <SettleToggle
-                    checked={r.isSettled}
-                    action={toggleReceivableSettled.bind(null, r.id)}
+                  <div className="flex flex-col items-start gap-1">
+                    <Badge variant={STATUS_VARIANT[r.status]}>
+                      {STATUS_LABEL[r.status]}
+                    </Badge>
+                    {r.status !== "LUNAS" && (
+                      <MarkSettledButton
+                        action={toggleReceivableSettled.bind(null, r.id, true)}
+                      />
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <RepaymentDialog
+                    receivableId={r.id}
+                    payments={r.payments.map((p) => ({
+                      id: p.id,
+                      date: p.date,
+                      amount: Number(p.amount),
+                      note: p.note,
+                    }))}
+                    remaining={r.remaining}
+                    createAction={createRepaymentEntry}
+                    deleteAction={deleteRepaymentEntry}
                   />
                 </TableCell>
                 <TableCell className="text-center">
@@ -114,7 +155,7 @@ export default async function ReceivablesPage() {
             ))}
             {receivables.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Belum ada catatan piutang/utang.
                 </TableCell>
               </TableRow>

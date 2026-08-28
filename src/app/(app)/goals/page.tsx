@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -9,19 +10,16 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
-import {
-  addSavingsGoalEntry,
-  createSavingsGoal,
-  deleteSavingsGoal,
-} from "@/lib/actions";
+import { createSavingsGoal, deleteSavingsGoal } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
 
 export default async function GoalsPage() {
   const goals = await prisma.savingsGoal.findMany({
-    include: { entries: true },
+    include: { entries: true, items: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -67,6 +65,10 @@ export default async function GoalsPage() {
             (sum, e) => sum + Number(e.amount),
             0,
           );
+          const totalBudgeted = goal.items.reduce(
+            (sum, i) => sum + Number(i.budgetAmount),
+            0,
+          );
           const target = Number(goal.targetAmount);
           const progress = target > 0 ? Math.min(100, (saved / target) * 100) : 0;
           const monthlyTarget = target / goal.tenorMonths;
@@ -85,7 +87,7 @@ export default async function GoalsPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span>{formatIDR(saved)}</span>
+                  <span>{formatIDR(saved)} tertabung</span>
                   <span className="text-muted-foreground">
                     dari {formatIDR(target)}
                   </span>
@@ -96,33 +98,21 @@ export default async function GoalsPage() {
                     style={{ width: `${progress}%` }}
                   />
                 </div>
+                {goal.items.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {goal.items.length} rincian anggaran &middot; total{" "}
+                    {formatIDR(totalBudgeted)}
+                  </p>
+                )}
 
-                <FormDialog
-                  title={`Tambah Tabungan - ${goal.name}`}
-                  triggerLabel="Catat Tabungan Bulan Ini"
-                  action={addSavingsGoalEntry}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  render={<Link href={`/goals/${goal.id}`} />}
                 >
-                  <input type="hidden" name="goalId" value={goal.id} />
-                  <div className="space-y-2">
-                    <Label htmlFor={`month-${goal.id}`}>Bulan</Label>
-                    <Input
-                      id={`month-${goal.id}`}
-                      name="month"
-                      type="date"
-                      defaultValue={new Date().toISOString().slice(0, 10)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`amount-${goal.id}`}>Jumlah</Label>
-                    <Input
-                      id={`amount-${goal.id}`}
-                      name="amount"
-                      type="number"
-                      required
-                    />
-                  </div>
-                </FormDialog>
+                  Lihat Detail &amp; Rincian
+                </Button>
               </CardContent>
             </Card>
           );

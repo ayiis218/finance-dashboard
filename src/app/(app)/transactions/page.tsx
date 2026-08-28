@@ -1,5 +1,8 @@
 export const dynamic = "force-dynamic";
 
+import Link from "next/link";
+import { addMonths, format, parse, subMonths } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -16,22 +19,29 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
+import { getDistinctCategories, getTransactionsForMonth } from "@/lib/queries";
 import { createTransaction, deleteTransaction } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
 import { formatDate } from "date-fns";
 
-export default async function TransactionsPage() {
-  const [transactions, accounts] = await Promise.all([
-    prisma.transaction.findMany({
-      include: { account: true },
-      orderBy: { date: "desc" },
-      take: 100,
-    }),
+export default async function TransactionsPage({
+  searchParams,
+}: Readonly<{ searchParams: Promise<{ month?: string }> }>) {
+  const { month: monthParam } = await searchParams;
+  const month = monthParam ? parse(monthParam, "yyyy-MM", new Date()) : new Date();
+
+  const [transactions, accounts, categories] = await Promise.all([
+    getTransactionsForMonth(month),
     prisma.bankAccount.findMany(),
+    getDistinctCategories(),
   ]);
+
+  const prevMonth = format(subMonths(month, 1), "yyyy-MM");
+  const nextMonth = format(addMonths(month, 1), "yyyy-MM");
 
   return (
     <Card>
@@ -72,7 +82,18 @@ export default async function TransactionsPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="category">Kategori</Label>
-            <Input id="category" name="category" placeholder="Makan, Bensin, dll" required />
+            <Input
+              id="category"
+              name="category"
+              list="category-suggestions"
+              placeholder="Makan, Bensin, dll"
+              required
+            />
+            <datalist id="category-suggestions">
+              {categories.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
           </div>
           <div className="space-y-2">
             <Label htmlFor="amount">Jumlah</Label>
@@ -95,6 +116,18 @@ export default async function TransactionsPage() {
         </FormDialog>
       </CardHeader>
       <CardContent>
+        <div className="mb-4 flex items-center justify-center gap-3">
+          <Button variant="outline" size="icon" render={<Link href={`?month=${prevMonth}`} />}>
+            <ChevronLeft className="size-4" />
+          </Button>
+          <span className="min-w-36 text-center text-sm font-medium">
+            {format(month, "MMMM yyyy")}
+          </span>
+          <Button variant="outline" size="icon" render={<Link href={`?month=${nextMonth}`} />}>
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+
         <Table>
           <TableHeader>
             <TableRow>
@@ -135,7 +168,7 @@ export default async function TransactionsPage() {
             {transactions.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground">
-                  Belum ada transaksi.
+                  Tidak ada transaksi di bulan ini.
                 </TableCell>
               </TableRow>
             )}

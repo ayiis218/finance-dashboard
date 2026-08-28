@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum ReceivableType {
+  PIUTANG // orang lain berhutang ke kita
+  UTANG   // kita berhutang ke orang lain
+}
+
+model BankAccount {
+  id           String        @id @default(cuid())
+  name         String
+  balance      Decimal       @default(0)
+  pocketChange Decimal       @default(0) // "receh"
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Transaction {
+  id        String          @id @default(cuid())
+  account   BankAccount     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String
+  type      TransactionType
+  category  String
+  amount    Decimal
+  date      DateTime
+  note      String?
+  createdAt DateTime        @default(now())
+}
+
+model Asset {
+  id           String   @id @default(cuid())
+  name         String
+  category     String // properti, kendaraan, elektronik, dll
+  value        Decimal
+  acquiredDate DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Investment {
+  id           String             @id @default(cuid())
+  platform     String // Bibit, Ajaib, Indodax, dll
+  name         String
+  buyValue     Decimal
+  currentValue Decimal
+  entries      InvestmentEntry[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+}
+
+model InvestmentEntry {
+  id           String     @id @default(cuid())
+  investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  investmentId String
+  month        DateTime // disimpan sebagai tanggal 1 di bulan tsb
+  amount       Decimal // kontribusi/deposit bulan itu
+}
+
+model Receivable {
+  id         String         @id @default(cuid())
+  personName String
+  amount     Decimal
+  type       ReceivableType
+  date       DateTime
+  note       String?
+  isSettled  Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+}
+
+model BudgetCategory {
+  id             String        @id @default(cuid())
+  name           String        @unique
+  monthlyPlanned Decimal       @default(0)
+  entries        BudgetEntry[]
+}
+
+model BudgetEntry {
+  id          String         @id @default(cuid())
+  category    BudgetCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  String
+  month       DateTime
+  actual      Decimal        @default(0)
+  expectation Decimal        @default(0)
+  minTarget   Decimal?
+  maxTarget   Decimal?
+
+  @@unique([categoryId, month])
+}
+
+model CashflowForecast {
+  id                 String   @id @default(cuid())
+  month              DateTime @unique
+  saldoAwal          Decimal
+  saldoAkhirActual   Decimal?
+  saldoAkhirExpected Decimal?
+}
+
+model SavingsGoal {
+  id           String             @id @default(cuid())
+  name         String // "Wedding", "Eid 2026", dll
+  targetAmount Decimal
+  tenorMonths  Int
+  startDate    DateTime
+  entries      SavingsGoalEntry[]
+  createdAt    DateTime           @default(now())
+}
+
+model SavingsGoalEntry {
+  id     String      @id @default(cuid())
+  goal   SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  goalId String
+  month  DateTime
+  amount Decimal
+}

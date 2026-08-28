@@ -16,10 +16,11 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Pencil } from "lucide-react";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
-import { createInvestment, deleteInvestment } from "@/lib/actions";
+import { createInvestment, deleteInvestment, updateInvestment } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
 
 export default async function InvestmentsPage() {
@@ -87,7 +88,55 @@ export default async function InvestmentsPage() {
                     {formatIDR(returnValue)}
                   </TableCell>
                   <TableCell className="text-center">
-                    <DeleteButton action={deleteInvestment.bind(null, items.id)} />
+                    <div className="flex items-center justify-center gap-1">
+                      <FormDialog
+                        title="Edit Investasi"
+                        triggerIcon={<Pencil className="size-4" />}
+                        triggerVariant="ghost"
+                        triggerSize="icon"
+                        action={updateInvestment.bind(null, items.id)}
+                      >
+                        <div className="space-y-2">
+                          <Label htmlFor={`platform-${items.id}`}>Platform</Label>
+                          <Input
+                            id={`platform-${items.id}`}
+                            name="platform"
+                            defaultValue={items.platform}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`name-${items.id}`}>Nama Instrumen</Label>
+                          <Input
+                            id={`name-${items.id}`}
+                            name="name"
+                            defaultValue={items.name}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`buyValue-${items.id}`}>Nilai Beli</Label>
+                          <Input
+                            id={`buyValue-${items.id}`}
+                            name="buyValue"
+                            type="number"
+                            defaultValue={buy}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`currentValue-${items.id}`}>Nilai Sekarang</Label>
+                          <Input
+                            id={`currentValue-${items.id}`}
+                            name="currentValue"
+                            type="number"
+                            defaultValue={current}
+                            required
+                          />
+                        </div>
+                      </FormDialog>
+                      <DeleteButton action={deleteInvestment.bind(null, items.id)} />
+                    </div>
                   </TableCell>
                 </TableRow>
               );

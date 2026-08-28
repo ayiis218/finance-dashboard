@@ -16,10 +16,11 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Pencil } from "lucide-react";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
-import { createAsset, deleteAsset } from "@/lib/actions";
+import { createAsset, deleteAsset, updateAsset } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
 import { formatDate } from "date-fns";
 
@@ -72,7 +73,55 @@ export default async function AssetsPage() {
                   {formatIDR(Number(items.value))}
                 </TableCell>
                 <TableCell className="text-center">
-                  <DeleteButton action={deleteAsset.bind(null, items.id)} />
+                  <div className="flex items-center justify-center gap-1">
+                    <FormDialog
+                      title="Edit Aset"
+                      triggerIcon={<Pencil className="size-4" />}
+                      triggerVariant="ghost"
+                      triggerSize="icon"
+                      action={updateAsset.bind(null, items.id)}
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor={`name-${items.id}`}>Nama</Label>
+                        <Input
+                          id={`name-${items.id}`}
+                          name="name"
+                          defaultValue={items.name}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`category-${items.id}`}>Kategori</Label>
+                        <Input
+                          id={`category-${items.id}`}
+                          name="category"
+                          defaultValue={items.category}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`value-${items.id}`}>Nilai</Label>
+                        <Input
+                          id={`value-${items.id}`}
+                          name="value"
+                          type="number"
+                          defaultValue={Number(items.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`acquiredDate-${items.id}`}>Tanggal Perolehan</Label>
+                        <Input
+                          id={`acquiredDate-${items.id}`}
+                          name="acquiredDate"
+                          type="date"
+                          defaultValue={formatDate(items.acquiredDate, "yyyy-MM-dd")}
+                          required
+                        />
+                      </div>
+                    </FormDialog>
+                    <DeleteButton action={deleteAsset.bind(null, items.id)} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

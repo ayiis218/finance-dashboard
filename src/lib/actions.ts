@@ -21,6 +21,17 @@ export async function createBankAccount(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function updateBankAccount(id: string, formData: FormData) {
+  const data = bankAccountSchema.parse({
+    name: formData.get("name"),
+    balance: formData.get("balance"),
+    pocketChange: formData.get("pocketChange"),
+  });
+  await prisma.bankAccount.update({ where: { id }, data });
+  revalidatePath("/accounts");
+  revalidatePath("/");
+}
+
 export async function deleteBankAccount(id: string) {
   await prisma.bankAccount.delete({ where: { id } });
   revalidatePath("/accounts");
@@ -62,9 +73,57 @@ export async function createTransaction(formData: FormData) {
   revalidatePath("/");
 }
 
-export async function deleteTransaction(id: string) {
-  await prisma.transaction.delete({ where: { id } });
+export async function updateTransaction(id: string, formData: FormData) {
+  const data = transactionSchema.parse({
+    accountId: formData.get("accountId"),
+    type: formData.get("type"),
+    category: formData.get("category"),
+    amount: formData.get("amount"),
+    date: formData.get("date"),
+    note: formData.get("note") || undefined,
+  });
+
+  await prisma.$transaction(async (tx) => {
+    const old = await tx.transaction.findUniqueOrThrow({ where: { id } });
+
+    if (old.type !== "TRANSFER") {
+      const oldDelta = old.type === "EXPENSE" ? -Number(old.amount) : Number(old.amount);
+      await tx.bankAccount.update({
+        where: { id: old.accountId },
+        data: { balance: { decrement: oldDelta } },
+      });
+    }
+
+    await tx.transaction.update({ where: { id }, data });
+
+    if (data.type !== "TRANSFER") {
+      const newDelta = data.type === "EXPENSE" ? -data.amount : data.amount;
+      await tx.bankAccount.update({
+        where: { id: data.accountId },
+        data: { balance: { increment: newDelta } },
+      });
+    }
+  });
+
   revalidatePath("/transactions");
+  revalidatePath("/accounts");
+  revalidatePath("/");
+}
+
+export async function deleteTransaction(id: string) {
+  await prisma.$transaction(async (tx) => {
+    const old = await tx.transaction.findUniqueOrThrow({ where: { id } });
+    if (old.type !== "TRANSFER") {
+      const oldDelta = old.type === "EXPENSE" ? -Number(old.amount) : Number(old.amount);
+      await tx.bankAccount.update({
+        where: { id: old.accountId },
+        data: { balance: { decrement: oldDelta } },
+      });
+    }
+    await tx.transaction.delete({ where: { id } });
+  });
+  revalidatePath("/transactions");
+  revalidatePath("/accounts");
   revalidatePath("/");
 }
 
@@ -83,6 +142,18 @@ export async function createAsset(formData: FormData) {
     acquiredDate: formData.get("acquiredDate"),
   });
   await prisma.asset.create({ data });
+  revalidatePath("/assets");
+  revalidatePath("/");
+}
+
+export async function updateAsset(id: string, formData: FormData) {
+  const data = assetSchema.parse({
+    name: formData.get("name"),
+    category: formData.get("category"),
+    value: formData.get("value"),
+    acquiredDate: formData.get("acquiredDate"),
+  });
+  await prisma.asset.update({ where: { id }, data });
   revalidatePath("/assets");
   revalidatePath("/");
 }
@@ -112,6 +183,18 @@ export async function createInvestment(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function updateInvestment(id: string, formData: FormData) {
+  const data = investmentSchema.parse({
+    platform: formData.get("platform"),
+    name: formData.get("name"),
+    buyValue: formData.get("buyValue"),
+    currentValue: formData.get("currentValue"),
+  });
+  await prisma.investment.update({ where: { id }, data });
+  revalidatePath("/investments");
+  revalidatePath("/");
+}
+
 export async function deleteInvestment(id: string) {
   await prisma.investment.delete({ where: { id } });
   revalidatePath("/investments");
@@ -135,6 +218,19 @@ export async function createReceivable(formData: FormData) {
     note: formData.get("note") || undefined,
   });
   await prisma.receivable.create({ data });
+  revalidatePath("/receivables");
+  revalidatePath("/");
+}
+
+export async function updateReceivable(id: string, formData: FormData) {
+  const data = receivableSchema.parse({
+    personName: formData.get("personName"),
+    amount: formData.get("amount"),
+    type: formData.get("type"),
+    date: formData.get("date"),
+    note: formData.get("note") || undefined,
+  });
+  await prisma.receivable.update({ where: { id }, data });
   revalidatePath("/receivables");
   revalidatePath("/");
 }
@@ -192,6 +288,18 @@ export async function createSavingsGoal(formData: FormData) {
   revalidatePath("/goals");
 }
 
+export async function updateSavingsGoal(id: string, formData: FormData) {
+  const data = savingsGoalSchema.parse({
+    name: formData.get("name"),
+    targetAmount: formData.get("targetAmount"),
+    tenorMonths: formData.get("tenorMonths"),
+    startDate: formData.get("startDate"),
+  });
+  await prisma.savingsGoal.update({ where: { id }, data });
+  revalidatePath("/goals");
+  revalidatePath(`/goals/${id}`);
+}
+
 export async function deleteSavingsGoal(id: string) {
   await prisma.savingsGoal.delete({ where: { id } });
   revalidatePath("/goals");
@@ -245,6 +353,20 @@ export async function createGoalItem(formData: FormData) {
   await prisma.goalItem.create({ data });
   await syncGoalTargetToItems(data.goalId);
   revalidatePath(`/goals/${data.goalId}`);
+  revalidatePath("/goals");
+}
+
+export async function updateGoalItem(id: string, goalId: string, formData: FormData) {
+  const data = goalItemSchema.parse({
+    goalId: formData.get("goalId"),
+    category: formData.get("category"),
+    name: formData.get("name"),
+    budgetAmount: formData.get("budgetAmount"),
+    note: formData.get("note") || undefined,
+  });
+  await prisma.goalItem.update({ where: { id }, data });
+  await syncGoalTargetToItems(goalId);
+  revalidatePath(`/goals/${goalId}`);
   revalidatePath("/goals");
 }
 

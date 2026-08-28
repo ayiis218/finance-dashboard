@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -19,6 +19,7 @@ import {
   addSavingsGoalEntry,
   createGoalItem,
   deleteGoalItem,
+  updateGoalItem,
   updateGoalItemStatus,
 } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
@@ -135,6 +136,52 @@ export default async function GoalDetailPage({
                         status={item.status}
                         onChange={updateGoalItemStatus.bind(null, item.id, goal.id)}
                       />
+                      <FormDialog
+                        title="Edit Rincian"
+                        triggerIcon={<Pencil className="size-4" />}
+                        triggerVariant="ghost"
+                        triggerSize="icon"
+                        action={updateGoalItem.bind(null, item.id, goal.id)}
+                      >
+                        <input type="hidden" name="goalId" value={goal.id} />
+                        <div className="space-y-2">
+                          <Label htmlFor={`category-${item.id}`}>Kategori</Label>
+                          <Input
+                            id={`category-${item.id}`}
+                            name="category"
+                            defaultValue={item.category}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`name-${item.id}`}>Nama Rincian</Label>
+                          <Input
+                            id={`name-${item.id}`}
+                            name="name"
+                            defaultValue={item.name}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`budgetAmount-${item.id}`}>Anggaran</Label>
+                          <Input
+                            id={`budgetAmount-${item.id}`}
+                            name="budgetAmount"
+                            type="number"
+                            defaultValue={Number(item.budgetAmount)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`note-${item.id}`}>Catatan</Label>
+                          <Input
+                            id={`note-${item.id}`}
+                            name="note"
+                            defaultValue={item.note ?? ""}
+                            placeholder="Opsional"
+                          />
+                        </div>
+                      </FormDialog>
                       <DeleteButton
                         action={deleteGoalItem.bind(null, item.id, goal.id)}
                       />

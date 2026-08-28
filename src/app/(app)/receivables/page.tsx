@@ -17,6 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Pencil } from "lucide-react";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { RepaymentDialog } from "@/components/repayment-dialog";
@@ -28,7 +29,9 @@ import {
   deleteReceivable,
   deleteRepaymentEntry,
   toggleReceivableSettled,
+  updateReceivable,
 } from "@/lib/actions";
+import { formatDate } from "date-fns";
 import { formatIDR } from "@/lib/format";
 
 const STATUS_LABEL = {
@@ -149,7 +152,68 @@ export default async function ReceivablesPage() {
                   />
                 </TableCell>
                 <TableCell className="text-center">
-                  <DeleteButton action={deleteReceivable.bind(null, r.id)} />
+                  <div className="flex items-center justify-center gap-1">
+                    <FormDialog
+                      title="Edit Piutang/Utang"
+                      triggerIcon={<Pencil className="size-4" />}
+                      triggerVariant="ghost"
+                      triggerSize="icon"
+                      action={updateReceivable.bind(null, r.id)}
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor={`personName-${r.id}`}>Nama Orang</Label>
+                        <Input
+                          id={`personName-${r.id}`}
+                          name="personName"
+                          defaultValue={r.personName}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`type-${r.id}`}>Tipe</Label>
+                        <select
+                          id={`type-${r.id}`}
+                          name="type"
+                          defaultValue={r.type}
+                          required
+                          className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                        >
+                          <option value="PIUTANG">Piutang (dia berhutang ke saya)</option>
+                          <option value="UTANG">Utang (saya berhutang ke dia)</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`amount-${r.id}`}>Jumlah</Label>
+                        <Input
+                          id={`amount-${r.id}`}
+                          name="amount"
+                          type="number"
+                          defaultValue={Number(r.amount)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`date-${r.id}`}>Tanggal</Label>
+                        <Input
+                          id={`date-${r.id}`}
+                          name="date"
+                          type="date"
+                          defaultValue={formatDate(r.date, "yyyy-MM-dd")}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`note-${r.id}`}>Catatan</Label>
+                        <Input
+                          id={`note-${r.id}`}
+                          name="note"
+                          defaultValue={r.note ?? ""}
+                          placeholder="Opsional"
+                        />
+                      </div>
+                    </FormDialog>
+                    <DeleteButton action={deleteReceivable.bind(null, r.id)} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

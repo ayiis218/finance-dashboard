@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { addMonths, format, parse, subMonths } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -24,7 +24,7 @@ import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
 import { getDistinctCategories, getTransactionsForMonth } from "@/lib/queries";
-import { createTransaction, deleteTransaction } from "@/lib/actions";
+import { createTransaction, deleteTransaction, updateTransaction } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
 import { formatDate } from "date-fns";
 
@@ -160,7 +160,86 @@ export default async function TransactionsPage({
                     {formatIDR(Number(items.amount))}
                   </TableCell>
                   <TableCell className="text-center">
-                    <DeleteButton action={deleteTransaction.bind(null, items.id)} />
+                    <div className="flex items-center justify-center gap-1">
+                      <FormDialog
+                        title="Edit Transaksi"
+                        triggerIcon={<Pencil className="size-4" />}
+                        triggerVariant="ghost"
+                        triggerSize="icon"
+                        action={updateTransaction.bind(null, items.id)}
+                      >
+                        <div className="space-y-2">
+                          <Label htmlFor={`accountId-${items.id}`}>Rekening</Label>
+                          <select
+                            id={`accountId-${items.id}`}
+                            name="accountId"
+                            defaultValue={items.accountId}
+                            required
+                            className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                          >
+                            {accounts.map((a) => (
+                              <option key={a.id} value={a.id}>
+                                {a.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`type-${items.id}`}>Tipe</Label>
+                          <select
+                            id={`type-${items.id}`}
+                            name="type"
+                            defaultValue={items.type}
+                            required
+                            className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                          >
+                            <option value="EXPENSE">Pengeluaran</option>
+                            <option value="INCOME">Pemasukan</option>
+                            <option value="TRANSFER">Transfer</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`category-${items.id}`}>Kategori</Label>
+                          <Input
+                            id={`category-${items.id}`}
+                            name="category"
+                            list="category-suggestions"
+                            defaultValue={items.category}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`amount-${items.id}`}>Jumlah</Label>
+                          <Input
+                            id={`amount-${items.id}`}
+                            name="amount"
+                            type="number"
+                            defaultValue={Number(items.amount)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`date-${items.id}`}>Tanggal</Label>
+                          <Input
+                            id={`date-${items.id}`}
+                            name="date"
+                            type="date"
+                            defaultValue={format(items.date, "yyyy-MM-dd")}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`note-${items.id}`}>Catatan</Label>
+                          <Input
+                            id={`note-${items.id}`}
+                            name="note"
+                            defaultValue={items.note ?? ""}
+                            placeholder="Opsional"
+                          />
+                        </div>
+                      </FormDialog>
+                      <DeleteButton action={deleteTransaction.bind(null, items.id)} />
+                    </div>
                   </TableCell>
                 </TableRow>
               )

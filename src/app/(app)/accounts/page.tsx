@@ -16,10 +16,11 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Pencil } from "lucide-react";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
-import { createBankAccount, deleteBankAccount } from "@/lib/actions";
+import { createBankAccount, deleteBankAccount, updateBankAccount } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
 
 export default async function AccountsPage() {
@@ -71,7 +72,45 @@ export default async function AccountsPage() {
                   {formatIDR(Number(items.pocketChange))}
                 </TableCell>
                 <TableCell className="text-center">
-                  <DeleteButton action={deleteBankAccount.bind(null, items.id)} />
+                  <div className="flex items-center justify-center gap-1">
+                    <FormDialog
+                      title="Edit Rekening"
+                      triggerIcon={<Pencil className="size-4" />}
+                      triggerVariant="ghost"
+                      triggerSize="icon"
+                      action={updateBankAccount.bind(null, items.id)}
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor={`name-${items.id}`}>Nama</Label>
+                        <Input
+                          id={`name-${items.id}`}
+                          name="name"
+                          defaultValue={items.name}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`balance-${items.id}`}>Saldo</Label>
+                        <Input
+                          id={`balance-${items.id}`}
+                          name="balance"
+                          type="number"
+                          defaultValue={Number(items.balance)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`pocketChange-${items.id}`}>Receh</Label>
+                        <Input
+                          id={`pocketChange-${items.id}`}
+                          name="pocketChange"
+                          type="number"
+                          defaultValue={Number(items.pocketChange)}
+                        />
+                      </div>
+                    </FormDialog>
+                    <DeleteButton action={deleteBankAccount.bind(null, items.id)} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

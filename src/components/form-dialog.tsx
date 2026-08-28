@@ -14,11 +14,17 @@ import {
 export function FormDialog({
   title,
   triggerLabel,
+  triggerIcon,
+  triggerVariant = "default",
+  triggerSize = "sm",
   action,
   children,
 }: {
   title: string;
-  triggerLabel: string;
+  triggerLabel?: string;
+  triggerIcon?: React.ReactNode;
+  triggerVariant?: "default" | "ghost" | "outline";
+  triggerSize?: "sm" | "icon";
   action: (formData: FormData) => Promise<void>;
   children: React.ReactNode;
 }) {
@@ -27,8 +33,8 @@ export function FormDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" />}>
-        <Plus className="size-4" />
+      <DialogTrigger render={<Button size={triggerSize} variant={triggerVariant} />}>
+        {triggerIcon ?? <Plus className="size-4" />}
         {triggerLabel}
       </DialogTrigger>
       <DialogContent>

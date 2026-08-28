@@ -11,10 +11,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
-import { createSavingsGoal, deleteSavingsGoal } from "@/lib/actions";
+import { createSavingsGoal, deleteSavingsGoal, updateSavingsGoal } from "@/lib/actions";
+import { format } from "date-fns";
 import { formatIDR } from "@/lib/format";
 
 export default async function GoalsPage() {
@@ -83,7 +85,62 @@ export default async function GoalsPage() {
                     {formatIDR(monthlyTarget)}/bulan
                   </CardDescription>
                 </div>
-                <DeleteButton action={deleteSavingsGoal.bind(null, goal.id)} />
+                <div className="flex items-center gap-1">
+                  <FormDialog
+                    title="Edit Savings Goal"
+                    triggerIcon={<Pencil className="size-4" />}
+                    triggerVariant="ghost"
+                    triggerSize="icon"
+                    action={updateSavingsGoal.bind(null, goal.id)}
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor={`name-${goal.id}`}>Nama Goal</Label>
+                      <Input
+                        id={`name-${goal.id}`}
+                        name="name"
+                        defaultValue={goal.name}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`targetAmount-${goal.id}`}>Target Dana</Label>
+                      <Input
+                        id={`targetAmount-${goal.id}`}
+                        name="targetAmount"
+                        type="number"
+                        defaultValue={target}
+                        required
+                      />
+                      {goal.items.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Goal ini punya rincian anggaran — target akan otomatis
+                          menyesuaikan lagi begitu rincian ditambah/dihapus.
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`tenorMonths-${goal.id}`}>Tenor (bulan)</Label>
+                      <Input
+                        id={`tenorMonths-${goal.id}`}
+                        name="tenorMonths"
+                        type="number"
+                        defaultValue={goal.tenorMonths}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`startDate-${goal.id}`}>Mulai Menabung</Label>
+                      <Input
+                        id={`startDate-${goal.id}`}
+                        name="startDate"
+                        type="date"
+                        defaultValue={format(goal.startDate, "yyyy-MM-dd")}
+                        required
+                      />
+                    </div>
+                  </FormDialog>
+                  <DeleteButton action={deleteSavingsGoal.bind(null, goal.id)} />
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between text-sm">

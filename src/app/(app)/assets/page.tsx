@@ -21,6 +21,7 @@ import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
 import { createAsset, deleteAsset } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
+import { formatDate } from "date-fns";
 
 export default async function AssetsPage() {
   const assets = await prisma.asset.findMany({
@@ -58,20 +59,20 @@ export default async function AssetsPage() {
               <TableHead>Kategori</TableHead>
               <TableHead>Tanggal</TableHead>
               <TableHead className="text-right">Nilai</TableHead>
-              <TableHead className="w-10" />
+              <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {assets.map((a) => (
-              <TableRow key={a.id}>
-                <TableCell>{a.name}</TableCell>
-                <TableCell>{a.category}</TableCell>
-                <TableCell>{a.acquiredDate.toLocaleDateString("id-ID")}</TableCell>
+            {assets.map((items) => (
+              <TableRow key={items.id}>
+                <TableCell>{items.name}</TableCell>
+                <TableCell>{items.category}</TableCell>
+                <TableCell>{formatDate(items.acquiredDate, "dd MMMM yyyy")}</TableCell>
                 <TableCell className="text-right">
-                  {formatIDR(Number(a.value))}
+                  {formatIDR(Number(items.value))}
                 </TableCell>
-                <TableCell>
-                  <DeleteButton action={deleteAsset.bind(null, a.id)} />
+                <TableCell className="text-center">
+                  <DeleteButton action={deleteAsset.bind(null, items.id)} />
                 </TableCell>
               </TableRow>
             ))}

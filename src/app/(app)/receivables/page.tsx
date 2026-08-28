@@ -86,7 +86,7 @@ export default async function ReceivablesPage() {
               <TableHead>Tipe</TableHead>
               <TableHead className="text-right">Jumlah</TableHead>
               <TableHead>Lunas</TableHead>
-              <TableHead className="w-10" />
+              <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -107,7 +107,7 @@ export default async function ReceivablesPage() {
                     action={toggleReceivableSettled.bind(null, r.id)}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   <DeleteButton action={deleteReceivable.bind(null, r.id)} />
                 </TableCell>
               </TableRow>

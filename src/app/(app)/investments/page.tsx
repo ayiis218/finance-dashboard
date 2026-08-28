@@ -24,7 +24,7 @@ import { formatIDR } from "@/lib/format";
 
 export default async function InvestmentsPage() {
   const investments = await prisma.investment.findMany({
-    orderBy: { createdAt: "asc" },
+    orderBy: { platform: "asc" },
   });
 
   return (
@@ -63,18 +63,18 @@ export default async function InvestmentsPage() {
               <TableHead className="text-right">Nilai Beli</TableHead>
               <TableHead className="text-right">Nilai Sekarang</TableHead>
               <TableHead className="text-right">Return</TableHead>
-              <TableHead className="w-10" />
+              <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {investments.map((i) => {
-              const buy = Number(i.buyValue);
-              const current = Number(i.currentValue);
+            {investments.map((items) => {
+              const buy = Number(items.buyValue);
+              const current = Number(items.currentValue);
               const returnValue = current - buy;
               return (
-                <TableRow key={i.id}>
-                  <TableCell>{i.platform}</TableCell>
-                  <TableCell>{i.name}</TableCell>
+                <TableRow key={items.id}>
+                  <TableCell>{items.platform}</TableCell>
+                  <TableCell>{items.name}</TableCell>
                   <TableCell className="text-right">{formatIDR(buy)}</TableCell>
                   <TableCell className="text-right">{formatIDR(current)}</TableCell>
                   <TableCell
@@ -86,8 +86,8 @@ export default async function InvestmentsPage() {
                     {returnValue >= 0 ? "+" : ""}
                     {formatIDR(returnValue)}
                   </TableCell>
-                  <TableCell>
-                    <DeleteButton action={deleteInvestment.bind(null, i.id)} />
+                  <TableCell className="text-center">
+                    <DeleteButton action={deleteInvestment.bind(null, items.id)} />
                   </TableCell>
                 </TableRow>
               );

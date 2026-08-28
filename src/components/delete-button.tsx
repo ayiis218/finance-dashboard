@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function DeleteButton({ action }: { action: () => Promise<void> }) {
+export function DeleteButton({ action }: Readonly<{ action: () => Promise<void> }>) {
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -14,7 +14,7 @@ export function DeleteButton({ action }: { action: () => Promise<void> }) {
       disabled={isPending}
       onClick={() => startTransition(() => action())}
     >
-      <Trash2 className="size-4 text-muted-foreground" />
+      <Trash2 className="size-4 text-muted-foreground text-red-500" />
     </Button>
   );
 }

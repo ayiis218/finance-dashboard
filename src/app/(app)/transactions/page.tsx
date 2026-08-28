@@ -21,6 +21,7 @@ import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
 import { createTransaction, deleteTransaction } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
+import { formatDate } from "date-fns";
 
 export default async function TransactionsPage() {
   const [transactions, accounts] = await Promise.all([
@@ -101,31 +102,36 @@ export default async function TransactionsPage() {
               <TableHead>Rekening</TableHead>
               <TableHead>Kategori</TableHead>
               <TableHead className="text-right">Jumlah</TableHead>
-              <TableHead className="w-10" />
+              <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((t) => (
-              <TableRow key={t.id}>
-                <TableCell>
-                  {t.date.toLocaleDateString("id-ID")}
-                </TableCell>
-                <TableCell>{t.account.name}</TableCell>
-                <TableCell>{t.category}</TableCell>
-                <TableCell
-                  className={
-                    "text-right " +
-                    (t.type === "INCOME" ? "text-green-600" : "text-red-600")
-                  }
-                >
-                  {t.type === "INCOME" ? "+" : "-"}
-                  {formatIDR(Number(t.amount))}
-                </TableCell>
-                <TableCell>
-                  <DeleteButton action={deleteTransaction.bind(null, t.id)} />
-                </TableCell>
-              </TableRow>
-            ))}
+            {transactions.map((items) => {
+              const category = items?.note
+                ? `${items.category} - ${items.note}`
+                : items.category;
+              return (
+                <TableRow key={items.id}>
+                  <TableCell>
+                    {formatDate(items.date, "dd MMMM yyyy")}
+                  </TableCell>
+                  <TableCell>{items.account.name}</TableCell>
+                  <TableCell>{category}</TableCell>
+                  <TableCell
+                    className={
+                      "text-right " +
+                      (items.type === "INCOME" ? "text-green-600" : "text-red-600")
+                    }
+                  >
+                    {items.type === "INCOME" ? "+" : "-"}
+                    {formatIDR(Number(items.amount))}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <DeleteButton action={deleteTransaction.bind(null, items.id)} />
+                  </TableCell>
+                </TableRow>
+              )
+            })}
             {transactions.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground">

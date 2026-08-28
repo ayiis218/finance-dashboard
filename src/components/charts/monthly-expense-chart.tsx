@@ -19,9 +19,9 @@ function formatCompact(value: number) {
 
 export function MonthlyExpenseChart({
   data,
-}: {
+}: Readonly<{
   data: { month: string; total: number }[];
-}) {
+}>) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <BarChart data={data}>

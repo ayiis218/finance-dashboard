@@ -98,22 +98,27 @@ export default async function DashboardPage() {
                   Belum ada transaksi hari ini.
                 </p>
               )}
-              {daily.transactions.map((t) => (
-                <div
-                  key={t.id}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span>{t.category}</span>
-                  <span
-                    className={
-                      t.type === "INCOME" ? "text-green-600" : "text-red-600"
-                    }
+              {daily.transactions.map((items) => {
+                const category = items?.note
+                  ? `${items.category} - ${items.note}`
+                  : items.category;
+                return (
+                  <div
+                    key={items.id}
+                    className="flex items-center justify-between text-sm"
                   >
-                    {t.type === "INCOME" ? "+" : "-"}
-                    {formatIDR(Number(t.amount))}
-                  </span>
-                </div>
-              ))}
+                    <span>{category}</span>
+                    <span
+                      className={
+                        items.type === "INCOME" ? "text-green-600" : "text-red-600"
+                      }
+                    >
+                      {items.type === "INCOME" ? "+" : "-"}
+                      {formatIDR(Number(items.amount))}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </CardContent>
         </Card>

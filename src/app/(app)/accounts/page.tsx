@@ -24,7 +24,7 @@ import { formatIDR } from "@/lib/format";
 
 export default async function AccountsPage() {
   const accounts = await prisma.bankAccount.findMany({
-    orderBy: { createdAt: "asc" },
+    orderBy: { name: "asc" },
   });
 
   return (
@@ -52,26 +52,26 @@ export default async function AccountsPage() {
       </CardHeader>
       <CardContent>
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-muted rounded-t-lg">
             <TableRow>
               <TableHead>Nama</TableHead>
               <TableHead className="text-right">Saldo</TableHead>
               <TableHead className="text-right">Receh</TableHead>
-              <TableHead className="w-10" />
+              <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {accounts.map((a) => (
-              <TableRow key={a.id}>
-                <TableCell>{a.name}</TableCell>
+            {accounts.map((items) => (
+              <TableRow key={items.id}>
+                <TableCell>{items.name}</TableCell>
                 <TableCell className="text-right">
-                  {formatIDR(Number(a.balance))}
+                  {formatIDR(Number(items.balance))}
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatIDR(Number(a.pocketChange))}
+                  {formatIDR(Number(items.pocketChange))}
                 </TableCell>
-                <TableCell>
-                  <DeleteButton action={deleteBankAccount.bind(null, a.id)} />
+                <TableCell className="text-center">
+                  <DeleteButton action={deleteBankAccount.bind(null, items.id)} />
                 </TableCell>
               </TableRow>
             ))}

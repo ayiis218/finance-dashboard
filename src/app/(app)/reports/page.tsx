@@ -7,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MonthlyExpenseChart } from "@/components/charts/monthly-expense-chart";
-import { BreakdownPieChart } from "@/components/charts/breakdown-pie-chart";
+import { MonthlyExpenseChartLazy } from "@/components/charts/monthly-expense-chart-lazy";
+import { BreakdownPieChartLazy } from "@/components/charts/breakdown-pie-chart-lazy";
 import {
   getExpenseByCategory,
   getInvestmentAllocation,
@@ -24,25 +24,25 @@ export default async function ReportsPage() {
     ]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
       <Card>
-        <CardHeader>
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
           <CardTitle>Perbandingan Pengeluaran Bulanan</CardTitle>
           <CardDescription>12 bulan terakhir</CardDescription>
         </CardHeader>
         <CardContent>
-          <MonthlyExpenseChart data={monthlyExpense} />
+          <MonthlyExpenseChartLazy data={monthlyExpense} />
         </CardContent>
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader>
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
             <CardTitle>Pengeluaran per Kategori</CardTitle>
             <CardDescription>Bulan ini</CardDescription>
           </CardHeader>
           <CardContent>
-            <BreakdownPieChart
+            <BreakdownPieChartLazy
               data={expenseByCategory.map((c) => ({
                 name: c.category,
                 value: c.total,
@@ -52,12 +52,12 @@ export default async function ReportsPage() {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
             <CardTitle>Alokasi Investasi</CardTitle>
             <CardDescription>Berdasarkan platform</CardDescription>
           </CardHeader>
           <CardContent>
-            <BreakdownPieChart
+            <BreakdownPieChartLazy
               data={investmentAllocation.map((i) => ({
                 name: i.platform,
                 value: i.total,

@@ -10,6 +10,8 @@ import {
   TrendingUp,
   PiggyBank,
   BarChart3,
+  ClipboardList,
+  LineChart,
 } from "lucide-react";
 import {
   Sidebar,
@@ -31,6 +33,8 @@ const navItems = [
   { title: "Piutang/Utang", url: "/receivables", icon: HandCoins },
   { title: "Investasi", url: "/investments", icon: TrendingUp },
   { title: "Savings Goal", url: "/goals", icon: PiggyBank },
+  { title: "Budget", url: "/budget", icon: ClipboardList },
+  { title: "Cashflow Forecast", url: "/cashflow", icon: LineChart },
   { title: "Laporan", url: "/reports", icon: BarChart3 },
 ];
 
@@ -40,7 +44,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="px-2 py-1.5 text-sm font-semibold">
+        <div className="bg-brand-gradient rounded-lg px-3 py-2.5 text-sm font-semibold text-white">
           Finance Dashboard
         </div>
       </SidebarHeader>

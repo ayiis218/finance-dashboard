@@ -13,9 +13,9 @@ const COLORS = [
 
 export function BreakdownPieChart({
   data,
-}: {
+}: Readonly<{
   data: { name: string; value: number }[];
-}) {
+}>) {
   if (data.length === 0) {
     return (
       <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">

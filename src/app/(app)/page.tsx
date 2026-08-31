@@ -8,8 +8,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MonthlyExpenseChart } from "@/components/charts/monthly-expense-chart";
+import { MonthlyExpenseChartLazy } from "@/components/charts/monthly-expense-chart-lazy";
 import {
+  getBudgetOverview,
   getDailySummary,
   getMonthlyExpenseComparison,
   getSummary,
@@ -17,10 +18,11 @@ import {
 import { formatIDR } from "@/lib/format";
 
 export default async function DashboardPage() {
-  const [summary, daily, monthlyExpense] = await Promise.all([
+  const [summary, daily, monthlyExpense, budgetOverview] = await Promise.all([
     getSummary(),
     getDailySummary(),
     getMonthlyExpenseComparison(),
+    getBudgetOverview(new Date()),
   ]);
 
   const summaryCards = [
@@ -28,45 +30,55 @@ export default async function DashboardPage() {
     { label: "Total Aset", value: summary.totalAset },
     { label: "Total Investasi", value: summary.totalInvestasi },
     { label: "Total Utang", value: summary.totalUtang },
+    {
+      label: "Sisa Anggaran Bulan Ini",
+      value: budgetOverview.totals.planned - budgetOverview.totals.actual,
+    },
     { label: "Net Worth", value: summary.netWorth, highlight: true },
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {summaryCards.map((card) => (
-          <Card key={card.label}>
-            <CardHeader className="pb-2">
-              <CardDescription>{card.label}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p
-                className={
-                  card.highlight
-                    ? "text-2xl font-semibold text-primary"
-                    : "text-2xl font-semibold"
-                }
-              >
-                {formatIDR(card.value)}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+    <div className="space-y-6 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+        {summaryCards.map((card) =>
+          card.highlight ? (
+            <Card key={card.label} className="bg-brand-gradient border-none text-white">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-white/80">{card.label}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">{formatIDR(card.value)}</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card
+              key={card.label}
+              className="bg-gradient-to-br from-primary/5 via-card to-accent/10"
+            >
+              <CardHeader className="pb-2">
+                <CardDescription>{card.label}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">{formatIDR(card.value)}</p>
+              </CardContent>
+            </Card>
+          ),
+        )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader>
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
             <CardTitle>Perbandingan Pengeluaran Bulanan</CardTitle>
             <CardDescription>6 bulan terakhir</CardDescription>
           </CardHeader>
           <CardContent>
-            <MonthlyExpenseChart data={monthlyExpense} />
+            <MonthlyExpenseChartLazy data={monthlyExpense} />
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
             <CardTitle>Ringkasan Hari Ini</CardTitle>
             <CardDescription>
               {new Date().toLocaleDateString("id-ID", {
@@ -98,22 +110,27 @@ export default async function DashboardPage() {
                   Belum ada transaksi hari ini.
                 </p>
               )}
-              {daily.transactions.map((t) => (
-                <div
-                  key={t.id}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span>{t.category}</span>
-                  <span
-                    className={
-                      t.type === "INCOME" ? "text-green-600" : "text-red-600"
-                    }
+              {daily.transactions.map((items) => {
+                const category = items?.note
+                  ? `${items.category} - ${items.note}`
+                  : items.category;
+                return (
+                  <div
+                    key={items.id}
+                    className="flex items-center justify-between text-sm"
                   >
-                    {t.type === "INCOME" ? "+" : "-"}
-                    {formatIDR(Number(t.amount))}
-                  </span>
-                </div>
-              ))}
+                    <span>{category}</span>
+                    <span
+                      className={
+                        items.type === "INCOME" ? "text-green-600" : "text-red-600"
+                      }
+                    >
+                      {items.type === "INCOME" ? "+" : "-"}
+                      {formatIDR(Number(items.amount))}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </CardContent>
         </Card>

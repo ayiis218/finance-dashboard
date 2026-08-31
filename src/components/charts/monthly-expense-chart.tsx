@@ -19,12 +19,18 @@ function formatCompact(value: number) {
 
 export function MonthlyExpenseChart({
   data,
-}: {
+}: Readonly<{
   data: { month: string; total: number }[];
-}) {
+}>) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <BarChart data={data}>
+        <defs>
+          <linearGradient id="expenseBarGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--chart-1)" />
+            <stop offset="100%" stopColor="var(--chart-2)" />
+          </linearGradient>
+        </defs>
         <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
         <XAxis
           dataKey="month"
@@ -50,7 +56,7 @@ export function MonthlyExpenseChart({
           ]}
           cursor={{ fill: "var(--muted)" }}
         />
-        <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="total" fill="url(#expenseBarGradient)" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

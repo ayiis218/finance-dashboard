@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { startOfDay, endOfDay, startOfMonth, subMonths } from "date-fns";
+import { startOfDay, endOfDay, startOfMonth, endOfMonth, subMonths } from "date-fns";
 
 function toNumber(value: unknown): number {
   return value === null || value === undefined ? 0 : Number(value);
@@ -10,7 +10,7 @@ export async function getSummary() {
     prisma.bankAccount.findMany(),
     prisma.asset.findMany(),
     prisma.investment.findMany(),
-    prisma.receivable.findMany({ where: { isSettled: false } }),
+    getReceivablesWithStatus(),
   ]);
 
   const totalSaldo = accounts.reduce(
@@ -22,12 +22,13 @@ export async function getSummary() {
     (sum, i) => sum + toNumber(i.currentValue),
     0,
   );
-  const totalUtang = receivables
+  const outstanding = receivables.filter((r) => r.status !== "LUNAS");
+  const totalUtang = outstanding
     .filter((r) => r.type === "UTANG")
-    .reduce((sum, r) => sum + toNumber(r.amount), 0);
-  const totalPiutang = receivables
+    .reduce((sum, r) => sum + r.remaining, 0);
+  const totalPiutang = outstanding
     .filter((r) => r.type === "PIUTANG")
-    .reduce((sum, r) => sum + toNumber(r.amount), 0);
+    .reduce((sum, r) => sum + r.remaining, 0);
 
   const netWorth =
     totalSaldo + totalAset + totalInvestasi + totalPiutang - totalUtang;
@@ -93,6 +94,156 @@ export async function getInvestmentAllocation() {
     platform,
     total,
   }));
+}
+
+export async function getGoalDetail(id: string) {
+  const goal = await prisma.savingsGoal.findUniqueOrThrow({
+    where: { id },
+    include: {
+      items: { orderBy: { createdAt: "asc" } },
+      entries: { orderBy: { month: "desc" } },
+    },
+  });
+
+  const itemsByCategory = new Map<
+    string,
+    { category: string; items: typeof goal.items; total: number }
+  >();
+  for (const item of goal.items) {
+    const bucket = itemsByCategory.get(item.category) ?? {
+      category: item.category,
+      items: [],
+      total: 0,
+    };
+    bucket.items.push(item);
+    bucket.total += toNumber(item.budgetAmount);
+    itemsByCategory.set(item.category, bucket);
+  }
+
+  const totalSaved = goal.entries.reduce(
+    (sum, e) => sum + toNumber(e.amount),
+    0,
+  );
+  const totalBudgeted = goal.items.reduce(
+    (sum, i) => sum + toNumber(i.budgetAmount),
+    0,
+  );
+
+  return {
+    goal,
+    categories: Array.from(itemsByCategory.values()),
+    totalSaved,
+    totalBudgeted,
+  };
+}
+
+export type ReceivableStatus = "BELUM_LUNAS" | "CICILAN_BERJALAN" | "LUNAS";
+
+export async function getReceivablesWithStatus() {
+  const receivables = await prisma.receivable.findMany({
+    include: { payments: { orderBy: { date: "desc" } } },
+    orderBy: [{ isSettled: "asc" }, { date: "desc" }],
+  });
+
+  return receivables.map((r) => {
+    const amount = toNumber(r.amount);
+    const totalPaid = r.payments.reduce((sum, p) => sum + toNumber(p.amount), 0);
+    const remaining = Math.max(0, amount - totalPaid);
+    let status: ReceivableStatus = "BELUM_LUNAS";
+    if (r.isSettled || totalPaid >= amount) status = "LUNAS";
+    else if (totalPaid > 0) status = "CICILAN_BERJALAN";
+
+    return { ...r, totalPaid, remaining, status };
+  });
+}
+
+export async function getDistinctCategories() {
+  const rows = await prisma.transaction.findMany({
+    select: { category: true },
+    distinct: ["category"],
+    orderBy: { category: "asc" },
+  });
+  return rows.map((r) => r.category);
+}
+
+export async function getLatestTransaction() {
+  return prisma.transaction.findFirst({
+    orderBy: { date: "desc" },
+    include: { account: true },
+  });
+}
+
+export async function getTransactionsForMonth(month: Date) {
+  const start = startOfMonth(month);
+  const end = endOfMonth(month);
+  return prisma.transaction.findMany({
+    where: { date: { gte: start, lte: end } },
+    include: { account: true },
+    orderBy: { date: "desc" },
+  });
+}
+
+export async function getBudgetCategories() {
+  return prisma.budgetCategory.findMany({ orderBy: { name: "asc" } });
+}
+
+export async function getBudgetOverview(month: Date) {
+  const start = startOfMonth(month);
+  const categories = await prisma.budgetCategory.findMany({
+    orderBy: { name: "asc" },
+    include: { entries: { where: { month: start } } },
+  });
+
+  const rows = categories.map((c) => {
+    const entry = c.entries[0] ?? null;
+    const actual = entry ? toNumber(entry.actual) : 0;
+    const expectation = entry ? toNumber(entry.expectation) : 0;
+    return {
+      categoryId: c.id,
+      categoryName: c.name,
+      monthlyPlanned: toNumber(c.monthlyPlanned),
+      entryId: entry?.id ?? null,
+      actual,
+      expectation,
+      variance: actual - expectation,
+      minTarget: entry?.minTarget != null ? toNumber(entry.minTarget) : null,
+      maxTarget: entry?.maxTarget != null ? toNumber(entry.maxTarget) : null,
+    };
+  });
+
+  const totals = rows.reduce(
+    (acc, r) => ({
+      planned: acc.planned + r.monthlyPlanned,
+      actual: acc.actual + r.actual,
+      expectation: acc.expectation + r.expectation,
+    }),
+    { planned: 0, actual: 0, expectation: 0 },
+  );
+
+  return { month: start, rows, totals };
+}
+
+export async function getCashflowForecasts() {
+  const forecasts = await prisma.cashflowForecast.findMany({
+    orderBy: { month: "desc" },
+  });
+  return forecasts.map((f) => {
+    const saldoAkhirActual =
+      f.saldoAkhirActual != null ? toNumber(f.saldoAkhirActual) : null;
+    const saldoAkhirExpected =
+      f.saldoAkhirExpected != null ? toNumber(f.saldoAkhirExpected) : null;
+    return {
+      id: f.id,
+      month: f.month,
+      saldoAwal: toNumber(f.saldoAwal),
+      saldoAkhirActual,
+      saldoAkhirExpected,
+      selisih:
+        saldoAkhirActual != null && saldoAkhirExpected != null
+          ? saldoAkhirActual - saldoAkhirExpected
+          : null,
+    };
+  });
 }
 
 export async function getMonthlyExpenseComparison(months = 6) {

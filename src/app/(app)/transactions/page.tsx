@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { addMonths, format, parse, subMonths } from "date-fns";
-import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Upload } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -22,8 +22,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
+import { SummaryStats } from "@/components/summary-stats";
 import { prisma } from "@/lib/prisma";
-import { getDistinctCategories, getTransactionsForMonth } from "@/lib/queries";
+import {
+  getDistinctCategories,
+  getLatestTransaction,
+  getTransactionsForMonth,
+} from "@/lib/queries";
 import { createTransaction, deleteTransaction, updateTransaction } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
 import { formatDate } from "date-fns";
@@ -34,24 +39,56 @@ export default async function TransactionsPage({
   const { month: monthParam } = await searchParams;
   const month = monthParam ? parse(monthParam, "yyyy-MM", new Date()) : new Date();
 
-  const [transactions, accounts, categories] = await Promise.all([
+  const [transactions, accounts, categories, latestTransaction] = await Promise.all([
     getTransactionsForMonth(month),
     prisma.bankAccount.findMany(),
     getDistinctCategories(),
+    getLatestTransaction(),
   ]);
 
   const prevMonth = format(subMonths(month, 1), "yyyy-MM");
   const nextMonth = format(addMonths(month, 1), "yyyy-MM");
 
+  const monthlyIncome = transactions
+    .filter((t) => t.type === "INCOME")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+  const monthlyExpense = transactions
+    .filter((t) => t.type === "EXPENSE")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const summaryItems = [
+    { label: "Pemasukan Bulan Ini", value: formatIDR(monthlyIncome), tone: "positive" as const },
+    { label: "Pengeluaran Bulan Ini", value: formatIDR(monthlyExpense), tone: "negative" as const },
+    {
+      label: "Selisih Bulan Ini",
+      value: formatIDR(monthlyIncome - monthlyExpense),
+      tone: "highlight" as const,
+    },
+    latestTransaction
+      ? {
+          label: "Transaksi Terakhir",
+          value: formatIDR(Number(latestTransaction.amount)),
+          sublabel: `${latestTransaction.category} · ${formatDate(latestTransaction.date, "dd MMM yyyy")}`,
+        }
+      : { label: "Transaksi Terakhir", value: "-", sublabel: "Belum ada transaksi" },
+  ];
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+      <SummaryStats items={summaryItems} />
+      <Card>
+      <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
         <CardTitle>Transaksi</CardTitle>
-        <FormDialog
-          title="Tambah Transaksi"
-          triggerLabel="Tambah"
-          action={createTransaction}
-        >
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" render={<Link href="/transactions/import" />}>
+            <Upload className="size-4" />
+            Import CSV
+          </Button>
+          <FormDialog
+            title="Tambah Transaksi"
+            triggerLabel="Tambah"
+            action={createTransaction}
+          >
           <div className="space-y-2">
             <Label htmlFor="accountId">Rekening</Label>
             <select
@@ -113,7 +150,8 @@ export default async function TransactionsPage({
             <Label htmlFor="note">Catatan</Label>
             <Input id="note" name="note" placeholder="Opsional" />
           </div>
-        </FormDialog>
+          </FormDialog>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="mb-4 flex items-center justify-center gap-3">
@@ -254,6 +292,7 @@ export default async function TransactionsPage({
           </TableBody>
         </Table>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }

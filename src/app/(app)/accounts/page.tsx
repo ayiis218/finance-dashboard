@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Pencil } from "lucide-react";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
+import { SummaryStats } from "@/components/summary-stats";
 import { prisma } from "@/lib/prisma";
 import { createBankAccount, deleteBankAccount, updateBankAccount } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
@@ -28,9 +29,21 @@ export default async function AccountsPage() {
     orderBy: { name: "asc" },
   });
 
+  const totalSaldo = accounts.reduce((sum, a) => sum + Number(a.balance), 0);
+  const totalReceh = accounts.reduce((sum, a) => sum + Number(a.pocketChange), 0);
+
+  const summaryItems = [
+    { label: "Total Saldo", value: formatIDR(totalSaldo) },
+    { label: "Total Receh", value: formatIDR(totalReceh) },
+    { label: "Grand Total", value: formatIDR(totalSaldo + totalReceh), tone: "highlight" as const },
+    { label: "Jumlah Rekening", value: String(accounts.length) },
+  ];
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+      <SummaryStats items={summaryItems} />
+      <Card>
+      <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
         <CardTitle>Rekening &amp; Cash</CardTitle>
         <FormDialog
           title="Tambah Rekening"
@@ -124,6 +137,7 @@ export default async function AccountsPage() {
           </TableBody>
         </Table>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }

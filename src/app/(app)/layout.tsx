@@ -11,7 +11,7 @@ export default function AppLayout({ children }: Readonly<{ children: React.React
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-gradient-to-r from-primary/5 via-transparent to-accent/10 px-4">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-4" />
           <span className="text-sm font-medium">Finance Dashboard</span>

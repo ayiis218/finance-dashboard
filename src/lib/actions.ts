@@ -127,6 +127,67 @@ export async function deleteTransaction(id: string) {
   revalidatePath("/");
 }
 
+const importRowSchema = z.object({
+  accountId: z.string().min(1),
+  type: z.enum(["INCOME", "EXPENSE", "TRANSFER"]),
+  category: z.string().min(1),
+  amount: z.coerce.number().positive(),
+  date: z.coerce.date(),
+  note: z.string().optional(),
+});
+
+const importRowsSchema = z.array(importRowSchema).min(1).max(2000);
+
+export async function importTransactions(
+  rows: z.infer<typeof importRowSchema>[],
+  options?: { skipBalanceUpdate?: boolean },
+) {
+  const data = importRowsSchema.parse(rows);
+  const skipBalanceUpdate = options?.skipBalanceUpdate ?? false;
+
+  const accountIds = [...new Set(data.map((r) => r.accountId))];
+  const accounts = await prisma.bankAccount.findMany({
+    where: { id: { in: accountIds } },
+  });
+  if (accounts.length !== accountIds.length) {
+    throw new Error("Beberapa rekening pada data import tidak ditemukan.");
+  }
+
+  const deltaByAccount = new Map<string, number>();
+  if (!skipBalanceUpdate) {
+    for (const r of data) {
+      if (r.type === "TRANSFER") continue;
+      const delta = r.type === "EXPENSE" ? -r.amount : r.amount;
+      deltaByAccount.set(r.accountId, (deltaByAccount.get(r.accountId) ?? 0) + delta);
+    }
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.transaction.createMany({
+      data: data.map((r) => ({
+        accountId: r.accountId,
+        type: r.type,
+        category: r.category,
+        amount: r.amount,
+        date: r.date,
+        note: r.note,
+      })),
+    });
+    for (const [accountId, delta] of deltaByAccount) {
+      await tx.bankAccount.update({
+        where: { id: accountId },
+        data: { balance: { increment: delta } },
+      });
+    }
+  });
+
+  revalidatePath("/transactions");
+  revalidatePath("/accounts");
+  revalidatePath("/");
+
+  return { imported: data.length };
+}
+
 const assetSchema = z.object({
   name: z.string().min(1),
   category: z.string().min(1),
@@ -268,6 +329,123 @@ export async function createRepaymentEntry(formData: FormData) {
 export async function deleteRepaymentEntry(id: string) {
   await prisma.repaymentEntry.delete({ where: { id } });
   revalidatePath("/receivables");
+}
+
+const budgetCategorySchema = z.object({
+  name: z.string().min(1),
+  monthlyPlanned: z.coerce.number().nonnegative(),
+});
+
+export async function createBudgetCategory(formData: FormData) {
+  const data = budgetCategorySchema.parse({
+    name: formData.get("name"),
+    monthlyPlanned: formData.get("monthlyPlanned"),
+  });
+  await prisma.budgetCategory.create({ data });
+  revalidatePath("/budget");
+  revalidatePath("/");
+}
+
+export async function updateBudgetCategory(id: string, formData: FormData) {
+  const data = budgetCategorySchema.parse({
+    name: formData.get("name"),
+    monthlyPlanned: formData.get("monthlyPlanned"),
+  });
+  await prisma.budgetCategory.update({ where: { id }, data });
+  revalidatePath("/budget");
+  revalidatePath("/");
+}
+
+export async function deleteBudgetCategory(id: string) {
+  await prisma.budgetCategory.delete({ where: { id } });
+  revalidatePath("/budget");
+  revalidatePath("/");
+}
+
+const budgetEntrySchema = z.object({
+  categoryId: z.string().min(1),
+  month: z.coerce.date(),
+  actual: z.coerce.number().nonnegative(),
+  expectation: z.coerce.number().nonnegative(),
+  minTarget: z.coerce.number().nonnegative().optional(),
+  maxTarget: z.coerce.number().nonnegative().optional(),
+});
+
+const budgetEntryUpdateSchema = budgetEntrySchema.omit({
+  categoryId: true,
+  month: true,
+});
+
+export async function createBudgetEntry(formData: FormData) {
+  const data = budgetEntrySchema.parse({
+    categoryId: formData.get("categoryId"),
+    month: formData.get("month"),
+    actual: formData.get("actual"),
+    expectation: formData.get("expectation"),
+    minTarget: formData.get("minTarget") || undefined,
+    maxTarget: formData.get("maxTarget") || undefined,
+  });
+  await prisma.budgetEntry.create({ data });
+  revalidatePath("/budget");
+  revalidatePath("/");
+}
+
+export async function updateBudgetEntry(id: string, formData: FormData) {
+  const data = budgetEntryUpdateSchema.parse({
+    actual: formData.get("actual"),
+    expectation: formData.get("expectation"),
+    minTarget: formData.get("minTarget") || undefined,
+    maxTarget: formData.get("maxTarget") || undefined,
+  });
+  await prisma.budgetEntry.update({ where: { id }, data });
+  revalidatePath("/budget");
+  revalidatePath("/");
+}
+
+export async function deleteBudgetEntry(id: string) {
+  await prisma.budgetEntry.delete({ where: { id } });
+  revalidatePath("/budget");
+  revalidatePath("/");
+}
+
+const cashflowForecastSchema = z.object({
+  month: z.coerce.date(),
+  saldoAwal: z.coerce.number(),
+  saldoAkhirActual: z.coerce.number().optional(),
+  saldoAkhirExpected: z.coerce.number().optional(),
+});
+
+const cashflowForecastUpdateSchema = cashflowForecastSchema.omit({
+  month: true,
+});
+
+export async function createCashflowForecast(formData: FormData) {
+  const data = cashflowForecastSchema.parse({
+    month: formData.get("month"),
+    saldoAwal: formData.get("saldoAwal"),
+    saldoAkhirActual: formData.get("saldoAkhirActual") || undefined,
+    saldoAkhirExpected: formData.get("saldoAkhirExpected") || undefined,
+  });
+  await prisma.cashflowForecast.create({ data });
+  revalidatePath("/cashflow");
+  revalidatePath("/");
+}
+
+export async function updateCashflowForecast(id: string, formData: FormData) {
+  const data = cashflowForecastUpdateSchema.parse({
+    saldoAwal: formData.get("saldoAwal"),
+    saldoAkhirActual: formData.get("saldoAkhirActual") || undefined,
+    saldoAkhirExpected: formData.get("saldoAkhirExpected") || undefined,
+  });
+  await prisma.cashflowForecast.update({ where: { id }, data });
+  revalidatePath("/cashflow");
+  revalidatePath("/");
+}
+
+export async function deleteCashflowForecast(id: string) {
+  await prisma.cashflowForecast.delete({ where: { id } });
+  revalidatePath("/cashflow");
+  revalidatePath("/");
 }
 
 const savingsGoalSchema = z.object({

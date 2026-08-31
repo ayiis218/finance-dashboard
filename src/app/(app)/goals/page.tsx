@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
+import { SummaryStats } from "@/components/summary-stats";
 import { prisma } from "@/lib/prisma";
 import { createSavingsGoal, deleteSavingsGoal, updateSavingsGoal } from "@/lib/actions";
 import { format } from "date-fns";
@@ -25,15 +26,35 @@ export default async function GoalsPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  const totalTarget = goals.reduce((sum, g) => sum + Number(g.targetAmount), 0);
+  const totalSaved = goals.reduce(
+    (sum, g) => sum + g.entries.reduce((s, e) => s + Number(e.amount), 0),
+    0,
+  );
+  const overallProgress = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+
+  const summaryItems = [
+    { label: "Total Target Semua Goal", value: formatIDR(totalTarget) },
+    {
+      label: "Total Tertabung",
+      value: formatIDR(totalSaved),
+      sublabel: `${overallProgress.toFixed(1)}% dari target`,
+      tone: "highlight" as const,
+    },
+    { label: "Jumlah Goal Aktif", value: String(goals.length) },
+  ];
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+      <SummaryStats items={summaryItems} />
+      <div className="bg-brand-gradient flex items-center justify-between rounded-lg px-4 py-3 text-white">
         <h1 className="text-lg font-semibold">
           Savings Goal (Wedding, Eid, dll)
         </h1>
         <FormDialog
           title="Tambah Savings Goal"
           triggerLabel="Tambah Goal"
+          triggerVariant="outline"
           action={createSavingsGoal}
         >
           <div className="space-y-2">

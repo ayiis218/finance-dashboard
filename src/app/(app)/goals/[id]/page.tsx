@@ -33,7 +33,7 @@ export default async function GoalDetailPage({
   const progress = target > 0 ? Math.min(100, (totalSaved / target) * 100) : 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
       <Link
         href="/goals"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"

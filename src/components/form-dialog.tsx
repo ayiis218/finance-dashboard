@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -45,8 +46,13 @@ export function FormDialog({
           className="space-y-4"
           action={(formData) => {
             startTransition(async () => {
-              await action(formData);
-              setOpen(false);
+              try {
+                await action(formData);
+                toast.success("Berhasil disimpan");
+                setOpen(false);
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Gagal menyimpan");
+              }
             });
           }}
         >

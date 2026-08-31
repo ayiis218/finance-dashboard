@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Pencil } from "lucide-react";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
+import { SummaryStats } from "@/components/summary-stats";
 import { prisma } from "@/lib/prisma";
 import { createAsset, deleteAsset, updateAsset } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
@@ -29,9 +30,26 @@ export default async function AssetsPage() {
     orderBy: { acquiredDate: "desc" },
   });
 
+  const totalValue = assets.reduce((sum, a) => sum + Number(a.value), 0);
+  const latest = assets[0];
+
+  const summaryItems = [
+    { label: "Total Nilai Aset", value: formatIDR(totalValue), tone: "highlight" as const },
+    { label: "Jumlah Aset", value: String(assets.length) },
+    latest
+      ? {
+          label: "Aset Terbaru",
+          value: latest.name,
+          sublabel: `${formatIDR(Number(latest.value))} · ${formatDate(latest.acquiredDate, "dd MMM yyyy")}`,
+        }
+      : { label: "Aset Terbaru", value: "-", sublabel: "Belum ada aset" },
+  ];
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+      <SummaryStats items={summaryItems} />
+      <Card>
+      <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
         <CardTitle>Aset</CardTitle>
         <FormDialog title="Tambah Aset" triggerLabel="Tambah" action={createAsset}>
           <div className="space-y-2">
@@ -135,6 +153,7 @@ export default async function AssetsPage() {
           </TableBody>
         </Table>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }

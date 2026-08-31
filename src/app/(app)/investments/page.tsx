@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Pencil } from "lucide-react";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
+import { SummaryStats } from "@/components/summary-stats";
 import { prisma } from "@/lib/prisma";
 import { createInvestment, deleteInvestment, updateInvestment } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
@@ -28,9 +29,28 @@ export default async function InvestmentsPage() {
     orderBy: { platform: "asc" },
   });
 
+  const totalModal = investments.reduce((sum, i) => sum + Number(i.buyValue), 0);
+  const totalNilai = investments.reduce((sum, i) => sum + Number(i.currentValue), 0);
+  const gainLoss = totalNilai - totalModal;
+  const gainLossPct = totalModal > 0 ? (gainLoss / totalModal) * 100 : 0;
+
+  const summaryItems = [
+    { label: "Total Modal", value: formatIDR(totalModal) },
+    { label: "Total Nilai Sekarang", value: formatIDR(totalNilai), tone: "highlight" as const },
+    {
+      label: "Gain/Loss",
+      value: `${gainLoss >= 0 ? "+" : ""}${formatIDR(gainLoss)}`,
+      sublabel: `${gainLossPct >= 0 ? "+" : ""}${gainLossPct.toFixed(1)}%`,
+      tone: gainLoss >= 0 ? ("positive" as const) : ("negative" as const),
+    },
+    { label: "Jumlah Investasi", value: String(investments.length) },
+  ];
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+      <SummaryStats items={summaryItems} />
+      <Card>
+      <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
         <CardTitle>Investasi</CardTitle>
         <FormDialog
           title="Tambah Investasi"
@@ -151,6 +171,7 @@ export default async function InvestmentsPage() {
           </TableBody>
         </Table>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }

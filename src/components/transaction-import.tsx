@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Papa from "papaparse";
 import { toast } from "sonner";
 import { formatDate } from "date-fns";
-import { CheckCircle2, Download, Upload, XCircle } from "lucide-react";
+import { CheckCircle2, Download, Loader2, Upload, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -148,7 +148,7 @@ export function TransactionImport({
           {fileError && <p className="text-sm text-destructive">{fileError}</p>}
 
           <div className="rounded-md border bg-muted/30 p-3">
-            <label className="flex items-start gap-2 text-sm">
+            <label className="flex cursor-pointer items-start gap-2 text-sm">
               <Checkbox
                 checked={skipBalanceUpdate}
                 onCheckedChange={(checked) => setSkipBalanceUpdate(checked)}
@@ -240,7 +240,7 @@ export function TransactionImport({
 
               <div className="mt-4 space-y-3">
                 {hasNegative && (
-                  <label className="flex items-center gap-2 text-sm">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
                     <Checkbox
                       checked={ackNegative}
                       onCheckedChange={(checked) => setAckNegative(checked)}
@@ -254,7 +254,8 @@ export function TransactionImport({
                   }
                   onClick={handleConfirm}
                 >
-                  Konfirmasi Import {validRows.length} Transaksi
+                  {isPending && <Loader2 className="size-4 animate-spin" />}
+                  {isPending ? "Mengimpor..." : `Konfirmasi Import ${validRows.length} Transaksi`}
                 </Button>
               </div>
             </CardContent>

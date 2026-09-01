@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
 const STATUS_FLOW = ["PLANNED", "BOOKED", "PAID"] as const;
@@ -30,14 +31,20 @@ export function GoalItemStatusBadge({
   const next = () => {
     const currentIndex = STATUS_FLOW.indexOf(status);
     const nextStatus = STATUS_FLOW[(currentIndex + 1) % STATUS_FLOW.length];
-    startTransition(() => onChange(nextStatus));
+    startTransition(async () => {
+      try {
+        await onChange(nextStatus);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Gagal mengubah status");
+      }
+    });
   };
 
   return (
     <Badge
       variant={STATUS_VARIANT[status]}
-      className="cursor-pointer select-none"
-      onClick={next}
+      className={"cursor-pointer select-none" + (isPending ? " opacity-50" : "")}
+      onClick={isPending ? undefined : next}
       aria-disabled={isPending}
     >
       {STATUS_LABEL[status]}

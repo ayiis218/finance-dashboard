@@ -13,10 +13,7 @@ export async function getSummary() {
     getReceivablesWithStatus(),
   ]);
 
-  const totalSaldo = accounts.reduce(
-    (sum, a) => sum + toNumber(a.balance) + toNumber(a.pocketChange),
-    0,
-  );
+  const totalSaldo = accounts.reduce((sum, a) => sum + toNumber(a.balance), 0);
   const totalAset = assets.reduce((sum, a) => sum + toNumber(a.value), 0);
   const totalInvestasi = investments.reduce(
     (sum, i) => sum + toNumber(i.currentValue),

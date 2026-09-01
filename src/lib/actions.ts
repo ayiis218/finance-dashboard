@@ -7,14 +7,12 @@ import { prisma } from "@/lib/prisma";
 const bankAccountSchema = z.object({
   name: z.string().min(1),
   balance: z.coerce.number(),
-  pocketChange: z.coerce.number().default(0),
 });
 
 export async function createBankAccount(formData: FormData) {
   const data = bankAccountSchema.parse({
     name: formData.get("name"),
     balance: formData.get("balance"),
-    pocketChange: formData.get("pocketChange"),
   });
   await prisma.bankAccount.create({ data });
   revalidatePath("/accounts");
@@ -25,7 +23,6 @@ export async function updateBankAccount(id: string, formData: FormData) {
   const data = bankAccountSchema.parse({
     name: formData.get("name"),
     balance: formData.get("balance"),
-    pocketChange: formData.get("pocketChange"),
   });
   await prisma.bankAccount.update({ where: { id }, data });
   revalidatePath("/accounts");
@@ -61,8 +58,8 @@ export async function createTransaction(formData: FormData) {
 
   await prisma.$transaction(async (tx) => {
     await tx.transaction.create({ data });
-    const delta = data.type === "EXPENSE" ? -data.amount : data.amount;
-    if (data.type !== "TRANSFER" && data.affectsBalance) {
+    const delta = data.type === "INCOME" ? data.amount : -data.amount;
+    if (data.affectsBalance) {
       await tx.bankAccount.update({
         where: { id: data.accountId },
         data: { balance: { increment: delta } },
@@ -89,8 +86,8 @@ export async function updateTransaction(id: string, formData: FormData) {
   await prisma.$transaction(async (tx) => {
     const old = await tx.transaction.findUniqueOrThrow({ where: { id } });
 
-    if (old.type !== "TRANSFER" && old.affectsBalance) {
-      const oldDelta = old.type === "EXPENSE" ? -Number(old.amount) : Number(old.amount);
+    if (old.affectsBalance) {
+      const oldDelta = old.type === "INCOME" ? Number(old.amount) : -Number(old.amount);
       await tx.bankAccount.update({
         where: { id: old.accountId },
         data: { balance: { decrement: oldDelta } },
@@ -99,8 +96,8 @@ export async function updateTransaction(id: string, formData: FormData) {
 
     await tx.transaction.update({ where: { id }, data });
 
-    if (data.type !== "TRANSFER" && data.affectsBalance) {
-      const newDelta = data.type === "EXPENSE" ? -data.amount : data.amount;
+    if (data.affectsBalance) {
+      const newDelta = data.type === "INCOME" ? data.amount : -data.amount;
       await tx.bankAccount.update({
         where: { id: data.accountId },
         data: { balance: { increment: newDelta } },
@@ -116,8 +113,8 @@ export async function updateTransaction(id: string, formData: FormData) {
 export async function deleteTransaction(id: string) {
   await prisma.$transaction(async (tx) => {
     const old = await tx.transaction.findUniqueOrThrow({ where: { id } });
-    if (old.type !== "TRANSFER" && old.affectsBalance) {
-      const oldDelta = old.type === "EXPENSE" ? -Number(old.amount) : Number(old.amount);
+    if (old.affectsBalance) {
+      const oldDelta = old.type === "INCOME" ? Number(old.amount) : -Number(old.amount);
       await tx.bankAccount.update({
         where: { id: old.accountId },
         data: { balance: { decrement: oldDelta } },
@@ -159,8 +156,7 @@ export async function importTransactions(
   const deltaByAccount = new Map<string, number>();
   if (!skipBalanceUpdate) {
     for (const r of data) {
-      if (r.type === "TRANSFER") continue;
-      const delta = r.type === "EXPENSE" ? -r.amount : r.amount;
+      const delta = r.type === "INCOME" ? r.amount : -r.amount;
       deltaByAccount.set(r.accountId, (deltaByAccount.get(r.accountId) ?? 0) + delta);
     }
   }
@@ -521,6 +517,7 @@ const goalItemSchema = z.object({
   category: z.string().min(1),
   name: z.string().min(1),
   budgetAmount: z.coerce.number().positive(),
+  actualAmount: z.coerce.number().nonnegative().optional(),
   note: z.string().optional(),
 });
 
@@ -530,6 +527,7 @@ export async function createGoalItem(formData: FormData) {
     category: formData.get("category"),
     name: formData.get("name"),
     budgetAmount: formData.get("budgetAmount"),
+    actualAmount: formData.get("actualAmount") || undefined,
     note: formData.get("note") || undefined,
   });
   await prisma.goalItem.create({ data });
@@ -544,6 +542,7 @@ export async function updateGoalItem(id: string, goalId: string, formData: FormD
     category: formData.get("category"),
     name: formData.get("name"),
     budgetAmount: formData.get("budgetAmount"),
+    actualAmount: formData.get("actualAmount") || undefined,
     note: formData.get("note") || undefined,
   });
   await prisma.goalItem.update({ where: { id }, data });

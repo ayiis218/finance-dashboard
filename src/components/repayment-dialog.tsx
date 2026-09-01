@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,7 +63,16 @@ export function RepaymentDialog({
                 variant="ghost"
                 size="icon"
                 disabled={isPending}
-                onClick={() => startTransition(() => deleteAction(p.id))}
+                onClick={() =>
+                  startTransition(async () => {
+                    try {
+                      await deleteAction(p.id);
+                      toast.success("Berhasil dihapus");
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : "Gagal menghapus");
+                    }
+                  })
+                }
               >
                 <Trash2 className="size-4 text-muted-foreground" />
               </Button>
@@ -75,7 +85,12 @@ export function RepaymentDialog({
             className="space-y-3 border-t pt-3"
             action={(formData) => {
               startTransition(async () => {
-                await createAction(formData);
+                try {
+                  await createAction(formData);
+                  toast.success("Pembayaran tercatat");
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Gagal mencatat pembayaran");
+                }
               });
             }}
           >
@@ -112,7 +127,8 @@ export function RepaymentDialog({
               />
             </div>
             <Button type="submit" className="w-full" disabled={isPending}>
-              Catat Pembayaran
+              {isPending && <Loader2 className="size-4 animate-spin" />}
+              {isPending ? "Menyimpan..." : "Catat Pembayaran"}
             </Button>
           </form>
         )}

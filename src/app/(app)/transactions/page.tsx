@@ -185,6 +185,7 @@ export default async function TransactionsPage({
               <TableHead>Rekening</TableHead>
               <TableHead>Kategori</TableHead>
               <TableHead className="text-right">Jumlah</TableHead>
+              <TableHead className="text-center">Status</TableHead>
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -200,26 +201,25 @@ export default async function TransactionsPage({
                   </TableCell>
                   <TableCell>{items.account.name}</TableCell>
                   <TableCell>{category}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {!items.affectsBalance && (
-                        <Badge variant="outline" className="text-muted-foreground">
-                          Historis
-                        </Badge>
-                      )}
-                      <span
-                        className={items.type === "INCOME" ? "text-green-600" : "text-red-600"}
-                      >
-                        {items.type === "INCOME" ? "+" : "-"}
-                        {formatIDR(Number(items.amount))}
-                      </span>
-                    </div>
+                  <TableCell
+                    className={
+                      "text-right " +
+                      (items.type === "INCOME" ? "text-green-600" : "text-red-600")
+                    }
+                  >
+                    {items.type === "INCOME" ? "+" : "-"}
+                    {formatIDR(Number(items.amount))}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant={items.affectsBalance ? "secondary" : "outline"}>
+                      {items.affectsBalance ? "Baru" : "Histori"}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
                       <FormDialog
                         title="Edit Transaksi"
-                        triggerIcon={<Pencil className="size-4" />}
+                        triggerIcon={<Pencil className="size-4 text-blue-500" />}
                         triggerVariant="ghost"
                         triggerSize="icon"
                         action={updateTransaction.bind(null, items.id)}
@@ -316,7 +316,7 @@ export default async function TransactionsPage({
             })}
             {transactions.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Tidak ada transaksi di bulan ini.
                 </TableCell>
               </TableRow>

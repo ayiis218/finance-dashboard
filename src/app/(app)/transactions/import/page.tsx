@@ -34,7 +34,12 @@ export default async function TransactionImportPage() {
           <ul className="list-disc space-y-1 pl-5">
             <li>
               <span className="font-medium text-foreground">tanggal</span> — format{" "}
-              <code className="rounded bg-muted px-1 py-0.5 text-foreground">YYYY-MM-DD</code>
+              <code className="rounded bg-muted px-1 py-0.5 text-foreground">YYYY-MM-DD</code> (mis.
+              2026-09-01) atau{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-foreground">DD/MM/YYYY</code> (mis.
+              01/09/2026, format ini diterima juga karena Excel kadang otomatis mengubah tanggal ke
+              format ini). Preview di bawah akan menampilkan tanggal hasil baca sistem — cek dulu
+              sebelum submit kalau ragu.
             </li>
             <li>
               <span className="font-medium text-foreground">rekening</span> — nama rekening persis

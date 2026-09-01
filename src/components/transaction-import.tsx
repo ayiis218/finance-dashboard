@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Papa from "papaparse";
 import { toast } from "sonner";
+import { formatDate } from "date-fns";
 import { CheckCircle2, Download, Upload, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -212,7 +213,9 @@ export function TransactionImport({
                     {results.map((r) => (
                       <TableRow key={r.index}>
                         <TableCell>{r.index + 1}</TableCell>
-                        <TableCell>{r.raw.tanggal}</TableCell>
+                        <TableCell>
+                          {r.ok ? formatDate(r.row.date, "dd MMM yyyy") : r.raw.tanggal}
+                        </TableCell>
                         <TableCell>{r.raw.rekening}</TableCell>
                         <TableCell>{r.raw.tipe}</TableCell>
                         <TableCell>{r.raw.kategori}</TableCell>

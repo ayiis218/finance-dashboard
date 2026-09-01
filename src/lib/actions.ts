@@ -45,6 +45,7 @@ const transactionSchema = z.object({
   amount: z.coerce.number().positive(),
   date: z.coerce.date(),
   note: z.string().optional(),
+  affectsBalance: z.string().optional().transform((v) => v === "on"),
 });
 
 export async function createTransaction(formData: FormData) {
@@ -55,12 +56,13 @@ export async function createTransaction(formData: FormData) {
     amount: formData.get("amount"),
     date: formData.get("date"),
     note: formData.get("note") || undefined,
+    affectsBalance: formData.get("affectsBalance") || undefined,
   });
 
   await prisma.$transaction(async (tx) => {
     await tx.transaction.create({ data });
     const delta = data.type === "EXPENSE" ? -data.amount : data.amount;
-    if (data.type !== "TRANSFER") {
+    if (data.type !== "TRANSFER" && data.affectsBalance) {
       await tx.bankAccount.update({
         where: { id: data.accountId },
         data: { balance: { increment: delta } },
@@ -81,12 +83,13 @@ export async function updateTransaction(id: string, formData: FormData) {
     amount: formData.get("amount"),
     date: formData.get("date"),
     note: formData.get("note") || undefined,
+    affectsBalance: formData.get("affectsBalance") || undefined,
   });
 
   await prisma.$transaction(async (tx) => {
     const old = await tx.transaction.findUniqueOrThrow({ where: { id } });
 
-    if (old.type !== "TRANSFER") {
+    if (old.type !== "TRANSFER" && old.affectsBalance) {
       const oldDelta = old.type === "EXPENSE" ? -Number(old.amount) : Number(old.amount);
       await tx.bankAccount.update({
         where: { id: old.accountId },
@@ -96,7 +99,7 @@ export async function updateTransaction(id: string, formData: FormData) {
 
     await tx.transaction.update({ where: { id }, data });
 
-    if (data.type !== "TRANSFER") {
+    if (data.type !== "TRANSFER" && data.affectsBalance) {
       const newDelta = data.type === "EXPENSE" ? -data.amount : data.amount;
       await tx.bankAccount.update({
         where: { id: data.accountId },
@@ -113,7 +116,7 @@ export async function updateTransaction(id: string, formData: FormData) {
 export async function deleteTransaction(id: string) {
   await prisma.$transaction(async (tx) => {
     const old = await tx.transaction.findUniqueOrThrow({ where: { id } });
-    if (old.type !== "TRANSFER") {
+    if (old.type !== "TRANSFER" && old.affectsBalance) {
       const oldDelta = old.type === "EXPENSE" ? -Number(old.amount) : Number(old.amount);
       await tx.bankAccount.update({
         where: { id: old.accountId },
@@ -171,6 +174,7 @@ export async function importTransactions(
         amount: r.amount,
         date: r.date,
         note: r.note,
+        affectsBalance: !skipBalanceUpdate,
       })),
     });
     for (const [accountId, delta] of deltaByAccount) {

@@ -73,15 +73,16 @@ model BankAccount {
 }
 
 model Transaction {
-  id        String          @id @default(cuid())
-  account   BankAccount     @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  accountId String
-  type      TransactionType
-  category  String
-  amount    Decimal
-  date      DateTime
-  note      String?
-  createdAt DateTime        @default(now())
+  id             String          @id @default(cuid())
+  account        BankAccount     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId      String
+  type           TransactionType
+  category       String
+  amount         Decimal
+  date           DateTime
+  note           String?
+  affectsBalance Boolean         @default(true)
+  createdAt      DateTime        @default(now())
 }
 
 model Asset {

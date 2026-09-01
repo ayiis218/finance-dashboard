@@ -20,6 +20,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { SummaryStats } from "@/components/summary-stats";
@@ -150,6 +152,16 @@ export default async function TransactionsPage({
             <Label htmlFor="note">Catatan</Label>
             <Input id="note" name="note" placeholder="Opsional" />
           </div>
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox name="affectsBalance" defaultChecked />
+              Transaksi ini mengubah saldo rekening
+            </label>
+            <p className="pl-6 text-xs text-muted-foreground">
+              Aktif = saldo rekening otomatis bertambah/berkurang sesuai jumlah di atas. Matikan
+              kalau ini cuma catatan historis dan saldo rekening tidak boleh berubah.
+            </p>
+          </div>
           </FormDialog>
         </div>
       </CardHeader>
@@ -188,14 +200,20 @@ export default async function TransactionsPage({
                   </TableCell>
                   <TableCell>{items.account.name}</TableCell>
                   <TableCell>{category}</TableCell>
-                  <TableCell
-                    className={
-                      "text-right " +
-                      (items.type === "INCOME" ? "text-green-600" : "text-red-600")
-                    }
-                  >
-                    {items.type === "INCOME" ? "+" : "-"}
-                    {formatIDR(Number(items.amount))}
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      {!items.affectsBalance && (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          Historis
+                        </Badge>
+                      )}
+                      <span
+                        className={items.type === "INCOME" ? "text-green-600" : "text-red-600"}
+                      >
+                        {items.type === "INCOME" ? "+" : "-"}
+                        {formatIDR(Number(items.amount))}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
@@ -274,6 +292,20 @@ export default async function TransactionsPage({
                             defaultValue={items.note ?? ""}
                             placeholder="Opsional"
                           />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              name="affectsBalance"
+                              defaultChecked={items.affectsBalance}
+                            />
+                            Transaksi ini mengubah saldo rekening
+                          </label>
+                          <p className="pl-6 text-xs text-muted-foreground">
+                            Aktif = saldo rekening otomatis bertambah/berkurang sesuai jumlah di
+                            atas. Matikan kalau ini cuma catatan historis dan saldo rekening tidak
+                            boleh berubah.
+                          </p>
                         </div>
                       </FormDialog>
                       <DeleteButton action={deleteTransaction.bind(null, items.id)} />

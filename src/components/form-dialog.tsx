@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,7 +34,7 @@ export function FormDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size={triggerSize} variant={triggerVariant} />}>
+      <DialogTrigger render={<Button size={triggerSize} variant={triggerVariant} className="cursor-pointer" />}>
         {triggerIcon ?? <Plus className="size-4" />}
         {triggerLabel}
       </DialogTrigger>
@@ -58,7 +58,8 @@ export function FormDialog({
         >
           {children}
           <Button type="submit" className="w-full" disabled={isPending}>
-            Simpan
+            {isPending && <Loader2 className="size-4 animate-spin" />}
+            {isPending ? "Menyimpan..." : "Simpan"}
           </Button>
         </form>
       </DialogContent>

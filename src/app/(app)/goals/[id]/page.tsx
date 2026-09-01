@@ -104,6 +104,15 @@ export default async function GoalDetailPage({
               <Input id="budgetAmount" name="budgetAmount" type="number" required />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="actualAmount">Aktual</Label>
+              <Input
+                id="actualAmount"
+                name="actualAmount"
+                type="number"
+                placeholder="Opsional, default 0"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="note">Catatan</Label>
               <Input id="note" name="note" placeholder="Opsional" />
             </div>
@@ -170,6 +179,15 @@ export default async function GoalDetailPage({
                             type="number"
                             defaultValue={Number(item.budgetAmount)}
                             required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`actualAmount-${item.id}`}>Aktual</Label>
+                          <Input
+                            id={`actualAmount-${item.id}`}
+                            name="actualAmount"
+                            type="number"
+                            defaultValue={Number(item.actualAmount ?? 0)}
                           />
                         </div>
                         <div className="space-y-2">

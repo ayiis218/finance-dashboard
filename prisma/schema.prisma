@@ -66,7 +66,6 @@ model BankAccount {
   id           String        @id @default(cuid())
   name         String
   balance      Decimal       @default(0)
-  pocketChange Decimal       @default(0) // "receh"
   transactions Transaction[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt

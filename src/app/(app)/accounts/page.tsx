@@ -30,12 +30,9 @@ export default async function AccountsPage() {
   });
 
   const totalSaldo = accounts.reduce((sum, a) => sum + Number(a.balance), 0);
-  const totalReceh = accounts.reduce((sum, a) => sum + Number(a.pocketChange), 0);
 
   const summaryItems = [
-    { label: "Total Saldo", value: formatIDR(totalSaldo) },
-    { label: "Total Receh", value: formatIDR(totalReceh) },
-    { label: "Grand Total", value: formatIDR(totalSaldo + totalReceh), tone: "highlight" as const },
+    { label: "Total Saldo", value: formatIDR(totalSaldo), tone: "highlight" as const },
     { label: "Jumlah Rekening", value: String(accounts.length) },
   ];
 
@@ -58,10 +55,6 @@ export default async function AccountsPage() {
             <Label htmlFor="balance">Saldo</Label>
             <Input id="balance" name="balance" type="number" defaultValue={0} required />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="pocketChange">Receh</Label>
-            <Input id="pocketChange" name="pocketChange" type="number" defaultValue={0} />
-          </div>
         </FormDialog>
       </CardHeader>
       <CardContent>
@@ -70,7 +63,6 @@ export default async function AccountsPage() {
             <TableRow>
               <TableHead>Nama</TableHead>
               <TableHead className="text-right">Saldo</TableHead>
-              <TableHead className="text-right">Receh</TableHead>
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -80,9 +72,6 @@ export default async function AccountsPage() {
                 <TableCell>{items.name}</TableCell>
                 <TableCell className="text-right">
                   {formatIDR(Number(items.balance))}
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatIDR(Number(items.pocketChange))}
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex items-center justify-center gap-1">
@@ -112,15 +101,6 @@ export default async function AccountsPage() {
                           required
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`pocketChange-${items.id}`}>Receh</Label>
-                        <Input
-                          id={`pocketChange-${items.id}`}
-                          name="pocketChange"
-                          type="number"
-                          defaultValue={Number(items.pocketChange)}
-                        />
-                      </div>
                     </FormDialog>
                     <DeleteButton action={deleteBankAccount.bind(null, items.id)} />
                   </div>
@@ -129,7 +109,7 @@ export default async function AccountsPage() {
             ))}
             {accounts.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell colSpan={3} className="text-center text-muted-foreground">
                   Belum ada rekening.
                 </TableCell>
               </TableRow>

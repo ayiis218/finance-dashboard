@@ -99,9 +99,9 @@ export default async function TransactionsPage({
               required
               className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
             >
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
+              {accounts.map((items) => (
+                <option key={items.id} value={items.id}>
+                  {items.name}
                 </option>
               ))}
             </select>

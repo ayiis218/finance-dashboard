@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 export type SummaryStatItem = {
   label: string;
   value: string;
+  description?: string;
   sublabel?: string;
   tone?: "default" | "positive" | "negative" | "highlight";
 };
@@ -24,6 +25,16 @@ export function SummaryStats({ items }: Readonly<{ items: SummaryStatItem[] }>) 
             <CardDescription className={item.tone === "highlight" ? "text-white/80" : undefined}>
               {item.label}
             </CardDescription>
+            {item.description && (
+              <p
+                className={cn(
+                  "text-[11px] leading-snug",
+                  item.tone === "highlight" ? "text-white/70" : "text-muted-foreground/80",
+                )}
+              >
+                {item.description}
+              </p>
+            )}
           </CardHeader>
           <CardContent>
             <p

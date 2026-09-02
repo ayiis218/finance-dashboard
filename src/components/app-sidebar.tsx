@@ -3,17 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
-  Wallet,
-  Landmark,
-  HandCoins,
-  TrendingUp,
-  PiggyBank,
-  BarChart3,
-  ClipboardList,
-  LineChart,
-} from "lucide-react";
-import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -24,23 +13,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
-const navItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Transaksi", url: "/transactions", icon: Wallet },
-  { title: "Rekening", url: "/accounts", icon: Landmark },
-  { title: "Aset", url: "/assets", icon: Landmark },
-  { title: "Piutang/Utang", url: "/receivables", icon: HandCoins },
-  { title: "Investasi", url: "/investments", icon: TrendingUp },
-  { title: "Savings Goal", url: "/goals", icon: PiggyBank },
-  { title: "Budget", url: "/budget", icon: ClipboardList },
-  { title: "Cashflow Forecast", url: "/cashflow", icon: LineChart },
-  { title: "Laporan", url: "/reports", icon: BarChart3 },
-];
+import { navItems } from "./ui/menuItems";
 
 export function AppSidebar() {
   const pathname = usePathname();
 
+  const menuItems = navItems.filter((item) => item.show)
   return (
     <Sidebar>
       <SidebarHeader>
@@ -53,7 +31,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {menuItems.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton
                     isActive={pathname === item.url}

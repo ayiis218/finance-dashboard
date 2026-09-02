@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MonthlyExpenseChartLazy } from "@/components/charts/monthly-expense-chart-lazy";
+import { SummaryStats, type SummaryStatItem } from "@/components/summary-stats";
 import {
   getBudgetOverview,
   getDailySummary,
@@ -25,52 +26,55 @@ export default async function DashboardPage() {
     getBudgetOverview(new Date()),
   ]);
 
-  const summaryCards = [
-    { label: "Total Saldo", value: summary.totalSaldo },
-    { label: "Total Aset", value: summary.totalAset },
-    { label: "Total Investasi", value: summary.totalInvestasi },
-    { label: "Total Utang", value: summary.totalUtang },
+  const sisaAnggaran = budgetOverview.totals.planned - budgetOverview.totals.actual;
+
+  const summaryItems: SummaryStatItem[] = [
+    {
+      label: "Total Saldo",
+      description: "Uang tunai di semua rekening bank & cash",
+      value: formatIDR(summary.totalSaldo),
+    },
+    {
+      label: "Total Aset",
+      description: "Nilai properti, kendaraan & barang berharga lain",
+      value: formatIDR(summary.totalAset),
+    },
+    {
+      label: "Total Investasi",
+      description: "Nilai investasi saat ini (reksadana, saham, dll)",
+      value: formatIDR(summary.totalInvestasi),
+    },
+    {
+      label: "Total Utang",
+      description: "Sisa utang yang masih harus dibayar (sudah dikurangi cicilan)",
+      value: formatIDR(summary.totalUtang),
+      tone: summary.totalUtang > 0 ? "negative" : "default",
+    },
     {
       label: "Sisa Anggaran Bulan Ini",
-      value: budgetOverview.totals.planned - budgetOverview.totals.actual,
+      description: "Anggaran bulanan dikurangi pengeluaran yang sudah terjadi",
+      value: formatIDR(sisaAnggaran),
+      tone: sisaAnggaran >= 0 ? "positive" : "negative",
     },
-    { label: "Net Worth", value: summary.netWorth, highlight: true },
+    {
+      label: "Kekayaan Bersih",
+      description: "Saldo + aset + investasi + piutang, dikurangi utang",
+      value: formatIDR(summary.netWorth),
+      tone: "highlight",
+    },
   ];
 
   return (
     <div className="space-y-6 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-        {summaryCards.map((card) =>
-          card.highlight ? (
-            <Card key={card.label} className="bg-brand-gradient border-none text-white">
-              <CardHeader className="pb-2">
-                <CardDescription className="text-white/80">{card.label}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">{formatIDR(card.value)}</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card
-              key={card.label}
-              className="bg-gradient-to-br from-primary/5 via-card to-accent/10"
-            >
-              <CardHeader className="pb-2">
-                <CardDescription>{card.label}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">{formatIDR(card.value)}</p>
-              </CardContent>
-            </Card>
-          ),
-        )}
-      </div>
+      <SummaryStats items={summaryItems} />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
             <CardTitle>Perbandingan Pengeluaran Bulanan</CardTitle>
-            <CardDescription>6 bulan terakhir</CardDescription>
+            <CardDescription>
+              6 bulan terakhir — batang lebih tinggi berarti pengeluaran lebih besar di bulan itu
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <MonthlyExpenseChartLazy data={monthlyExpense} />

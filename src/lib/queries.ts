@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma, TransactionType } from "@prisma/client";
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, subMonths } from "date-fns";
 
 function toNumber(value: unknown): number {
@@ -59,8 +60,9 @@ export async function getDailySummary(date: Date = new Date()) {
 
 export async function getExpenseByCategory(month: Date = new Date()) {
   const start = startOfMonth(month);
+  const end = endOfMonth(month);
   const transactions = await prisma.transaction.findMany({
-    where: { type: "EXPENSE", date: { gte: start } },
+    where: { type: "EXPENSE", date: { gte: start, lte: end } },
     select: { amount: true, category: true },
   });
 
@@ -76,6 +78,37 @@ export async function getExpenseByCategory(month: Date = new Date()) {
     category,
     total,
   }));
+}
+
+export async function getSpendingByCategoryDetailed(month: Date = new Date()) {
+  const start = startOfMonth(month);
+  const end = endOfMonth(month);
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      date: { gte: start, lte: end },
+      OR: [{ type: "EXPENSE" }, { type: "TRANSFER", toAccountId: null }],
+    },
+    select: { amount: true, category: true },
+  });
+
+  const byCategory = new Map<string, { total: number; count: number }>();
+  for (const t of transactions) {
+    const entry = byCategory.get(t.category) ?? { total: 0, count: 0 };
+    entry.total += toNumber(t.amount);
+    entry.count += 1;
+    byCategory.set(t.category, entry);
+  }
+
+  const grandTotal = Array.from(byCategory.values()).reduce((sum, c) => sum + c.total, 0);
+
+  return Array.from(byCategory.entries())
+    .map(([category, { total, count }]) => ({
+      category,
+      total,
+      count,
+      percentage: grandTotal > 0 ? (total / grandTotal) * 100 : 0,
+    }))
+    .sort((a, b) => b.total - a.total);
 }
 
 export async function getInvestmentAllocation() {
@@ -166,7 +199,7 @@ export async function getDistinctCategories() {
 export async function getLatestTransaction() {
   return prisma.transaction.findFirst({
     orderBy: { date: "desc" },
-    include: { account: true },
+    include: { account: true, toAccount: true },
   });
 }
 
@@ -175,9 +208,60 @@ export async function getTransactionsForMonth(month: Date) {
   const end = endOfMonth(month);
   return prisma.transaction.findMany({
     where: { date: { gte: start, lte: end } },
-    include: { account: true },
+    include: { account: true, toAccount: true },
     orderBy: { date: "desc" },
   });
+}
+
+export async function getTransactionsFiltered({
+  month,
+  q,
+  type,
+  accountId,
+  page = 1,
+  pageSize = 20,
+}: {
+  month: Date;
+  q?: string;
+  type?: TransactionType;
+  accountId?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  const start = startOfMonth(month);
+  const end = endOfMonth(month);
+  const where: Prisma.TransactionWhereInput = {
+    date: { gte: start, lte: end },
+    ...(type ? { type } : {}),
+    ...(accountId ? { accountId } : {}),
+    ...(q
+      ? {
+          OR: [
+            { category: { contains: q, mode: "insensitive" } },
+            { note: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
+
+  const [total, transactions] = await Promise.all([
+    prisma.transaction.count({ where }),
+    prisma.transaction.findMany({
+      where,
+      include: { account: true, toAccount: true },
+      orderBy: { date: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ]);
+
+  return {
+    transactions,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
 }
 
 export async function getBudgetCategories() {

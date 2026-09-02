@@ -66,15 +66,18 @@ model BankAccount {
   id           String        @id @default(cuid())
   name         String
   balance      Decimal       @default(0)
-  transactions Transaction[]
+  transactions Transaction[] @relation("SourceAccount")
+  transfersIn  Transaction[] @relation("DestinationAccount")
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
 
 model Transaction {
   id             String          @id @default(cuid())
-  account        BankAccount     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  account        BankAccount     @relation("SourceAccount", fields: [accountId], references: [id], onDelete: Cascade)
   accountId      String
+  toAccount      BankAccount?    @relation("DestinationAccount", fields: [toAccountId], references: [id], onDelete: SetNull)
+  toAccountId    String?
   type           TransactionType
   category       String
   amount         Decimal

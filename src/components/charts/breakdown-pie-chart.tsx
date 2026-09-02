@@ -24,6 +24,8 @@ export function BreakdownPieChart({
     );
   }
 
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+
   return (
     <ResponsiveContainer width="100%" height={280}>
       <PieChart>
@@ -39,7 +41,13 @@ export function BreakdownPieChart({
             <Cell key={index} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value) => formatIDR(Number(value ?? 0))} />
+        <Tooltip
+          formatter={(value) => {
+            const amount = Number(value ?? 0);
+            const percent = total > 0 ? (amount / total) * 100 : 0;
+            return [`${formatIDR(amount)} (${percent.toFixed(0)}%)`, ""];
+          }}
+        />
         <Legend />
       </PieChart>
     </ResponsiveContainer>

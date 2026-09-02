@@ -5,6 +5,7 @@ export const IMPORT_CSV_HEADERS = [
   "kategori",
   "jumlah",
   "catatan",
+  "rekening_tujuan",
 ] as const;
 
 const TYPE_ALIASES: Record<string, "INCOME" | "EXPENSE" | "TRANSFER"> = {
@@ -20,6 +21,8 @@ export type ImportAccount = { id: string; name: string };
 export type ParsedImportRow = {
   accountId: string;
   accountName: string;
+  toAccountId?: string;
+  toAccountName?: string;
   type: "INCOME" | "EXPENSE" | "TRANSFER";
   category: string;
   amount: number;
@@ -86,6 +89,7 @@ export function validateImportRow(
   const kategori = (raw.kategori ?? "").trim();
   const jumlah = (raw.jumlah ?? "").trim();
   const catatan = (raw.catatan ?? "").trim();
+  const rekeningTujuan = (raw.rekening_tujuan ?? "").trim();
 
   const date = tanggal ? parseCsvDate(tanggal) : null;
   if (!date) {
@@ -116,6 +120,27 @@ export function validateImportRow(
     return { ok: false, index, raw, error: "Kategori tidak boleh kosong" };
   }
 
+  let toAccount: ImportAccount | undefined;
+  if (rekeningTujuan) {
+    toAccount = accounts.find((a) => a.name.trim().toLowerCase() === rekeningTujuan.toLowerCase());
+    if (!toAccount) {
+      return {
+        ok: false,
+        index,
+        raw,
+        error: `Rekening tujuan tidak ditemukan: "${rekeningTujuan}"`,
+      };
+    }
+    if (toAccount.id === account.id) {
+      return {
+        ok: false,
+        index,
+        raw,
+        error: "Rekening tujuan tidak boleh sama dengan rekening asal",
+      };
+    }
+  }
+
   if (/[.,]/.test(jumlah)) {
     return {
       ok: false,
@@ -136,6 +161,8 @@ export function validateImportRow(
     row: {
       accountId: account.id,
       accountName: account.name,
+      toAccountId: type === "TRANSFER" ? toAccount?.id : undefined,
+      toAccountName: type === "TRANSFER" ? toAccount?.name : undefined,
       type,
       category: kategori,
       amount,

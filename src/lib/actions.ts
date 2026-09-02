@@ -37,6 +37,7 @@ export async function deleteBankAccount(id: string) {
 
 const transactionSchema = z.object({
   accountId: z.string().min(1),
+  toAccountId: z.string().optional(),
   type: z.enum(["INCOME", "EXPENSE", "TRANSFER"]),
   category: z.string().min(1),
   amount: z.coerce.number().positive(),
@@ -45,16 +46,27 @@ const transactionSchema = z.object({
   affectsBalance: z.string().optional().transform((v) => v === "on"),
 });
 
+function normalizeTransactionData<T extends z.infer<typeof transactionSchema>>(data: T) {
+  const toAccountId = data.type === "TRANSFER" ? (data.toAccountId ?? null) : null;
+  if (toAccountId && toAccountId === data.accountId) {
+    throw new Error("Rekening tujuan tidak boleh sama dengan rekening asal.");
+  }
+  return { ...data, toAccountId };
+}
+
 export async function createTransaction(formData: FormData) {
-  const data = transactionSchema.parse({
-    accountId: formData.get("accountId"),
-    type: formData.get("type"),
-    category: formData.get("category"),
-    amount: formData.get("amount"),
-    date: formData.get("date"),
-    note: formData.get("note") || undefined,
-    affectsBalance: formData.get("affectsBalance") || undefined,
-  });
+  const data = normalizeTransactionData(
+    transactionSchema.parse({
+      accountId: formData.get("accountId"),
+      toAccountId: formData.get("toAccountId") || undefined,
+      type: formData.get("type"),
+      category: formData.get("category"),
+      amount: formData.get("amount"),
+      date: formData.get("date"),
+      note: formData.get("note") || undefined,
+      affectsBalance: formData.get("affectsBalance") || undefined,
+    }),
+  );
 
   await prisma.$transaction(async (tx) => {
     await tx.transaction.create({ data });
@@ -64,6 +76,12 @@ export async function createTransaction(formData: FormData) {
         where: { id: data.accountId },
         data: { balance: { increment: delta } },
       });
+      if (data.type === "TRANSFER" && data.toAccountId) {
+        await tx.bankAccount.update({
+          where: { id: data.toAccountId },
+          data: { balance: { increment: data.amount } },
+        });
+      }
     }
   });
 
@@ -73,15 +91,18 @@ export async function createTransaction(formData: FormData) {
 }
 
 export async function updateTransaction(id: string, formData: FormData) {
-  const data = transactionSchema.parse({
-    accountId: formData.get("accountId"),
-    type: formData.get("type"),
-    category: formData.get("category"),
-    amount: formData.get("amount"),
-    date: formData.get("date"),
-    note: formData.get("note") || undefined,
-    affectsBalance: formData.get("affectsBalance") || undefined,
-  });
+  const data = normalizeTransactionData(
+    transactionSchema.parse({
+      accountId: formData.get("accountId"),
+      toAccountId: formData.get("toAccountId") || undefined,
+      type: formData.get("type"),
+      category: formData.get("category"),
+      amount: formData.get("amount"),
+      date: formData.get("date"),
+      note: formData.get("note") || undefined,
+      affectsBalance: formData.get("affectsBalance") || undefined,
+    }),
+  );
 
   await prisma.$transaction(async (tx) => {
     const old = await tx.transaction.findUniqueOrThrow({ where: { id } });
@@ -92,6 +113,12 @@ export async function updateTransaction(id: string, formData: FormData) {
         where: { id: old.accountId },
         data: { balance: { decrement: oldDelta } },
       });
+      if (old.type === "TRANSFER" && old.toAccountId) {
+        await tx.bankAccount.update({
+          where: { id: old.toAccountId },
+          data: { balance: { decrement: Number(old.amount) } },
+        });
+      }
     }
 
     await tx.transaction.update({ where: { id }, data });
@@ -102,6 +129,12 @@ export async function updateTransaction(id: string, formData: FormData) {
         where: { id: data.accountId },
         data: { balance: { increment: newDelta } },
       });
+      if (data.type === "TRANSFER" && data.toAccountId) {
+        await tx.bankAccount.update({
+          where: { id: data.toAccountId },
+          data: { balance: { increment: data.amount } },
+        });
+      }
     }
   });
 
@@ -119,6 +152,12 @@ export async function deleteTransaction(id: string) {
         where: { id: old.accountId },
         data: { balance: { decrement: oldDelta } },
       });
+      if (old.type === "TRANSFER" && old.toAccountId) {
+        await tx.bankAccount.update({
+          where: { id: old.toAccountId },
+          data: { balance: { decrement: Number(old.amount) } },
+        });
+      }
     }
     await tx.transaction.delete({ where: { id } });
   });
@@ -129,6 +168,7 @@ export async function deleteTransaction(id: string) {
 
 const importRowSchema = z.object({
   accountId: z.string().min(1),
+  toAccountId: z.string().optional(),
   type: z.enum(["INCOME", "EXPENSE", "TRANSFER"]),
   category: z.string().min(1),
   amount: z.coerce.number().positive(),
@@ -142,10 +182,21 @@ export async function importTransactions(
   rows: z.infer<typeof importRowSchema>[],
   options?: { skipBalanceUpdate?: boolean },
 ) {
-  const data = importRowsSchema.parse(rows);
+  const data = importRowsSchema.parse(rows).map((r) => ({
+    ...r,
+    toAccountId: r.type === "TRANSFER" ? (r.toAccountId ?? null) : null,
+  }));
   const skipBalanceUpdate = options?.skipBalanceUpdate ?? false;
 
-  const accountIds = [...new Set(data.map((r) => r.accountId))];
+  for (const r of data) {
+    if (r.toAccountId && r.toAccountId === r.accountId) {
+      throw new Error("Rekening tujuan tidak boleh sama dengan rekening asal.");
+    }
+  }
+
+  const accountIds = [
+    ...new Set(data.flatMap((r) => (r.toAccountId ? [r.accountId, r.toAccountId] : [r.accountId]))),
+  ];
   const accounts = await prisma.bankAccount.findMany({
     where: { id: { in: accountIds } },
   });
@@ -158,6 +209,9 @@ export async function importTransactions(
     for (const r of data) {
       const delta = r.type === "INCOME" ? r.amount : -r.amount;
       deltaByAccount.set(r.accountId, (deltaByAccount.get(r.accountId) ?? 0) + delta);
+      if (r.type === "TRANSFER" && r.toAccountId) {
+        deltaByAccount.set(r.toAccountId, (deltaByAccount.get(r.toAccountId) ?? 0) + r.amount);
+      }
     }
   }
 
@@ -165,6 +219,7 @@ export async function importTransactions(
     await tx.transaction.createMany({
       data: data.map((r) => ({
         accountId: r.accountId,
+        toAccountId: r.toAccountId,
         type: r.type,
         category: r.category,
         amount: r.amount,

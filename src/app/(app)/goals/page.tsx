@@ -187,6 +187,7 @@ export default async function GoalsPage() {
                   variant="outline"
                   size="sm"
                   className="w-full"
+                  nativeButton={false}
                   render={<Link href={`/goals/${goal.id}`} />}
                 >
                   Lihat Detail &amp; Rincian

@@ -172,13 +172,23 @@ export default async function BudgetPage({
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex items-center justify-center gap-3">
-            <Button variant="outline" size="icon" render={<Link href={`?month=${prevMonth}`} />}>
+            <Button
+              variant="outline"
+              size="icon"
+              nativeButton={false}
+              render={<Link href={`?month=${prevMonth}`} />}
+            >
               <ChevronLeft className="size-4" />
             </Button>
             <span className="min-w-36 text-center text-sm font-medium">
               {format(month, "MMMM yyyy")}
             </span>
-            <Button variant="outline" size="icon" render={<Link href={`?month=${nextMonth}`} />}>
+            <Button
+              variant="outline"
+              size="icon"
+              nativeButton={false}
+              render={<Link href={`?month=${nextMonth}`} />}
+            >
               <ChevronRight className="size-4" />
             </Button>
           </div>

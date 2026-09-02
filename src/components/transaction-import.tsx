@@ -25,6 +25,7 @@ type Account = { id: string; name: string; balance: number };
 
 type ImportedRow = {
   accountId: string;
+  toAccountId?: string;
   type: "INCOME" | "EXPENSE" | "TRANSFER";
   category: string;
   amount: number;
@@ -52,10 +53,14 @@ export function TransactionImport({
 
   const handleDownloadTemplate = () => {
     const sampleAccount = accounts[0]?.name ?? "Nama Rekening";
+    const secondAccount = accounts[1]?.name ?? "";
     const csv = [
-      "tanggal,rekening,tipe,kategori,jumlah,catatan",
-      `2025-09-01,${sampleAccount},EXPENSE,Makan,50000,Contoh pengeluaran`,
-      `2025-09-05,${sampleAccount},INCOME,Gaji,5000000,`,
+      "tanggal,rekening,tipe,kategori,jumlah,catatan,rekening_tujuan",
+      `2025-09-01,${sampleAccount},EXPENSE,Makan,50000,Contoh pengeluaran,`,
+      `2025-09-05,${sampleAccount},INCOME,Gaji,5000000,,`,
+      secondAccount
+        ? `2025-09-10,${sampleAccount},TRANSFER,Tarik Tunai,200000,Tarik tunai ke ${secondAccount},${secondAccount}`
+        : `2025-09-10,${sampleAccount},TRANSFER,Transfer,200000,Contoh transfer ke luar (rekening_tujuan dikosongkan),`,
     ].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -78,7 +83,7 @@ export function TransactionImport({
 
     if (!headersMatch(parsed.meta.fields)) {
       setFileError(
-        "Format kolom tidak sesuai template. Header harus persis: tanggal,rekening,tipe,kategori,jumlah,catatan",
+        "Format kolom tidak sesuai template. Header harus persis: tanggal,rekening,tipe,kategori,jumlah,catatan,rekening_tujuan",
       );
       return;
     }
@@ -93,9 +98,13 @@ export function TransactionImport({
 
   const balanceImpact = accounts
     .map((a) => {
-      const delta = validRows
-        .filter((r) => r.row.accountId === a.id && r.row.type !== "TRANSFER")
-        .reduce((sum, r) => sum + (r.row.type === "EXPENSE" ? -r.row.amount : r.row.amount), 0);
+      const outgoing = validRows
+        .filter((r) => r.row.accountId === a.id)
+        .reduce((sum, r) => sum + (r.row.type === "INCOME" ? r.row.amount : -r.row.amount), 0);
+      const incoming = validRows
+        .filter((r) => r.row.type === "TRANSFER" && r.row.toAccountId === a.id)
+        .reduce((sum, r) => sum + r.row.amount, 0);
+      const delta = outgoing + incoming;
       return { ...a, delta, projected: a.balance + delta };
     })
     .filter((a) => a.delta !== 0);
@@ -203,6 +212,7 @@ export function TransactionImport({
                       <TableHead>#</TableHead>
                       <TableHead>Tanggal</TableHead>
                       <TableHead>Rekening</TableHead>
+                      <TableHead>Rekening Tujuan</TableHead>
                       <TableHead>Tipe</TableHead>
                       <TableHead>Kategori</TableHead>
                       <TableHead className="text-right">Jumlah</TableHead>
@@ -217,6 +227,7 @@ export function TransactionImport({
                           {r.ok ? formatDate(r.row.date, "dd MMM yyyy") : r.raw.tanggal}
                         </TableCell>
                         <TableCell>{r.raw.rekening}</TableCell>
+                        <TableCell>{r.raw.rekening_tujuan || "-"}</TableCell>
                         <TableCell>{r.raw.tipe}</TableCell>
                         <TableCell>{r.raw.kategori}</TableCell>
                         <TableCell className="text-right">{r.raw.jumlah}</TableCell>

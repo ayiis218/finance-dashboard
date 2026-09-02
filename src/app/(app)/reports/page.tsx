@@ -24,6 +24,13 @@ import { MonthlyExpenseChartLazy } from "@/components/charts/monthly-expense-cha
 import { BreakdownPieChartLazy } from "@/components/charts/breakdown-pie-chart-lazy";
 import { SummaryStats, type SummaryStatItem } from "@/components/summary-stats";
 import {
+  MobileCardList,
+  MobileEmptyState,
+  MobileRowCard,
+  MobileRowField,
+  MobileRowHeader,
+} from "@/components/mobile-row-card";
+import {
   getExpenseByCategory,
   getInvestmentAllocation,
   getMonthlyExpenseComparison,
@@ -174,45 +181,72 @@ export default async function ReportsPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Kategori</TableHead>
-                <TableHead className="text-center">Jumlah Transaksi</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">% dari Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {spendingDetailed.map((c) => (
-                <TableRow key={c.category}>
-                  <TableCell>{c.category}</TableCell>
-                  <TableCell className="text-center">{c.count}</TableCell>
-                  <TableCell className="text-right">{formatIDR(c.total)}</TableCell>
-                  <TableCell className="text-right">{c.percentage.toFixed(1)}%</TableCell>
-                </TableRow>
-              ))}
-              {spendingDetailed.length === 0 && (
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    Belum ada pengeluaran di bulan ini.
-                  </TableCell>
+                  <TableHead>No.</TableHead>
+                  <TableHead>Kategori</TableHead>
+                  <TableHead className="text-center">Jumlah Transaksi</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right">% dari Total</TableHead>
                 </TableRow>
+              </TableHeader>
+              <TableBody>
+                {spendingDetailed.map((c, index) => (
+                  <TableRow key={c.category}>
+                    <TableCell className="text-muted-foreground">{index + 1}</TableCell>
+                    <TableCell>{c.category}</TableCell>
+                    <TableCell className="text-center">{c.count}</TableCell>
+                    <TableCell className="text-right">{formatIDR(c.total)}</TableCell>
+                    <TableCell className="text-right">{c.percentage.toFixed(1)}%</TableCell>
+                  </TableRow>
+                ))}
+                {spendingDetailed.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      Belum ada pengeluaran di bulan ini.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+              {spendingDetailed.length > 0 && (
+                <TableFooter>
+                  <TableRow>
+                    <TableCell />
+                    <TableCell className="font-medium">Total</TableCell>
+                    <TableCell className="text-center font-medium">{spendingCount}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatIDR(spendingTotal)}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">100%</TableCell>
+                  </TableRow>
+                </TableFooter>
               )}
-            </TableBody>
-            {spendingDetailed.length > 0 && (
-              <TableFooter>
-                <TableRow>
-                  <TableCell className="font-medium">Total</TableCell>
-                  <TableCell className="text-center font-medium">{spendingCount}</TableCell>
-                  <TableCell className="text-right font-medium">
-                    {formatIDR(spendingTotal)}
-                  </TableCell>
-                  <TableCell className="text-right font-medium">100%</TableCell>
-                </TableRow>
-              </TableFooter>
+            </Table>
+          </div>
+
+          <MobileCardList>
+            {spendingDetailed.map((c) => (
+              <MobileRowCard key={c.category}>
+                <MobileRowHeader title={c.category} />
+                <MobileRowField label="Jumlah Transaksi" value={c.count} />
+                <MobileRowField label="% dari Total" value={`${c.percentage.toFixed(1)}%`} />
+                <p className="text-lg font-semibold">{formatIDR(c.total)}</p>
+              </MobileRowCard>
+            ))}
+            {spendingDetailed.length === 0 && (
+              <MobileEmptyState>Belum ada pengeluaran di bulan ini.</MobileEmptyState>
             )}
-          </Table>
+            {spendingDetailed.length > 0 && (
+              <MobileRowCard className="bg-muted/50 font-medium">
+                <MobileRowHeader title="Total" />
+                <MobileRowField label="Jumlah Transaksi" value={spendingCount} />
+                <MobileRowField label="% dari Total" value="100%" />
+                <p className="text-lg font-semibold">{formatIDR(spendingTotal)}</p>
+              </MobileRowCard>
+            )}
+          </MobileCardList>
         </CardContent>
       </Card>
     </div>

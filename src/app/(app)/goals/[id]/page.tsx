@@ -9,11 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
-import { GoalItemStatusBadge } from "@/components/goal-item-status";
+import { GoalItemStatusBadge } from "@/components/goals/goal-item-status";
+import { GoalItemFormFields } from "@/components/goals/goal-item-form-fields";
 import { getGoalDetail } from "@/lib/queries";
 import {
   addSavingsGoalEntry,
@@ -23,6 +22,8 @@ import {
   updateGoalItemStatus,
 } from "@/lib/actions";
 import { formatIDR } from "@/lib/format";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 export default async function GoalDetailPage({
   params,
@@ -65,7 +66,7 @@ export default async function GoalDetailPage({
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Rincian Anggaran</CardTitle>
             <CardDescription>
@@ -75,47 +76,8 @@ export default async function GoalDetailPage({
               )}
             </CardDescription>
           </div>
-          <FormDialog
-            title="Tambah Rincian"
-            triggerLabel="Tambah Rincian"
-            action={createGoalItem}
-          >
-            <input type="hidden" name="goalId" value={goal.id} />
-            <div className="space-y-2">
-              <Label htmlFor="category">Kategori</Label>
-              <Input
-                id="category"
-                name="category"
-                placeholder="Mahar, Catering, THR, Individu, dll"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="name">Nama Rincian</Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="Cincin, Fotografer, nama orang, dll"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="budgetAmount">Anggaran</Label>
-              <Input id="budgetAmount" name="budgetAmount" type="number" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="actualAmount">Aktual</Label>
-              <Input
-                id="actualAmount"
-                name="actualAmount"
-                type="number"
-                placeholder="Opsional, default 0"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="note">Catatan</Label>
-              <Input id="note" name="note" placeholder="Opsional" />
-            </div>
+          <FormDialog title="Tambah Rincian" triggerLabel="Tambah Rincian" action={createGoalItem}>
+            <GoalItemFormFields idPrefix="new" goalId={goal.id} />
           </FormDialog>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -129,17 +91,15 @@ export default async function GoalDetailPage({
                 {cat.items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
+                    className="flex flex-col gap-2 rounded-md border px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex flex-col">
                       <span>{item.name}</span>
                       {item.note && (
-                        <span className="text-xs text-muted-foreground">
-                          {item.note}
-                        </span>
+                        <span className="text-xs text-muted-foreground">{item.note}</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <span>{formatIDR(Number(item.budgetAmount))}</span>
                       <GoalItemStatusBadge
                         status={item.status}
@@ -152,57 +112,19 @@ export default async function GoalDetailPage({
                         triggerSize="icon"
                         action={updateGoalItem.bind(null, item.id, goal.id)}
                       >
-                        <input type="hidden" name="goalId" value={goal.id} />
-                        <div className="space-y-2">
-                          <Label htmlFor={`category-${item.id}`}>Kategori</Label>
-                          <Input
-                            id={`category-${item.id}`}
-                            name="category"
-                            defaultValue={item.category}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`name-${item.id}`}>Nama Rincian</Label>
-                          <Input
-                            id={`name-${item.id}`}
-                            name="name"
-                            defaultValue={item.name}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`budgetAmount-${item.id}`}>Anggaran</Label>
-                          <Input
-                            id={`budgetAmount-${item.id}`}
-                            name="budgetAmount"
-                            type="number"
-                            defaultValue={Number(item.budgetAmount)}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`actualAmount-${item.id}`}>Aktual</Label>
-                          <Input
-                            id={`actualAmount-${item.id}`}
-                            name="actualAmount"
-                            type="number"
-                            defaultValue={Number(item.actualAmount ?? 0)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`note-${item.id}`}>Catatan</Label>
-                          <Input
-                            id={`note-${item.id}`}
-                            name="note"
-                            defaultValue={item.note ?? ""}
-                            placeholder="Opsional"
-                          />
-                        </div>
+                        <GoalItemFormFields
+                          idPrefix={item.id}
+                          goalId={goal.id}
+                          defaults={{
+                            category: item.category,
+                            name: item.name,
+                            budgetAmount: Number(item.budgetAmount),
+                            actualAmount: Number(item.actualAmount ?? 0),
+                            note: item.note,
+                          }}
+                        />
                       </FormDialog>
-                      <DeleteButton
-                        action={deleteGoalItem.bind(null, item.id, goal.id)}
-                      />
+                      <DeleteButton action={deleteGoalItem.bind(null, item.id, goal.id)} />
                     </div>
                   </div>
                 ))}
@@ -218,13 +140,9 @@ export default async function GoalDetailPage({
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Tabungan Bulanan</CardTitle>
-          <FormDialog
-            title="Catat Tabungan"
-            triggerLabel="Catat Tabungan"
-            action={addSavingsGoalEntry}
-          >
+          <FormDialog title="Catat Tabungan" triggerLabel="Catat Tabungan" action={addSavingsGoalEntry}>
             <input type="hidden" name="goalId" value={goal.id} />
             <div className="space-y-2">
               <Label htmlFor="month">Bulan</Label>
@@ -254,13 +172,10 @@ export default async function GoalDetailPage({
           {goal.entries.map((entry) => (
             <div
               key={entry.id}
-              className="flex items-center justify-between text-sm"
+              className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between"
             >
               <span>
-                {entry.month.toLocaleDateString("id-ID", {
-                  month: "long",
-                  year: "numeric",
-                })}
+                {entry.month.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
                 {entry.contributor && (
                   <span className="text-muted-foreground"> &middot; {entry.contributor}</span>
                 )}

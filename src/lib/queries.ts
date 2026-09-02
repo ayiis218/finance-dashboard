@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma, TransactionType } from "@prisma/client";
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, subMonths } from "date-fns";
 
 function toNumber(value: unknown): number {
@@ -210,6 +211,57 @@ export async function getTransactionsForMonth(month: Date) {
     include: { account: true, toAccount: true },
     orderBy: { date: "desc" },
   });
+}
+
+export async function getTransactionsFiltered({
+  month,
+  q,
+  type,
+  accountId,
+  page = 1,
+  pageSize = 20,
+}: {
+  month: Date;
+  q?: string;
+  type?: TransactionType;
+  accountId?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  const start = startOfMonth(month);
+  const end = endOfMonth(month);
+  const where: Prisma.TransactionWhereInput = {
+    date: { gte: start, lte: end },
+    ...(type ? { type } : {}),
+    ...(accountId ? { accountId } : {}),
+    ...(q
+      ? {
+          OR: [
+            { category: { contains: q, mode: "insensitive" } },
+            { note: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
+
+  const [total, transactions] = await Promise.all([
+    prisma.transaction.count({ where }),
+    prisma.transaction.findMany({
+      where,
+      include: { account: true, toAccount: true },
+      orderBy: { date: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ]);
+
+  return {
+    transactions,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
 }
 
 export async function getBudgetCategories() {

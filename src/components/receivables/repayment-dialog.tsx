@@ -35,7 +35,7 @@ export function RepaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" variant="outline" />}>
+      <DialogTrigger render={<Button size="sm" variant="outline" className="w-full sm:w-auto" />}>
         Riwayat Cicilan
       </DialogTrigger>
       <DialogContent>

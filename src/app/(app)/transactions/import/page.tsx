@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TransactionImport } from "@/components/transaction-import";
+import { TransactionImport } from "@/components/transactions/transaction-import";
 import { prisma } from "@/lib/prisma";
 import { importTransactions } from "@/lib/actions";
 
@@ -27,7 +27,7 @@ export default async function TransactionImportPage() {
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>
             Header wajib persis (urutan tidak boleh diubah):{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+            <code className="break-all rounded bg-muted px-1 py-0.5 text-foreground">
               tanggal,rekening,tipe,kategori,jumlah,catatan,rekening_tujuan
             </code>
           </p>

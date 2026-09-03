@@ -95,7 +95,7 @@ export default async function DashboardPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Pemasukan</span>
-              <Badge variant="secondary" className="text-green-600">
+              <Badge variant="secondary" className="text-positive">
                 {formatIDR(daily.income)}
               </Badge>
             </div>
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
               <span className="text-sm text-muted-foreground">
                 Pengeluaran
               </span>
-              <Badge variant="secondary" className="text-red-600">
+              <Badge variant="secondary" className="text-destructive">
                 {formatIDR(daily.expense)}
               </Badge>
             </div>
@@ -126,7 +126,7 @@ export default async function DashboardPage() {
                     <span>{category}</span>
                     <span
                       className={
-                        items.type === "INCOME" ? "text-green-600" : "text-red-600"
+                        items.type === "INCOME" ? "text-positive" : "text-destructive"
                       }
                     >
                       {items.type === "INCOME" ? "+" : "-"}

@@ -90,8 +90,8 @@ export function CashflowTable({ rows }: Readonly<{ rows: CashflowRow[] }>) {
                     (f.variance == null
                       ? "text-muted-foreground"
                       : f.variance >= 0
-                        ? "text-green-600"
-                        : "text-red-600")
+                        ? "text-positive"
+                        : "text-destructive")
                   }
                 >
                   {f.variance != null ? `${f.variance > 0 ? "+" : ""}${formatIDR(f.variance)}` : "-"}
@@ -134,8 +134,8 @@ export function CashflowTable({ rows }: Readonly<{ rows: CashflowRow[] }>) {
                 f.variance == null
                   ? "text-muted-foreground"
                   : f.variance >= 0
-                    ? "text-green-600"
-                    : "text-red-600"
+                    ? "text-positive"
+                    : "text-destructive"
               }
             />
             <MobileRowActions>

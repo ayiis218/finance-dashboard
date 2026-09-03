@@ -233,11 +233,11 @@ export function TransactionImport({
                         <TableCell className="text-right">{r.raw.jumlah}</TableCell>
                         <TableCell>
                           {r.ok ? (
-                            <span className="inline-flex items-center gap-1 text-green-600">
+                            <span className="inline-flex items-center gap-1 text-positive">
                               <CheckCircle2 className="size-4" /> OK
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-red-600">
+                            <span className="inline-flex items-center gap-1 text-destructive">
                               <XCircle className="size-4 shrink-0" />
                               {r.error}
                             </span>

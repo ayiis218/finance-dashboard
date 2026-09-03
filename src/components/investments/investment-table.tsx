@@ -88,7 +88,7 @@ export function InvestmentTable({ rows }: Readonly<{ rows: InvestmentRow[] }>) {
                   <TableCell className="text-right">{formatIDR(current)}</TableCell>
                   <TableCell
                     className={
-                      "text-right " + (returnValue >= 0 ? "text-green-600" : "text-red-600")
+                      "text-right " + (returnValue >= 0 ? "text-positive" : "text-destructive")
                     }
                   >
                     {returnValue >= 0 ? "+" : ""}
@@ -126,7 +126,7 @@ export function InvestmentTable({ rows }: Readonly<{ rows: InvestmentRow[] }>) {
               <MobileRowField
                 label="Return"
                 value={`${returnValue >= 0 ? "+" : ""}${formatIDR(returnValue)}`}
-                valueClassName={returnValue >= 0 ? "text-green-600" : "text-red-600"}
+                valueClassName={returnValue >= 0 ? "text-positive" : "text-destructive"}
               />
               <MobileRowActions>
                 <InvestmentRowActions item={items} buy={buy} current={current} />

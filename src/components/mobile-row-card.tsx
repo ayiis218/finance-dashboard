@@ -1,3 +1,6 @@
+"use client";
+
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 export function MobileCardList({
@@ -11,7 +14,16 @@ export function MobileRowCard({
   className,
   children,
 }: Readonly<{ className?: string; children: React.ReactNode }>) {
-  return <div className={cn("space-y-2 rounded-lg border p-3 text-sm", className)}>{children}</div>;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.16, 0.84, 0.44, 1] }}
+      className={cn("space-y-2 rounded-lg border p-3 text-sm", className)}
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 export function MobileRowHeader({

@@ -48,7 +48,7 @@ function TransactionRowActions({
     <>
       <FormDialog
         title="Edit Transaksi"
-        triggerIcon={<Pencil className="size-4 text-blue-500" />}
+        triggerIcon={<Pencil className="size-4 text-primary" />}
         triggerVariant="ghost"
         triggerSize="icon"
         action={updateTransaction.bind(null, item.id)}
@@ -121,7 +121,7 @@ export function TransactionTable({
                   <TableCell
                     className={
                       "text-right " +
-                      (items.type === "INCOME" ? "text-green-600" : "text-red-600")
+                      (items.type === "INCOME" ? "text-positive" : "text-destructive")
                     }
                   >
                     {items.type === "INCOME" ? "+" : "-"}
@@ -179,7 +179,7 @@ export function TransactionTable({
               <p
                 className={
                   "text-lg font-semibold " +
-                  (items.type === "INCOME" ? "text-green-600" : "text-red-600")
+                  (items.type === "INCOME" ? "text-positive" : "text-destructive")
                 }
               >
                 {items.type === "INCOME" ? "+" : "-"}

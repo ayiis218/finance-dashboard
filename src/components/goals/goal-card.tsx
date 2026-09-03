@@ -33,7 +33,7 @@ export function GoalCard({ goal }: Readonly<{ goal: GoalRow }>) {
   const monthlyTarget = target / goal.tenorMonths;
 
   return (
-    <Card>
+    <Card className="transition-shadow hover:shadow-md">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <CardTitle>{goal.name}</CardTitle>
@@ -69,7 +69,10 @@ export function GoalCard({ goal }: Readonly<{ goal: GoalRow }>) {
           <span className="text-muted-foreground">dari {formatIDR(target)}</span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
+          <div
+            className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
+            style={{ width: `${progress}%` }}
+          />
         </div>
         {goal.items.length > 0 && (
           <p className="text-xs text-muted-foreground">

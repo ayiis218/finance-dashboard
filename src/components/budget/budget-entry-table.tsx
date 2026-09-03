@@ -101,7 +101,7 @@ export function BudgetEntryTable({
                       <TableCell className="text-right">{formatIDR(row.actual)}</TableCell>
                       <TableCell
                         className={
-                          "text-right " + (row.variance > 0 ? "text-red-600" : "text-green-600")
+                          "text-right " + (row.variance > 0 ? "text-destructive" : "text-positive")
                         }
                       >
                         {row.variance > 0 ? "+" : ""}
@@ -181,7 +181,7 @@ export function BudgetEntryTable({
                   <MobileRowField
                     label="Selisih"
                     value={`${row.variance > 0 ? "+" : ""}${formatIDR(row.variance)}`}
-                    valueClassName={row.variance > 0 ? "text-red-600" : "text-green-600"}
+                    valueClassName={row.variance > 0 ? "text-destructive" : "text-positive"}
                   />
                   <MobileRowActions>
                     <FormDialog

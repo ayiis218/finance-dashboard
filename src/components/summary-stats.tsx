@@ -1,3 +1,6 @@
+"use client";
+
+import { motion } from "motion/react";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -12,45 +15,52 @@ export type SummaryStatItem = {
 export function SummaryStats({ items }: Readonly<{ items: SummaryStatItem[] }>) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {items.map((item) => (
-        <Card
+      {items.map((item, index) => (
+        <motion.div
           key={item.label}
-          className={cn(
-            item.tone === "highlight"
-              ? "bg-brand-gradient border-none text-white"
-              : "bg-gradient-to-br from-primary/5 via-card to-accent/10",
-          )}
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: index * 0.05, ease: [0.16, 0.84, 0.44, 1] }}
         >
-          <CardHeader className="pb-2">
-            <CardDescription className={item.tone === "highlight" ? "text-white/80" : undefined}>
-              {item.label}
-            </CardDescription>
-            {item.description && (
+          <Card
+            className={cn(
+              "h-full transition-shadow hover:shadow-md",
+              item.tone === "highlight"
+                ? "bg-brand-gradient border-none text-white"
+                : "bg-gradient-to-br from-primary/5 via-card to-accent/10",
+            )}
+          >
+            <CardHeader className="pb-2">
+              <CardDescription className={item.tone === "highlight" ? "text-white/80" : undefined}>
+                {item.label}
+              </CardDescription>
+              {item.description && (
+                <p
+                  className={cn(
+                    "text-[11px] leading-snug",
+                    item.tone === "highlight" ? "text-white/70" : "text-muted-foreground/80",
+                  )}
+                >
+                  {item.description}
+                </p>
+              )}
+            </CardHeader>
+            <CardContent>
               <p
                 className={cn(
-                  "text-[11px] leading-snug",
-                  item.tone === "highlight" ? "text-white/70" : "text-muted-foreground/80",
+                  "text-xl font-semibold",
+                  item.tone === "positive" && "text-positive",
+                  item.tone === "negative" && "text-destructive",
                 )}
               >
-                {item.description}
+                {item.value}
               </p>
-            )}
-          </CardHeader>
-          <CardContent>
-            <p
-              className={cn(
-                "text-xl font-semibold",
-                item.tone === "positive" && "text-green-600",
-                item.tone === "negative" && "text-red-600",
+              {item.sublabel && (
+                <p className="mt-1 text-xs text-muted-foreground">{item.sublabel}</p>
               )}
-            >
-              {item.value}
-            </p>
-            {item.sublabel && (
-              <p className="mt-1 text-xs text-muted-foreground">{item.sublabel}</p>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
       ))}
     </div>
   );

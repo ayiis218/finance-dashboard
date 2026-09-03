@@ -85,6 +85,16 @@ model Transaction {
   note           String?
   affectsBalance Boolean         @default(true)
   createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) // dipelihara trigger DB, bukan Prisma
+
+  @@index([updatedAt, id])
+}
+
+model DeletedTransaction {
+  id        String   @id // id transaksi yang dihapus (cuid, tidak pernah dipakai ulang)
+  deletedAt DateTime @default(now())
+
+  @@index([deletedAt, id])
 }
 
 model Asset {

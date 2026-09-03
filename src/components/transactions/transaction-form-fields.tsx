@@ -1,6 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { NumberInput } from "@/components/number-input";
 
 type Account = { id: string; name: string };
 
@@ -98,13 +99,7 @@ export function TransactionFormFields({
       </div>
       <div className="space-y-2">
         <Label htmlFor={`amount-${idPrefix}`}>Jumlah</Label>
-        <Input
-          id={`amount-${idPrefix}`}
-          name="amount"
-          type="number"
-          defaultValue={defaults?.amount}
-          required
-        />
+        <NumberInput id={`amount-${idPrefix}`} name="amount" defaultValue={defaults?.amount} required />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`date-${idPrefix}`}>Tanggal</Label>

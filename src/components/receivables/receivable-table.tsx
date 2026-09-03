@@ -33,15 +33,15 @@ import { formatIDR } from "@/lib/format";
 import type { ReceivableStatus } from "@/lib/queries";
 
 const STATUS_LABEL = {
-  BELUM_LUNAS: "Belum Lunas",
-  CICILAN_BERJALAN: "Cicilan Berjalan",
-  LUNAS: "Lunas",
+  UNPAID: "Belum Lunas",
+  PARTIALLY_PAID: "Cicilan Berjalan",
+  SETTLED: "Lunas",
 } as const;
 
 const STATUS_VARIANT = {
-  BELUM_LUNAS: "destructive",
-  CICILAN_BERJALAN: "secondary",
-  LUNAS: "default",
+  UNPAID: "destructive",
+  PARTIALLY_PAID: "secondary",
+  SETTLED: "default",
 } as const;
 
 type ReceivableRow = {
@@ -118,7 +118,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
           </TableHeader>
           <TableBody>
             {rows.map((r, index) => (
-              <TableRow key={r.id} className={r.status === "LUNAS" ? "opacity-50" : ""}>
+              <TableRow key={r.id} className={r.status === "SETTLED" ? "opacity-50" : ""}>
                 <TableCell className="text-muted-foreground">{index + 1}</TableCell>
                 <TableCell>{r.personName}</TableCell>
                 <TableCell>
@@ -129,7 +129,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
                 <TableCell className="text-right">
                   <div className="flex flex-col items-end">
                     <span>{formatIDR(Number(r.amount))}</span>
-                    {r.totalPaid > 0 && r.status !== "LUNAS" && (
+                    {r.totalPaid > 0 && r.status !== "SETTLED" && (
                       <span className="text-xs text-muted-foreground">
                         terbayar {formatIDR(r.totalPaid)}
                       </span>
@@ -139,7 +139,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
                 <TableCell>
                   <div className="flex flex-col items-start gap-1">
                     <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge>
-                    {r.status !== "LUNAS" && (
+                    {r.status !== "SETTLED" && (
                       <MarkSettledButton action={toggleReceivableSettled.bind(null, r.id, true)} />
                     )}
                   </div>
@@ -167,7 +167,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
 
       <MobileCardList>
         {rows.map((r) => (
-          <MobileRowCard key={r.id} className={r.status === "LUNAS" ? "opacity-50" : ""}>
+          <MobileRowCard key={r.id} className={r.status === "SETTLED" ? "opacity-50" : ""}>
             <MobileRowHeader
               title={r.personName}
               action={
@@ -181,7 +181,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
               value={
                 <div className="flex flex-col items-end">
                   <span>{formatIDR(Number(r.amount))}</span>
-                  {r.totalPaid > 0 && r.status !== "LUNAS" && (
+                  {r.totalPaid > 0 && r.status !== "SETTLED" && (
                     <span className="text-xs text-muted-foreground">
                       terbayar {formatIDR(r.totalPaid)}
                     </span>
@@ -191,7 +191,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
             />
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge>
-              {r.status !== "LUNAS" && (
+              {r.status !== "SETTLED" && (
                 <MarkSettledButton action={toggleReceivableSettled.bind(null, r.id, true)} />
               )}
             </div>

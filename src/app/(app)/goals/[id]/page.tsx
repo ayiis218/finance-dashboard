@@ -24,6 +24,7 @@ import {
 import { formatIDR } from "@/lib/format";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/number-input";
 
 export default async function GoalDetailPage({
   params,
@@ -156,7 +157,7 @@ export default async function GoalDetailPage({
             </div>
             <div className="space-y-2">
               <Label htmlFor="amount">Jumlah</Label>
-              <Input id="amount" name="amount" type="number" required />
+              <NumberInput id="amount" name="amount" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="contributor">Kontributor</Label>

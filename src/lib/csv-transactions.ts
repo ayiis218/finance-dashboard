@@ -83,52 +83,52 @@ export function validateImportRow(
   accounts: ImportAccount[],
   index: number,
 ): ValidationResult {
-  const tanggal = (raw.tanggal ?? "").trim();
-  const rekening = (raw.rekening ?? "").trim();
-  const tipe = (raw.tipe ?? "").trim();
-  const kategori = (raw.kategori ?? "").trim();
-  const jumlah = (raw.jumlah ?? "").trim();
-  const catatan = (raw.catatan ?? "").trim();
-  const rekeningTujuan = (raw.rekening_tujuan ?? "").trim();
+  const dateStr = (raw.tanggal ?? "").trim();
+  const accountName = (raw.rekening ?? "").trim();
+  const typeStr = (raw.tipe ?? "").trim();
+  const categoryStr = (raw.kategori ?? "").trim();
+  const amountStr = (raw.jumlah ?? "").trim();
+  const noteStr = (raw.catatan ?? "").trim();
+  const toAccountName = (raw.rekening_tujuan ?? "").trim();
 
-  const date = tanggal ? parseCsvDate(tanggal) : null;
+  const date = dateStr ? parseCsvDate(dateStr) : null;
   if (!date) {
     return {
       ok: false,
       index,
       raw,
-      error: `Tanggal tidak valid: "${tanggal}" (format harus YYYY-MM-DD atau DD/MM/YYYY)`,
+      error: `Tanggal tidak valid: "${dateStr}" (format harus YYYY-MM-DD atau DD/MM/YYYY)`,
     };
   }
 
-  const account = accounts.find((a) => a.name.trim().toLowerCase() === rekening.toLowerCase());
-  if (!rekening || !account) {
-    return { ok: false, index, raw, error: `Rekening tidak ditemukan: "${rekening}"` };
+  const account = accounts.find((a) => a.name.trim().toLowerCase() === accountName.toLowerCase());
+  if (!accountName || !account) {
+    return { ok: false, index, raw, error: `Rekening tidak ditemukan: "${accountName}"` };
   }
 
-  const type = TYPE_ALIASES[tipe.toLowerCase()];
+  const type = TYPE_ALIASES[typeStr.toLowerCase()];
   if (!type) {
     return {
       ok: false,
       index,
       raw,
-      error: `Tipe tidak valid: "${tipe}" (harus INCOME/EXPENSE/TRANSFER atau Pemasukan/Pengeluaran/Transfer)`,
+      error: `Tipe tidak valid: "${typeStr}" (harus INCOME/EXPENSE/TRANSFER atau Pemasukan/Pengeluaran/Transfer)`,
     };
   }
 
-  if (!kategori) {
+  if (!categoryStr) {
     return { ok: false, index, raw, error: "Kategori tidak boleh kosong" };
   }
 
   let toAccount: ImportAccount | undefined;
-  if (rekeningTujuan) {
-    toAccount = accounts.find((a) => a.name.trim().toLowerCase() === rekeningTujuan.toLowerCase());
+  if (toAccountName) {
+    toAccount = accounts.find((a) => a.name.trim().toLowerCase() === toAccountName.toLowerCase());
     if (!toAccount) {
       return {
         ok: false,
         index,
         raw,
-        error: `Rekening tujuan tidak ditemukan: "${rekeningTujuan}"`,
+        error: `Rekening tujuan tidak ditemukan: "${toAccountName}"`,
       };
     }
     if (toAccount.id === account.id) {
@@ -141,17 +141,17 @@ export function validateImportRow(
     }
   }
 
-  if (/[.,]/.test(jumlah)) {
+  if (/[.,]/.test(amountStr)) {
     return {
       ok: false,
       index,
       raw,
-      error: `Jumlah tidak boleh pakai pemisah ribuan/desimal: "${jumlah}" (tulis mis. 150000)`,
+      error: `Jumlah tidak boleh pakai pemisah ribuan/desimal: "${amountStr}" (tulis mis. 150000)`,
     };
   }
-  const amount = Number(jumlah);
-  if (!jumlah || !Number.isFinite(amount) || amount <= 0) {
-    return { ok: false, index, raw, error: `Jumlah harus angka positif: "${jumlah}"` };
+  const amount = Number(amountStr);
+  if (!amountStr || !Number.isFinite(amount) || amount <= 0) {
+    return { ok: false, index, raw, error: `Jumlah harus angka positif: "${amountStr}"` };
   }
 
   return {
@@ -164,10 +164,10 @@ export function validateImportRow(
       toAccountId: type === "TRANSFER" ? toAccount?.id : undefined,
       toAccountName: type === "TRANSFER" ? toAccount?.name : undefined,
       type,
-      category: kategori,
+      category: categoryStr,
       amount,
       date,
-      note: catatan || undefined,
+      note: noteStr || undefined,
     },
   };
 }

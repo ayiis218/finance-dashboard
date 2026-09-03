@@ -14,29 +14,29 @@ export async function getSummary() {
     getReceivablesWithStatus(),
   ]);
 
-  const totalSaldo = accounts.reduce((sum, a) => sum + toNumber(a.balance), 0);
-  const totalAset = assets.reduce((sum, a) => sum + toNumber(a.value), 0);
-  const totalInvestasi = investments.reduce(
+  const totalBalance = accounts.reduce((sum, a) => sum + toNumber(a.balance), 0);
+  const totalAssets = assets.reduce((sum, a) => sum + toNumber(a.value), 0);
+  const totalInvestments = investments.reduce(
     (sum, i) => sum + toNumber(i.currentValue),
     0,
   );
-  const outstanding = receivables.filter((r) => r.status !== "LUNAS");
-  const totalUtang = outstanding
+  const outstanding = receivables.filter((r) => r.status !== "SETTLED");
+  const totalDebt = outstanding
     .filter((r) => r.type === "UTANG")
     .reduce((sum, r) => sum + r.remaining, 0);
-  const totalPiutang = outstanding
+  const totalReceivables = outstanding
     .filter((r) => r.type === "PIUTANG")
     .reduce((sum, r) => sum + r.remaining, 0);
 
   const netWorth =
-    totalSaldo + totalAset + totalInvestasi + totalPiutang - totalUtang;
+    totalBalance + totalAssets + totalInvestments + totalReceivables - totalDebt;
 
   return {
-    totalSaldo,
-    totalAset,
-    totalInvestasi,
-    totalUtang,
-    totalPiutang,
+    totalBalance,
+    totalAssets,
+    totalInvestments,
+    totalDebt,
+    totalReceivables,
     netWorth,
   };
 }
@@ -167,7 +167,7 @@ export async function getGoalDetail(id: string) {
   };
 }
 
-export type ReceivableStatus = "BELUM_LUNAS" | "CICILAN_BERJALAN" | "LUNAS";
+export type ReceivableStatus = "UNPAID" | "PARTIALLY_PAID" | "SETTLED";
 
 export async function getReceivablesWithStatus() {
   const receivables = await prisma.receivable.findMany({
@@ -179,9 +179,9 @@ export async function getReceivablesWithStatus() {
     const amount = toNumber(r.amount);
     const totalPaid = r.payments.reduce((sum, p) => sum + toNumber(p.amount), 0);
     const remaining = Math.max(0, amount - totalPaid);
-    let status: ReceivableStatus = "BELUM_LUNAS";
-    if (r.isSettled || totalPaid >= amount) status = "LUNAS";
-    else if (totalPaid > 0) status = "CICILAN_BERJALAN";
+    let status: ReceivableStatus = "UNPAID";
+    if (r.isSettled || totalPaid >= amount) status = "SETTLED";
+    else if (totalPaid > 0) status = "PARTIALLY_PAID";
 
     return { ...r, totalPaid, remaining, status };
   });
@@ -319,7 +319,7 @@ export async function getCashflowForecasts() {
       saldoAwal: toNumber(f.saldoAwal),
       saldoAkhirActual,
       saldoAkhirExpected,
-      selisih:
+      variance:
         saldoAkhirActual != null && saldoAkhirExpected != null
           ? saldoAkhirActual - saldoAkhirExpected
           : null,

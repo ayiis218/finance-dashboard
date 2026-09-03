@@ -27,11 +27,11 @@ export default async function CashflowPage() {
         },
         {
           label: "Selisih",
-          value: latest.selisih != null ? formatIDR(latest.selisih) : "-",
+          value: latest.variance != null ? formatIDR(latest.variance) : "-",
           tone:
-            latest.selisih == null
+            latest.variance == null
               ? undefined
-              : latest.selisih >= 0
+              : latest.variance >= 0
                 ? ("highlight" as const)
                 : ("negative" as const),
         },

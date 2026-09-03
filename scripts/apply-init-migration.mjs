@@ -25,13 +25,47 @@ const sqlPath = `prisma/migrations/${migrationName}/migration.sql`;
 const fullSql = readFileSync(sqlPath, "utf8");
 const checksum = createHash("sha256").update(fullSql).digest("hex");
 
-const statements = fullSql
-  .split("\n")
-  .filter((line) => !line.trim().startsWith("--"))
-  .join("\n")
-  .split(";")
-  .map((s) => s.trim())
-  .filter(Boolean);
+function splitStatements(rawSql) {
+  const sql = rawSql
+    .split("\n")
+    .filter((line) => !line.trim().startsWith("--"))
+    .join("\n");
+
+  const statements = [];
+  let current = "";
+  let dollarTag = null;
+
+  for (let i = 0; i < sql.length; i++) {
+    const rest = sql.slice(i);
+
+    if (dollarTag) {
+      if (rest.startsWith(dollarTag)) {
+        current += dollarTag;
+        i += dollarTag.length - 1;
+        dollarTag = null;
+        continue;
+      }
+    } else {
+      const open = /^\$[A-Za-z_]*\$/.exec(rest);
+      if (open) {
+        dollarTag = open[0];
+        current += dollarTag;
+        i += dollarTag.length - 1;
+        continue;
+      }
+      if (sql[i] === ";") {
+        if (current.trim()) statements.push(current.trim());
+        current = "";
+        continue;
+      }
+    }
+    current += sql[i];
+  }
+  if (current.trim()) statements.push(current.trim());
+  return statements;
+}
+
+const statements = splitStatements(fullSql);
 
 const sql = neon(process.env.DATABASE_URL);
 

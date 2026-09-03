@@ -26,35 +26,35 @@ export default async function DashboardPage() {
     getBudgetOverview(new Date()),
   ]);
 
-  const sisaAnggaran = budgetOverview.totals.planned - budgetOverview.totals.actual;
+  const remainingBudget = budgetOverview.totals.planned - budgetOverview.totals.actual;
 
   const summaryItems: SummaryStatItem[] = [
     {
       label: "Total Saldo",
       description: "Uang tunai di semua rekening bank & cash",
-      value: formatIDR(summary.totalSaldo),
+      value: formatIDR(summary.totalBalance),
     },
     {
       label: "Total Aset",
       description: "Nilai properti, kendaraan & barang berharga lain",
-      value: formatIDR(summary.totalAset),
+      value: formatIDR(summary.totalAssets),
     },
     {
       label: "Total Investasi",
       description: "Nilai investasi saat ini (reksadana, saham, dll)",
-      value: formatIDR(summary.totalInvestasi),
+      value: formatIDR(summary.totalInvestments),
     },
     {
       label: "Total Utang",
       description: "Sisa utang yang masih harus dibayar (sudah dikurangi cicilan)",
-      value: formatIDR(summary.totalUtang),
-      tone: summary.totalUtang > 0 ? "negative" : "default",
+      value: formatIDR(summary.totalDebt),
+      tone: summary.totalDebt > 0 ? "negative" : "default",
     },
     {
       label: "Sisa Anggaran Bulan Ini",
       description: "Anggaran bulanan dikurangi pengeluaran yang sudah terjadi",
-      value: formatIDR(sisaAnggaran),
-      tone: sisaAnggaran >= 0 ? "positive" : "negative",
+      value: formatIDR(remainingBudget),
+      tone: remainingBudget >= 0 ? "positive" : "negative",
     },
     {
       label: "Kekayaan Bersih",

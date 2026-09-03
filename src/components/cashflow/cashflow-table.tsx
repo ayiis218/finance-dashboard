@@ -28,7 +28,7 @@ type CashflowRow = {
   saldoAwal: number;
   saldoAkhirExpected: number | null;
   saldoAkhirActual: number | null;
-  selisih: number | null;
+  variance: number | null;
 };
 
 function CashflowRowActions({ item }: Readonly<{ item: CashflowRow }>) {
@@ -87,14 +87,14 @@ export function CashflowTable({ rows }: Readonly<{ rows: CashflowRow[] }>) {
                 <TableCell
                   className={
                     "text-right " +
-                    (f.selisih == null
+                    (f.variance == null
                       ? "text-muted-foreground"
-                      : f.selisih >= 0
+                      : f.variance >= 0
                         ? "text-green-600"
                         : "text-red-600")
                   }
                 >
-                  {f.selisih != null ? `${f.selisih > 0 ? "+" : ""}${formatIDR(f.selisih)}` : "-"}
+                  {f.variance != null ? `${f.variance > 0 ? "+" : ""}${formatIDR(f.variance)}` : "-"}
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex items-center justify-center gap-1">
@@ -129,11 +129,11 @@ export function CashflowTable({ rows }: Readonly<{ rows: CashflowRow[] }>) {
             />
             <MobileRowField
               label="Selisih"
-              value={f.selisih != null ? `${f.selisih > 0 ? "+" : ""}${formatIDR(f.selisih)}` : "-"}
+              value={f.variance != null ? `${f.variance > 0 ? "+" : ""}${formatIDR(f.variance)}` : "-"}
               valueClassName={
-                f.selisih == null
+                f.variance == null
                   ? "text-muted-foreground"
-                  : f.selisih >= 0
+                  : f.variance >= 0
                     ? "text-green-600"
                     : "text-red-600"
               }

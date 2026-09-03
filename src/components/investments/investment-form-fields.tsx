@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/number-input";
 
 export type InvestmentFormDefaults = {
   platform?: string;
@@ -36,20 +37,18 @@ export function InvestmentFormFields({
       </div>
       <div className="space-y-2">
         <Label htmlFor={`buyValue-${idPrefix}`}>Nilai Beli</Label>
-        <Input
+        <NumberInput
           id={`buyValue-${idPrefix}`}
           name="buyValue"
-          type="number"
           defaultValue={defaults?.buyValue}
           required
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`currentValue-${idPrefix}`}>Nilai Sekarang</Label>
-        <Input
+        <NumberInput
           id={`currentValue-${idPrefix}`}
           name="currentValue"
-          type="number"
           defaultValue={defaults?.currentValue}
           required
         />

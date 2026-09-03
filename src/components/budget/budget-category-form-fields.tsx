@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/number-input";
 
 export type BudgetCategoryFormDefaults = {
   name?: string;
@@ -24,10 +25,9 @@ export function BudgetCategoryFormFields({
       </div>
       <div className="space-y-2">
         <Label htmlFor={`monthlyPlanned-${idPrefix}`}>Anggaran Bulanan</Label>
-        <Input
+        <NumberInput
           id={`monthlyPlanned-${idPrefix}`}
           name="monthlyPlanned"
-          type="number"
           defaultValue={defaults?.monthlyPlanned}
           required
         />

@@ -14,14 +14,14 @@ export default async function InvestmentsPage() {
     orderBy: { platform: "asc" },
   });
 
-  const totalModal = investments.reduce((sum, i) => sum + Number(i.buyValue), 0);
-  const totalNilai = investments.reduce((sum, i) => sum + Number(i.currentValue), 0);
-  const gainLoss = totalNilai - totalModal;
-  const gainLossPct = totalModal > 0 ? (gainLoss / totalModal) * 100 : 0;
+  const totalBuyValue = investments.reduce((sum, i) => sum + Number(i.buyValue), 0);
+  const totalCurrentValue = investments.reduce((sum, i) => sum + Number(i.currentValue), 0);
+  const gainLoss = totalCurrentValue - totalBuyValue;
+  const gainLossPct = totalBuyValue > 0 ? (gainLoss / totalBuyValue) * 100 : 0;
 
   const summaryItems = [
-    { label: "Total Modal", value: formatIDR(totalModal) },
-    { label: "Total Nilai Sekarang", value: formatIDR(totalNilai), tone: "highlight" as const },
+    { label: "Total Modal", value: formatIDR(totalBuyValue) },
+    { label: "Total Nilai Sekarang", value: formatIDR(totalCurrentValue), tone: "highlight" as const },
     {
       label: "Gain/Loss",
       value: `${gainLoss >= 0 ? "+" : ""}${formatIDR(gainLoss)}`,

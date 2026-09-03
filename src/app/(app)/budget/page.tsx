@@ -23,7 +23,7 @@ export default async function BudgetPage({
     getBudgetOverview(month),
   ]);
 
-  const sisaAnggaran = overview.totals.planned - overview.totals.actual;
+  const remainingBudget = overview.totals.planned - overview.totals.actual;
 
   const summaryItems = [
     { label: "Total Rencana", value: formatIDR(overview.totals.planned) },
@@ -31,8 +31,8 @@ export default async function BudgetPage({
     { label: "Total Aktual", value: formatIDR(overview.totals.actual) },
     {
       label: "Sisa Anggaran",
-      value: formatIDR(sisaAnggaran),
-      tone: sisaAnggaran >= 0 ? ("highlight" as const) : ("negative" as const),
+      value: formatIDR(remainingBudget),
+      tone: remainingBudget >= 0 ? ("highlight" as const) : ("negative" as const),
     },
   ];
 

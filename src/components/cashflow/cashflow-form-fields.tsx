@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/number-input";
 
 export type CashflowFormDefaults = {
   saldoAwal?: number;
@@ -29,30 +30,27 @@ export function CashflowFormFields({
       )}
       <div className="space-y-2">
         <Label htmlFor={`saldoAwal-${idPrefix}`}>Saldo Awal</Label>
-        <Input
+        <NumberInput
           id={`saldoAwal-${idPrefix}`}
           name="saldoAwal"
-          type="number"
           defaultValue={defaults?.saldoAwal}
           required
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`saldoAkhirExpected-${idPrefix}`}>Saldo Akhir (Ekspektasi)</Label>
-        <Input
+        <NumberInput
           id={`saldoAkhirExpected-${idPrefix}`}
           name="saldoAkhirExpected"
-          type="number"
           defaultValue={defaults?.saldoAkhirExpected ?? ""}
           placeholder="Opsional"
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`saldoAkhirActual-${idPrefix}`}>Saldo Akhir (Aktual)</Label>
-        <Input
+        <NumberInput
           id={`saldoAkhirActual-${idPrefix}`}
           name="saldoAkhirActual"
-          type="number"
           defaultValue={defaults?.saldoAkhirActual ?? ""}
           placeholder="Opsional"
         />

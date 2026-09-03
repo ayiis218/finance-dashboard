@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/number-input";
 
 export type AssetFormDefaults = {
   name?: string;
@@ -36,13 +37,7 @@ export function AssetFormFields({
       </div>
       <div className="space-y-2">
         <Label htmlFor={`value-${idPrefix}`}>Nilai</Label>
-        <Input
-          id={`value-${idPrefix}`}
-          name="value"
-          type="number"
-          defaultValue={defaults?.value}
-          required
-        />
+        <NumberInput id={`value-${idPrefix}`} name="value" defaultValue={defaults?.value} required />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`acquiredDate-${idPrefix}`}>Tanggal Perolehan</Label>

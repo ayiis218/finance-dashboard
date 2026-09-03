@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NumberInput } from "@/components/number-input";
 import {
   Dialog,
   DialogContent,
@@ -110,10 +111,9 @@ export function RepaymentDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor={`pay-amount-${receivableId}`}>Jumlah Bayar</Label>
-              <Input
+              <NumberInput
                 id={`pay-amount-${receivableId}`}
                 name="amount"
-                type="number"
                 max={remaining}
                 required
               />

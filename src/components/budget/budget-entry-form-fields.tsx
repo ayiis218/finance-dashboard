@@ -1,5 +1,5 @@
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/number-input";
 
 export type BudgetEntryFormDefaults = {
   expectation?: number;
@@ -25,40 +25,36 @@ export function BudgetEntryFormFields({
       {hiddenMonth && <input type="hidden" name="month" value={hiddenMonth} />}
       <div className="space-y-2">
         <Label htmlFor={`expectation-${idPrefix}`}>Ekspektasi</Label>
-        <Input
+        <NumberInput
           id={`expectation-${idPrefix}`}
           name="expectation"
-          type="number"
           defaultValue={defaults?.expectation}
           required
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`actual-${idPrefix}`}>Aktual</Label>
-        <Input
+        <NumberInput
           id={`actual-${idPrefix}`}
           name="actual"
-          type="number"
           defaultValue={defaults?.actual}
           required
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`minTarget-${idPrefix}`}>Target Minimum</Label>
-        <Input
+        <NumberInput
           id={`minTarget-${idPrefix}`}
           name="minTarget"
-          type="number"
           defaultValue={defaults?.minTarget ?? ""}
           placeholder="Opsional"
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`maxTarget-${idPrefix}`}>Target Maksimum</Label>
-        <Input
+        <NumberInput
           id={`maxTarget-${idPrefix}`}
           name="maxTarget"
-          type="number"
           defaultValue={defaults?.maxTarget ?? ""}
           placeholder="Opsional"
         />

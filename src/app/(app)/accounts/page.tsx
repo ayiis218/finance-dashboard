@@ -14,10 +14,10 @@ export default async function AccountsPage() {
     orderBy: { name: "asc" },
   });
 
-  const totalSaldo = accounts.reduce((sum, a) => sum + Number(a.balance), 0);
+  const totalBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0);
 
   const summaryItems = [
-    { label: "Total Saldo", value: formatIDR(totalSaldo), tone: "highlight" as const },
+    { label: "Total Saldo", value: formatIDR(totalBalance), tone: "highlight" as const },
     { label: "Jumlah Rekening", value: String(accounts.length) },
   ];
 

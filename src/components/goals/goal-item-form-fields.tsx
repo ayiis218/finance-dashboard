@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/number-input";
 
 export type GoalItemFormDefaults = {
   category?: string;
@@ -39,20 +40,18 @@ export function GoalItemFormFields({
       </div>
       <div className="space-y-2">
         <Label htmlFor={`budgetAmount-${idPrefix}`}>Anggaran</Label>
-        <Input
+        <NumberInput
           id={`budgetAmount-${idPrefix}`}
           name="budgetAmount"
-          type="number"
           defaultValue={defaults?.budgetAmount}
           required
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`actualAmount-${idPrefix}`}>Aktual</Label>
-        <Input
+        <NumberInput
           id={`actualAmount-${idPrefix}`}
           name="actualAmount"
-          type="number"
           defaultValue={defaults?.actualAmount}
           placeholder="Opsional, default 0"
         />

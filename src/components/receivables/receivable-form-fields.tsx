@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/number-input";
 
 export type ReceivableFormDefaults = {
   personName?: string;
@@ -39,13 +40,7 @@ export function ReceivableFormFields({
       </div>
       <div className="space-y-2">
         <Label htmlFor={`amount-${idPrefix}`}>Jumlah</Label>
-        <Input
-          id={`amount-${idPrefix}`}
-          name="amount"
-          type="number"
-          defaultValue={defaults?.amount}
-          required
-        />
+        <NumberInput id={`amount-${idPrefix}`} name="amount" defaultValue={defaults?.amount} required />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`date-${idPrefix}`}>Tanggal</Label>

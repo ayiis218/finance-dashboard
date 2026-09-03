@@ -12,22 +12,22 @@ import { formatIDR } from "@/lib/format";
 export default async function ReceivablesPage() {
   const receivables = await getReceivablesWithStatus();
 
-  const outstanding = receivables.filter((r) => r.status !== "LUNAS");
-  const totalPiutang = outstanding
+  const outstanding = receivables.filter((r) => r.status !== "SETTLED");
+  const totalReceivables = outstanding
     .filter((r) => r.type === "PIUTANG")
     .reduce((sum, r) => sum + r.remaining, 0);
-  const totalUtang = outstanding
+  const totalDebt = outstanding
     .filter((r) => r.type === "UTANG")
     .reduce((sum, r) => sum + r.remaining, 0);
-  const totalDicicil = outstanding.reduce((sum, r) => sum + r.totalPaid, 0);
+  const totalRepaid = outstanding.reduce((sum, r) => sum + r.totalPaid, 0);
 
   const summaryItems = [
-    { label: "Total Piutang Outstanding", value: formatIDR(totalPiutang), tone: "positive" as const },
-    { label: "Total Utang Outstanding", value: formatIDR(totalUtang), tone: "negative" as const },
-    { label: "Total Sudah Dicicil", value: formatIDR(totalDicicil) },
+    { label: "Total Piutang Outstanding", value: formatIDR(totalReceivables), tone: "positive" as const },
+    { label: "Total Utang Outstanding", value: formatIDR(totalDebt), tone: "negative" as const },
+    { label: "Total Sudah Dicicil", value: formatIDR(totalRepaid) },
     {
       label: "Posisi Bersih",
-      value: formatIDR(totalPiutang - totalUtang),
+      value: formatIDR(totalReceivables - totalDebt),
       tone: "highlight" as const,
     },
   ];

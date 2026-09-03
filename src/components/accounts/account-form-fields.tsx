@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/number-input";
 
 export type AccountFormDefaults = {
   name?: string;
@@ -24,10 +25,9 @@ export function AccountFormFields({
       </div>
       <div className="space-y-2">
         <Label htmlFor={`balance-${idPrefix}`}>Saldo</Label>
-        <Input
+        <NumberInput
           id={`balance-${idPrefix}`}
           name="balance"
-          type="number"
           defaultValue={defaults?.balance ?? 0}
           required
         />

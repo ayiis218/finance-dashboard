@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Roboto, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -19,6 +19,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Finance Dashboard",
   description: "Dashboard pencatatan keuangan pribadi",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Finance Dashboard",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#205295",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

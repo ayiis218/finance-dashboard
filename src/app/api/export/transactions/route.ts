@@ -1,23 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { authorizedSync } from "@/lib/sync-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_LIMIT = 500;
-
-function authorized(req: NextRequest): boolean {
-  const expected = process.env.SYNC_TOKEN;
-  if (!expected) return false; // fail closed: tanpa token, endpoint mati
-  const header = req.headers.get("authorization") ?? "";
-  if (!header.startsWith("Bearer ")) return false;
-  const provided = Buffer.from(header.slice(7));
-  const secret = Buffer.from(expected);
-  if (provided.length !== secret.length) return false;
-  return timingSafeEqual(provided, secret);
-}
 
 /** Cursor keyset: "<ISO timestamp>|<id>" */
 const cursorSchema = z
@@ -41,7 +30,7 @@ type Cursor = { at: Date; id: string };
 const encode = (c: Cursor) => `${c.at.toISOString()}|${c.id}`;
 
 export async function GET(req: NextRequest) {
-  if (!authorized(req)) {
+  if (!authorizedSync(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

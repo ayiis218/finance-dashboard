@@ -6,8 +6,8 @@ import { FormDialog } from "@/components/form-dialog";
 import { SummaryStats } from "@/components/summary-stats";
 import { CashflowFormFields } from "@/components/cashflow/cashflow-form-fields";
 import { CashflowTable } from "@/components/cashflow/cashflow-table";
-import { getCashflowForecasts } from "@/lib/queries";
-import { createCashflowForecast } from "@/lib/actions";
+import { getCashflowForecasts } from "@/lib/queries/cashflow";
+import { createCashflowForecast } from "@/lib/actions/cashflow";
 import { formatIDR } from "@/lib/format";
 
 export default async function CashflowPage() {

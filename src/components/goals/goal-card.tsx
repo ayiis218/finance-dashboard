@@ -12,18 +12,11 @@ import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { GoalFormFields } from "@/components/goals/goal-form-fields";
-import { updateSavingsGoal, deleteSavingsGoal } from "@/lib/actions";
+import { updateSavingsGoal, deleteSavingsGoal } from "@/lib/actions/goals";
+import type { getSavingsGoals } from "@/lib/queries/goals";
 import { formatIDR } from "@/lib/format";
 
-type GoalRow = {
-  id: string;
-  name: string;
-  targetAmount: unknown;
-  tenorMonths: number;
-  startDate: Date;
-  entries: { amount: unknown }[];
-  items: { budgetAmount: unknown }[];
-};
+type GoalRow = Awaited<ReturnType<typeof getSavingsGoals>>[number];
 
 export function GoalCard({ goal }: Readonly<{ goal: GoalRow }>) {
   const saved = goal.entries.reduce((sum, e) => sum + Number(e.amount), 0);

@@ -17,10 +17,11 @@ import {
   MobileRowCard,
   MobileRowHeader,
 } from "@/components/mobile-row-card";
-import { updateBankAccount, deleteBankAccount } from "@/lib/actions";
+import { updateBankAccount, deleteBankAccount } from "@/lib/actions/accounts";
+import type { getBankAccounts } from "@/lib/queries/accounts";
 import { formatIDR } from "@/lib/format";
 
-type AccountRow = { id: string; name: string; balance: unknown };
+type AccountRow = Awaited<ReturnType<typeof getBankAccounts>>[number];
 
 function AccountRowActions({ item }: Readonly<{ item: AccountRow }>) {
   return (
@@ -56,14 +57,14 @@ export function AccountTable({ rows }: Readonly<{ rows: AccountRow[] }>) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((items, index) => (
-              <TableRow key={items.id}>
+            {rows.map((account, index) => (
+              <TableRow key={account.id}>
                 <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                <TableCell>{items.name}</TableCell>
-                <TableCell className="text-right">{formatIDR(Number(items.balance))}</TableCell>
+                <TableCell>{account.name}</TableCell>
+                <TableCell className="text-right">{formatIDR(Number(account.balance))}</TableCell>
                 <TableCell className="text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <AccountRowActions item={items} />
+                    <AccountRowActions item={account} />
                   </div>
                 </TableCell>
               </TableRow>
@@ -80,12 +81,12 @@ export function AccountTable({ rows }: Readonly<{ rows: AccountRow[] }>) {
       </div>
 
       <MobileCardList>
-        {rows.map((items) => (
-          <MobileRowCard key={items.id}>
-            <MobileRowHeader title={items.name} />
-            <p className="text-lg font-semibold">{formatIDR(Number(items.balance))}</p>
+        {rows.map((account) => (
+          <MobileRowCard key={account.id}>
+            <MobileRowHeader title={account.name} />
+            <p className="text-lg font-semibold">{formatIDR(Number(account.balance))}</p>
             <MobileRowActions>
-              <AccountRowActions item={items} />
+              <AccountRowActions item={account} />
             </MobileRowActions>
           </MobileRowCard>
         ))}

@@ -12,13 +12,13 @@ import { PageNav } from "@/components/page-nav";
 import { TransactionFilters } from "@/components/transactions/transaction-filters";
 import { TransactionFormFields } from "@/components/transactions/transaction-form-fields";
 import { TransactionTable } from "@/components/transactions/transaction-table";
-import { prisma } from "@/lib/prisma";
+import { getBankAccounts } from "@/lib/queries/accounts";
 import {
   getDistinctCategories,
   getLatestTransaction,
   getTransactionsFiltered,
-} from "@/lib/queries";
-import { createTransaction } from "@/lib/actions";
+} from "@/lib/queries/transactions";
+import { createTransaction } from "@/lib/actions/transactions";
 import { formatIDR } from "@/lib/format";
 
 export default async function TransactionsPage({
@@ -33,7 +33,7 @@ export default async function TransactionsPage({
 
   const [result, accountRows, categories, latestTransaction] = await Promise.all([
     getTransactionsFiltered({ month, q, type: validType, accountId, page }),
-    prisma.bankAccount.findMany(),
+    getBankAccounts(),
     getDistinctCategories(),
     getLatestTransaction(),
   ]);

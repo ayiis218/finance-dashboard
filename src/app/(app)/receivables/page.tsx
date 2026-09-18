@@ -5,8 +5,8 @@ import { FormDialog } from "@/components/form-dialog";
 import { SummaryStats } from "@/components/summary-stats";
 import { ReceivableFormFields } from "@/components/receivables/receivable-form-fields";
 import { ReceivableTable } from "@/components/receivables/receivable-table";
-import { getReceivablesWithStatus } from "@/lib/queries";
-import { createReceivable } from "@/lib/actions";
+import { getReceivablesWithStatus } from "@/lib/queries/receivables";
+import { createReceivable } from "@/lib/actions/receivables";
 import { formatIDR } from "@/lib/format";
 
 export default async function ReceivablesPage() {

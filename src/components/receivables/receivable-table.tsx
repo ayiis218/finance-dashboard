@@ -28,9 +28,9 @@ import {
   deleteRepaymentEntry,
   toggleReceivableSettled,
   updateReceivable,
-} from "@/lib/actions";
+} from "@/lib/actions/receivables";
 import { formatIDR } from "@/lib/format";
-import type { ReceivableStatus } from "@/lib/queries";
+import type { getReceivablesWithStatus } from "@/lib/queries/receivables";
 
 const STATUS_LABEL = {
   UNPAID: "Unpaid",
@@ -44,18 +44,7 @@ const STATUS_VARIANT = {
   SETTLED: "default",
 } as const;
 
-type ReceivableRow = {
-  id: string;
-  personName: string;
-  type: "PIUTANG" | "UTANG";
-  amount: unknown;
-  date: Date;
-  note: string | null;
-  totalPaid: number;
-  remaining: number;
-  status: ReceivableStatus;
-  payments: { id: string; date: Date; amount: unknown; note: string | null }[];
-};
+type ReceivableRow = Awaited<ReturnType<typeof getReceivablesWithStatus>>[number];
 
 function ReceivableRepayment({ item }: Readonly<{ item: ReceivableRow }>) {
   return (

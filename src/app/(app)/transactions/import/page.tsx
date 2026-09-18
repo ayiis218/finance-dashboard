@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TransactionImport } from "@/components/transactions/transaction-import";
 import { prisma } from "@/lib/prisma";
-import { importTransactions } from "@/lib/actions";
+import { importTransactions } from "@/lib/actions/transactions";
 
 export default async function TransactionImportPage() {
   const accounts = await prisma.bankAccount.findMany({ orderBy: { name: "asc" } });

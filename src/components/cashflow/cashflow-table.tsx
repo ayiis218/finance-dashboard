@@ -19,17 +19,11 @@ import {
   MobileRowField,
   MobileRowHeader,
 } from "@/components/mobile-row-card";
-import { updateCashflowForecast, deleteCashflowForecast } from "@/lib/actions";
+import { updateCashflowForecast, deleteCashflowForecast } from "@/lib/actions/cashflow";
+import type { getCashflowForecasts } from "@/lib/queries/cashflow";
 import { formatIDR } from "@/lib/format";
 
-type CashflowRow = {
-  id: string;
-  month: Date;
-  saldoAwal: number;
-  saldoAkhirExpected: number | null;
-  saldoAkhirActual: number | null;
-  variance: number | null;
-};
+type CashflowRow = Awaited<ReturnType<typeof getCashflowForecasts>>[number];
 
 function CashflowRowActions({ item }: Readonly<{ item: CashflowRow }>) {
   return (

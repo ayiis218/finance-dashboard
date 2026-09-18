@@ -8,8 +8,8 @@ import { MonthNav } from "@/components/month-nav";
 import { BudgetCategoryFormFields } from "@/components/budget/budget-category-form-fields";
 import { BudgetCategoryTable } from "@/components/budget/budget-category-table";
 import { BudgetEntryTable } from "@/components/budget/budget-entry-table";
-import { getBudgetCategories, getBudgetOverview } from "@/lib/queries";
-import { createBudgetCategory } from "@/lib/actions";
+import { getBudgetCategories, getBudgetOverview } from "@/lib/queries/budget";
+import { createBudgetCategory } from "@/lib/actions/budget";
 import { formatIDR } from "@/lib/format";
 
 export default async function BudgetPage({

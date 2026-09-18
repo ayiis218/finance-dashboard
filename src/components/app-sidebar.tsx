@@ -13,7 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { navItems } from "./ui/menuItems";
+import { navItems } from "@/lib/registry/nav-items";
 
 export function AppSidebar() {
   const pathname = usePathname();

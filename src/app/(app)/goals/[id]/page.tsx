@@ -13,14 +13,14 @@ import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { GoalItemStatusBadge } from "@/components/goals/goal-item-status";
 import { GoalItemFormFields } from "@/components/goals/goal-item-form-fields";
-import { getGoalDetail } from "@/lib/queries";
+import { getGoalDetail } from "@/lib/queries/goals";
 import {
   addSavingsGoalEntry,
   createGoalItem,
   deleteGoalItem,
   updateGoalItem,
   updateGoalItemStatus,
-} from "@/lib/actions";
+} from "@/lib/actions/goals";
 import { formatIDR } from "@/lib/format";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";

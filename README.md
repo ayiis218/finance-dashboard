@@ -13,7 +13,7 @@ Dashboard pencatatan keuangan pribadi: saldo, aset, utang/piutang, investasi, sa
 ## Setup
 
 1. **Database** — buat project Postgres di [Supabase](https://supabase.com) atau [Neon](https://neon.tech), lalu salin connection string-nya.
-2. **Google OAuth** — buat OAuth Client ID di [Google Cloud Console](https://console.cloud.google.com/apis/credentials), tambahkan redirect URI: `http://localhost:3000/api/auth/callback/google` (sesuaikan domain saat deploy).
+2. **Google OAuth** — buat OAuth Client ID di [Google Cloud Console](https://console.cloud.google.com/apis/credentials), tambahkan redirect URI: `http://localhost:3002/api/auth/callback/google` (dev server jalan di port 3002; sesuaikan domain saat deploy).
 3. Salin `.env.example` ke `.env` dan isi:
    ```
    DATABASE_URL=...
@@ -29,8 +29,47 @@ Dashboard pencatatan keuangan pribadi: saldo, aset, utang/piutang, investasi, sa
    Untuk perubahan skema berikutnya, buat migrasi baru dengan `npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script` diarahkan ke folder migrasi baru, lalu terapkan dengan pola script yang sama (lihat catatan di bawah).
 5. Jalankan dev server:
    ```bash
-   npm run dev
+   npm run dev     # http://localhost:3002
    ```
+
+## Struktur Kode
+
+Kode dikelompokkan **per domain** (vertical slice), bukan per jenis file. Satu domain (mis. `accounts`) punya empat titik sentuh yang namanya konsisten:
+
+```
+src/
+├── app/(app)/<domain>/page.tsx      # Server Component: ambil data + susun halaman
+├── components/<domain>/             # UI khusus domain
+│   ├── <domain>-table.tsx           #   tabel desktop + kartu mobile
+│   └── <domain>-form-fields.tsx     #   field form, dipakai create & edit
+├── lib/queries/<domain>.ts          # semua baca data (Prisma read)
+└── lib/actions/<domain>.ts          # semua tulis data (Server Actions + validasi zod)
+```
+
+Pendukung lintas domain:
+
+| Path | Isi |
+|---|---|
+| `src/components/ui/` | Primitive shadcn/base-ui — **jangan diedit manual**, ini kode vendor |
+| `src/components/*.tsx` | Komponen generik lintas domain (`form-dialog`, `delete-button`, `mobile-row-card`, `summary-stats`, dll) |
+| `src/lib/registry/route.ts` | Konstanta path URL |
+| `src/lib/registry/nav-items.ts` | Daftar menu sidebar & bottom nav |
+| `src/lib/form-data.ts` | `pickFormFields()` — baca banyak field `FormData` sekaligus |
+| `src/lib/queries/shared.ts` | `toNumber()` untuk kolom Decimal Prisma |
+| `src/lib/format.ts` | `formatIDR()` |
+
+Konvensi yang dipakai:
+
+- Nama file **kebab-case**; komponen **PascalCase**; fungsi **camelCase**.
+- Halaman & tabel **tidak memanggil `prisma` langsung** — selalu lewat `lib/queries/<domain>.ts`, supaya query bisa dipakai ulang dan mudah dilacak.
+- Tipe baris di komponen tabel **diturunkan dari query**, bukan ditulis ulang manual:
+  ```ts
+  type AccountRow = Awaited<ReturnType<typeof getBankAccounts>>[number];
+  ```
+- Komentar hanya untuk menjelaskan **kenapa**, bukan **apa**. Kode yang sudah jelas dari nama tidak perlu komentar.
+- Teks UI: label, judul, dan nama pakai bahasa Inggris; narasi panjang & panduan langkah pakai bahasa Indonesia.
+
+Mau menambah domain/fitur baru? Lihat [docs/adding-a-feature.md](docs/adding-a-feature.md).
 
 ## Struktur Fitur
 

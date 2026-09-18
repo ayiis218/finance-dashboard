@@ -17,7 +17,7 @@ export function ReceivableFormFields({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor={`personName-${idPrefix}`}>Nama Orang</Label>
+        <Label htmlFor={`personName-${idPrefix}`}>Person Name</Label>
         <Input
           id={`personName-${idPrefix}`}
           name="personName"
@@ -26,7 +26,7 @@ export function ReceivableFormFields({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`type-${idPrefix}`}>Tipe</Label>
+        <Label htmlFor={`type-${idPrefix}`}>Type</Label>
         <select
           id={`type-${idPrefix}`}
           name="type"
@@ -34,16 +34,16 @@ export function ReceivableFormFields({
           required
           className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
         >
-          <option value="PIUTANG">Piutang (dia berhutang ke saya)</option>
-          <option value="UTANG">Utang (saya berhutang ke dia)</option>
+          <option value="PIUTANG">Receivable (they owe me)</option>
+          <option value="UTANG">Debt (I owe them)</option>
         </select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`amount-${idPrefix}`}>Jumlah</Label>
+        <Label htmlFor={`amount-${idPrefix}`}>Amount</Label>
         <NumberInput id={`amount-${idPrefix}`} name="amount" defaultValue={defaults?.amount} required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`date-${idPrefix}`}>Tanggal</Label>
+        <Label htmlFor={`date-${idPrefix}`}>Date</Label>
         <Input
           id={`date-${idPrefix}`}
           name="date"
@@ -53,12 +53,12 @@ export function ReceivableFormFields({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`note-${idPrefix}`}>Catatan</Label>
+        <Label htmlFor={`note-${idPrefix}`}>Note</Label>
         <Input
           id={`note-${idPrefix}`}
           name="note"
           defaultValue={defaults?.note ?? ""}
-          placeholder="Opsional"
+          placeholder="Optional"
         />
       </div>
     </>

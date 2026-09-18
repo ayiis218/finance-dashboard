@@ -33,9 +33,9 @@ import { formatIDR } from "@/lib/format";
 import type { ReceivableStatus } from "@/lib/queries";
 
 const STATUS_LABEL = {
-  UNPAID: "Belum Lunas",
-  PARTIALLY_PAID: "Cicilan Berjalan",
-  SETTLED: "Lunas",
+  UNPAID: "Unpaid",
+  PARTIALLY_PAID: "Partially Paid",
+  SETTLED: "Settled",
 } as const;
 
 const STATUS_VARIANT = {
@@ -78,7 +78,7 @@ function ReceivableRowActions({ item }: Readonly<{ item: ReceivableRow }>) {
   return (
     <>
       <FormDialog
-        title="Edit Piutang/Utang"
+        title="Edit Receivable/Debt"
         triggerIcon={<Pencil className="size-4" />}
         triggerVariant="ghost"
         triggerSize="icon"
@@ -108,11 +108,11 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
           <TableHeader>
             <TableRow>
               <TableHead>No.</TableHead>
-              <TableHead>Nama</TableHead>
-              <TableHead>Tipe</TableHead>
-              <TableHead className="text-right">Jumlah</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-center">Cicilan</TableHead>
+              <TableHead className="text-center">Repayments</TableHead>
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -123,7 +123,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
                 <TableCell>{r.personName}</TableCell>
                 <TableCell>
                   <Badge variant={r.type === "PIUTANG" ? "default" : "destructive"}>
-                    {r.type === "PIUTANG" ? "Piutang" : "Utang"}
+                    {r.type === "PIUTANG" ? "Receivable" : "Debt"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
@@ -131,7 +131,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
                     <span>{formatIDR(Number(r.amount))}</span>
                     {r.totalPaid > 0 && r.status !== "SETTLED" && (
                       <span className="text-xs text-muted-foreground">
-                        terbayar {formatIDR(r.totalPaid)}
+                        paid {formatIDR(r.totalPaid)}
                       </span>
                     )}
                   </div>
@@ -157,7 +157,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
             {rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  Belum ada catatan piutang/utang.
+                  No receivables or debts yet.
                 </TableCell>
               </TableRow>
             )}
@@ -172,18 +172,18 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
               title={r.personName}
               action={
                 <Badge variant={r.type === "PIUTANG" ? "default" : "destructive"}>
-                  {r.type === "PIUTANG" ? "Piutang" : "Utang"}
+                  {r.type === "PIUTANG" ? "Receivable" : "Debt"}
                 </Badge>
               }
             />
             <MobileRowField
-              label="Jumlah"
+              label="Amount"
               value={
                 <div className="flex flex-col items-end">
                   <span>{formatIDR(Number(r.amount))}</span>
                   {r.totalPaid > 0 && r.status !== "SETTLED" && (
                     <span className="text-xs text-muted-foreground">
-                      terbayar {formatIDR(r.totalPaid)}
+                      paid {formatIDR(r.totalPaid)}
                     </span>
                   )}
                 </div>
@@ -202,7 +202,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
           </MobileRowCard>
         ))}
         {rows.length === 0 && (
-          <MobileEmptyState>Belum ada catatan piutang/utang.</MobileEmptyState>
+          <MobileEmptyState>No receivables or debts yet.</MobileEmptyState>
         )}
       </MobileCardList>
     </>

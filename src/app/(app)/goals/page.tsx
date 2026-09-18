@@ -22,24 +22,24 @@ export default async function GoalsPage() {
   const overallProgress = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
 
   const summaryItems = [
-    { label: "Total Target Semua Goal", value: formatIDR(totalTarget) },
+    { label: "Total Target", value: formatIDR(totalTarget) },
     {
-      label: "Total Tertabung",
+      label: "Total Saved",
       value: formatIDR(totalSaved),
-      sublabel: `${overallProgress.toFixed(1)}% dari target`,
+      sublabel: `${overallProgress.toFixed(1)}% of target`,
       tone: "highlight" as const,
     },
-    { label: "Jumlah Goal Aktif", value: String(goals.length) },
+    { label: "Active Goals", value: String(goals.length) },
   ];
 
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
       <SummaryStats items={summaryItems} />
       <div className="bg-brand-gradient flex flex-col items-start gap-3 rounded-lg px-4 py-3 text-white sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-lg font-semibold">Savings Goal (Wedding, Eid, dll)</h1>
+        <h1 className="text-lg font-semibold">Savings Goal</h1>
         <FormDialog
-          title="Tambah Savings Goal"
-          triggerLabel="Tambah Goal"
+          title="Add Savings Goal"
+          triggerLabel="Add Goal"
           triggerVariant="outline"
           action={createSavingsGoal}
         >
@@ -54,8 +54,8 @@ export default async function GoalsPage() {
 
         {goals.length === 0 && (
           <p className="text-sm text-muted-foreground">
-            Belum ada savings goal. Tambahkan goal seperti &quot;Wedding&quot; atau &quot;Eid
-            2026&quot; untuk mulai menabung.
+            No savings goals yet. Add a goal like &quot;Wedding&quot; or &quot;Eid 2026&quot; to
+            start saving.
           </p>
         )}
       </div>

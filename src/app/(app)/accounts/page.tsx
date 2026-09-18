@@ -17,8 +17,8 @@ export default async function AccountsPage() {
   const totalBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0);
 
   const summaryItems = [
-    { label: "Total Saldo", value: formatIDR(totalBalance), tone: "highlight" as const },
-    { label: "Jumlah Rekening", value: String(accounts.length) },
+    { label: "Total Balance", value: formatIDR(totalBalance), tone: "highlight" as const },
+    { label: "Number of Accounts", value: String(accounts.length) },
   ];
 
   return (
@@ -26,8 +26,8 @@ export default async function AccountsPage() {
       <SummaryStats items={summaryItems} />
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Rekening &amp; Cash</CardTitle>
-          <FormDialog title="Tambah Rekening" triggerLabel="Tambah" action={createBankAccount}>
+          <CardTitle>Accounts &amp; Cash</CardTitle>
+          <FormDialog title="Add Account" triggerLabel="Add" action={createBankAccount}>
             <AccountFormFields idPrefix="new" />
           </FormDialog>
         </CardHeader>

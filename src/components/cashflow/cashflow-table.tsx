@@ -64,11 +64,11 @@ export function CashflowTable({ rows }: Readonly<{ rows: CashflowRow[] }>) {
           <TableHeader>
             <TableRow>
               <TableHead>No.</TableHead>
-              <TableHead>Bulan</TableHead>
-              <TableHead className="text-right">Saldo Awal</TableHead>
-              <TableHead className="text-right">Saldo Akhir (Ekspektasi)</TableHead>
-              <TableHead className="text-right">Saldo Akhir (Aktual)</TableHead>
-              <TableHead className="text-right">Selisih</TableHead>
+              <TableHead>Month</TableHead>
+              <TableHead className="text-right">Starting Balance</TableHead>
+              <TableHead className="text-right">Ending Balance (Expected)</TableHead>
+              <TableHead className="text-right">Ending Balance (Actual)</TableHead>
+              <TableHead className="text-right">Variance</TableHead>
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -106,7 +106,7 @@ export function CashflowTable({ rows }: Readonly<{ rows: CashflowRow[] }>) {
             {rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  Belum ada catatan cashflow forecast.
+                  No cashflow forecasts yet.
                 </TableCell>
               </TableRow>
             )}
@@ -118,17 +118,17 @@ export function CashflowTable({ rows }: Readonly<{ rows: CashflowRow[] }>) {
         {rows.map((f) => (
           <MobileRowCard key={f.id}>
             <MobileRowHeader title={format(f.month, "MMMM yyyy")} />
-            <MobileRowField label="Saldo Awal" value={formatIDR(f.saldoAwal)} />
+            <MobileRowField label="Starting Balance" value={formatIDR(f.saldoAwal)} />
             <MobileRowField
-              label="Saldo Akhir (Ekspektasi)"
+              label="Ending Balance (Expected)"
               value={f.saldoAkhirExpected != null ? formatIDR(f.saldoAkhirExpected) : "-"}
             />
             <MobileRowField
-              label="Saldo Akhir (Aktual)"
+              label="Ending Balance (Actual)"
               value={f.saldoAkhirActual != null ? formatIDR(f.saldoAkhirActual) : "-"}
             />
             <MobileRowField
-              label="Selisih"
+              label="Variance"
               value={f.variance != null ? `${f.variance > 0 ? "+" : ""}${formatIDR(f.variance)}` : "-"}
               valueClassName={
                 f.variance == null
@@ -144,7 +144,7 @@ export function CashflowTable({ rows }: Readonly<{ rows: CashflowRow[] }>) {
           </MobileRowCard>
         ))}
         {rows.length === 0 && (
-          <MobileEmptyState>Belum ada catatan cashflow forecast.</MobileEmptyState>
+          <MobileEmptyState>No cashflow forecasts yet.</MobileEmptyState>
         )}
       </MobileCardList>
     </>

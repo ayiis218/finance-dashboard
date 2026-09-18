@@ -48,10 +48,10 @@ export function FormDialog({
             startTransition(async () => {
               try {
                 await action(formData);
-                toast.success("Berhasil disimpan");
+                toast.success("Saved");
                 setOpen(false);
               } catch (err) {
-                toast.error(err instanceof Error ? err.message : "Gagal menyimpan");
+                toast.error(err instanceof Error ? err.message : "Failed to save");
               }
             });
           }}
@@ -59,7 +59,7 @@ export function FormDialog({
           {children}
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending && <Loader2 className="size-4 animate-spin" />}
-            {isPending ? "Menyimpan..." : "Simpan"}
+            {isPending ? "Saving..." : "Save"}
           </Button>
         </form>
       </DialogContent>

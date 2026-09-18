@@ -38,7 +38,7 @@ export function GoalCard({ goal }: Readonly<{ goal: GoalRow }>) {
         <div>
           <CardTitle>{goal.name}</CardTitle>
           <CardDescription>
-            Tenor {goal.tenorMonths} bulan &middot; target {formatIDR(monthlyTarget)}/bulan
+            Tenor {goal.tenorMonths} months &middot; target {formatIDR(monthlyTarget)}/month
           </CardDescription>
         </div>
         <div className="flex items-center gap-1">
@@ -65,8 +65,8 @@ export function GoalCard({ goal }: Readonly<{ goal: GoalRow }>) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex items-center justify-between text-sm">
-          <span>{formatIDR(saved)} tertabung</span>
-          <span className="text-muted-foreground">dari {formatIDR(target)}</span>
+          <span>{formatIDR(saved)} saved</span>
+          <span className="text-muted-foreground">of {formatIDR(target)}</span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
@@ -76,7 +76,7 @@ export function GoalCard({ goal }: Readonly<{ goal: GoalRow }>) {
         </div>
         {goal.items.length > 0 && (
           <p className="text-xs text-muted-foreground">
-            {goal.items.length} rincian anggaran &middot; total {formatIDR(totalBudgeted)}
+            {goal.items.length} budget items &middot; total {formatIDR(totalBudgeted)}
           </p>
         )}
         <Button
@@ -86,7 +86,7 @@ export function GoalCard({ goal }: Readonly<{ goal: GoalRow }>) {
           nativeButton={false}
           render={<Link href={`/goals/${goal.id}`} />}
         >
-          Lihat Detail &amp; Rincian
+          View Details
         </Button>
       </CardContent>
     </Card>

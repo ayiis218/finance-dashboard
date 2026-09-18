@@ -17,12 +17,13 @@ import {
   getSummary,
 } from "@/lib/queries";
 import { formatIDR } from "@/lib/format";
+import { startOfMonth, subMonths } from "date-fns";
 
 export default async function DashboardPage() {
   const [summary, daily, monthlyExpense, budgetOverview] = await Promise.all([
     getSummary(),
     getDailySummary(),
-    getMonthlyExpenseComparison(),
+    getMonthlyExpenseComparison({ from: startOfMonth(subMonths(new Date(), 5)), to: new Date() }),
     getBudgetOverview(new Date()),
   ]);
 
@@ -30,34 +31,34 @@ export default async function DashboardPage() {
 
   const summaryItems: SummaryStatItem[] = [
     {
-      label: "Total Saldo",
+      label: "Total Balance",
       description: "Uang tunai di semua rekening bank & cash",
       value: formatIDR(summary.totalBalance),
     },
     {
-      label: "Total Aset",
+      label: "Total Assets",
       description: "Nilai properti, kendaraan & barang berharga lain",
       value: formatIDR(summary.totalAssets),
     },
     {
-      label: "Total Investasi",
+      label: "Total Investments",
       description: "Nilai investasi saat ini (reksadana, saham, dll)",
       value: formatIDR(summary.totalInvestments),
     },
     {
-      label: "Total Utang",
+      label: "Total Debt",
       description: "Sisa utang yang masih harus dibayar (sudah dikurangi cicilan)",
       value: formatIDR(summary.totalDebt),
       tone: summary.totalDebt > 0 ? "negative" : "default",
     },
     {
-      label: "Sisa Anggaran Bulan Ini",
+      label: "Remaining Budget",
       description: "Anggaran bulanan dikurangi pengeluaran yang sudah terjadi",
       value: formatIDR(remainingBudget),
       tone: remainingBudget >= 0 ? "positive" : "negative",
     },
     {
-      label: "Kekayaan Bersih",
+      label: "Net Worth",
       description: "Saldo + aset + investasi + piutang, dikurangi utang",
       value: formatIDR(summary.netWorth),
       tone: "highlight",
@@ -71,7 +72,7 @@ export default async function DashboardPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle>Perbandingan Pengeluaran Bulanan</CardTitle>
+            <CardTitle>Monthly Expense Comparison</CardTitle>
             <CardDescription>
               6 bulan terakhir — batang lebih tinggi berarti pengeluaran lebih besar di bulan itu
             </CardDescription>
@@ -83,7 +84,7 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle>Ringkasan Hari Ini</CardTitle>
+            <CardTitle>Today&apos;s Summary</CardTitle>
             <CardDescription>
               {new Date().toLocaleDateString("id-ID", {
                 weekday: "long",
@@ -94,14 +95,14 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Pemasukan</span>
+              <span className="text-sm text-muted-foreground">Income</span>
               <Badge variant="secondary" className="text-positive">
                 {formatIDR(daily.income)}
               </Badge>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
-                Pengeluaran
+                Expense
               </span>
               <Badge variant="secondary" className="text-destructive">
                 {formatIDR(daily.expense)}
@@ -111,7 +112,7 @@ export default async function DashboardPage() {
             <div className="space-y-2 pt-2">
               {daily.transactions.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Belum ada transaksi hari ini.
+                  No transactions today.
                 </p>
               )}
               {daily.transactions.map((items) => {

@@ -41,21 +41,21 @@ export default async function GoalDetailPage({
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
-        Kembali ke Savings Goal
+        Back to Savings Goal
       </Link>
 
       <Card>
         <CardHeader>
           <CardTitle>{goal.name}</CardTitle>
           <CardDescription>
-            Tenor {goal.tenorMonths} bulan &middot; target {formatIDR(target)}
+            Tenor {goal.tenorMonths} months &middot; target {formatIDR(target)}
             {totalBudgeted > 0 && " (mengikuti total rincian)"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between text-sm">
-            <span>{formatIDR(totalSaved)} tertabung</span>
-            <span className="text-muted-foreground">dari {formatIDR(target)}</span>
+            <span>{formatIDR(totalSaved)} saved</span>
+            <span className="text-muted-foreground">of {formatIDR(target)}</span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
             <div
@@ -69,7 +69,7 @@ export default async function GoalDetailPage({
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle>Rincian Anggaran</CardTitle>
+            <CardTitle>Budget Breakdown</CardTitle>
             <CardDescription>
               Total rincian: {formatIDR(totalBudgeted)}
               {totalBudgeted > target && target > 0 && (
@@ -77,7 +77,7 @@ export default async function GoalDetailPage({
               )}
             </CardDescription>
           </div>
-          <FormDialog title="Tambah Rincian" triggerLabel="Tambah Rincian" action={createGoalItem}>
+          <FormDialog title="Add Item" triggerLabel="Add Item" action={createGoalItem}>
             <GoalItemFormFields idPrefix="new" goalId={goal.id} />
           </FormDialog>
         </CardHeader>
@@ -107,7 +107,7 @@ export default async function GoalDetailPage({
                         onChange={updateGoalItemStatus.bind(null, item.id, goal.id)}
                       />
                       <FormDialog
-                        title="Edit Rincian"
+                        title="Edit Item"
                         triggerIcon={<Pencil className="size-4" />}
                         triggerVariant="ghost"
                         triggerSize="icon"
@@ -134,7 +134,7 @@ export default async function GoalDetailPage({
           ))}
           {categories.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              Belum ada rincian anggaran untuk goal ini.
+              No budget items for this goal yet.
             </p>
           )}
         </CardContent>
@@ -142,11 +142,11 @@ export default async function GoalDetailPage({
 
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Tabungan Bulanan</CardTitle>
-          <FormDialog title="Catat Tabungan" triggerLabel="Catat Tabungan" action={addSavingsGoalEntry}>
+          <CardTitle>Monthly Savings</CardTitle>
+          <FormDialog title="Log Savings" triggerLabel="Log Savings" action={addSavingsGoalEntry}>
             <input type="hidden" name="goalId" value={goal.id} />
             <div className="space-y-2">
-              <Label htmlFor="month">Bulan</Label>
+              <Label htmlFor="month">Month</Label>
               <Input
                 id="month"
                 name="month"
@@ -156,15 +156,15 @@ export default async function GoalDetailPage({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="amount">Jumlah</Label>
+              <Label htmlFor="amount">Amount</Label>
               <NumberInput id="amount" name="amount" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="contributor">Kontributor</Label>
+              <Label htmlFor="contributor">Contributor</Label>
               <Input
                 id="contributor"
                 name="contributor"
-                placeholder="Opsional, mis. nama Anda / pasangan"
+                placeholder="Optional, e.g. your name / partner"
               />
             </div>
           </FormDialog>
@@ -185,7 +185,7 @@ export default async function GoalDetailPage({
             </div>
           ))}
           {goal.entries.length === 0 && (
-            <p className="text-sm text-muted-foreground">Belum ada tabungan tercatat.</p>
+            <p className="text-sm text-muted-foreground">No savings logged yet.</p>
           )}
         </CardContent>
       </Card>

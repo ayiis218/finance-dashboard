@@ -22,11 +22,11 @@ export default async function ReceivablesPage() {
   const totalRepaid = outstanding.reduce((sum, r) => sum + r.totalPaid, 0);
 
   const summaryItems = [
-    { label: "Total Piutang Outstanding", value: formatIDR(totalReceivables), tone: "positive" as const },
-    { label: "Total Utang Outstanding", value: formatIDR(totalDebt), tone: "negative" as const },
-    { label: "Total Sudah Dicicil", value: formatIDR(totalRepaid) },
+    { label: "Outstanding Receivables", value: formatIDR(totalReceivables), tone: "positive" as const },
+    { label: "Outstanding Debt", value: formatIDR(totalDebt), tone: "negative" as const },
+    { label: "Total Repaid", value: formatIDR(totalRepaid) },
     {
-      label: "Posisi Bersih",
+      label: "Net Position",
       value: formatIDR(totalReceivables - totalDebt),
       tone: "highlight" as const,
     },
@@ -37,8 +37,8 @@ export default async function ReceivablesPage() {
       <SummaryStats items={summaryItems} />
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Piutang &amp; Utang</CardTitle>
-          <FormDialog title="Tambah Piutang/Utang" triggerLabel="Tambah" action={createReceivable}>
+          <CardTitle>Receivables &amp; Debts</CardTitle>
+          <FormDialog title="Add Receivable/Debt" triggerLabel="Add" action={createReceivable}>
             <ReceivableFormFields idPrefix="new" />
           </FormDialog>
         </CardHeader>

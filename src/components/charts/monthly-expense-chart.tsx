@@ -52,7 +52,7 @@ export function MonthlyExpenseChart({
               currency: "IDR",
               maximumFractionDigits: 0,
             }).format(Number(value ?? 0)),
-            "Pengeluaran",
+            "Expense",
           ]}
           cursor={{ fill: "var(--muted)" }}
         />

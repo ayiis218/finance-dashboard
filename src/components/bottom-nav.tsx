@@ -8,14 +8,14 @@ import { cn } from "@/lib/utils";
 
 const sideItems = [
   { title: "Dashboard", url: ROUTES.dashboard, icon: LayoutDashboard },
-  { title: "Rekening", url: ROUTES.accounts, icon: Landmark },
+  { title: "Accounts", url: ROUTES.accounts, icon: Landmark },
 ];
 
-const centerItem = { title: "Transaksi", url: ROUTES.transactions.list, icon: Wallet };
+const centerItem = { title: "Transactions", url: ROUTES.transactions.list, icon: Wallet };
 
 const trailingItems = [
   { title: "Budget", url: ROUTES.budgets, icon: ClipboardList },
-  { title: "Laporan", url: ROUTES.reports, icon: BarChart3 },
+  { title: "Reports", url: ROUTES.reports, icon: BarChart3 },
 ];
 
 export function BottomNav() {

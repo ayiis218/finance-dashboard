@@ -21,15 +21,15 @@ export function CashflowFormFields({
   return (
     <>
       {monthLabel ? (
-        <p className="text-sm text-muted-foreground">Bulan: {monthLabel}</p>
+        <p className="text-sm text-muted-foreground">Month: {monthLabel}</p>
       ) : (
         <div className="space-y-2">
-          <Label htmlFor={`month-${idPrefix}`}>Bulan</Label>
+          <Label htmlFor={`month-${idPrefix}`}>Month</Label>
           <Input id={`month-${idPrefix}`} name="month" type="month" required />
         </div>
       )}
       <div className="space-y-2">
-        <Label htmlFor={`saldoAwal-${idPrefix}`}>Saldo Awal</Label>
+        <Label htmlFor={`saldoAwal-${idPrefix}`}>Starting Balance</Label>
         <NumberInput
           id={`saldoAwal-${idPrefix}`}
           name="saldoAwal"
@@ -38,21 +38,21 @@ export function CashflowFormFields({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`saldoAkhirExpected-${idPrefix}`}>Saldo Akhir (Ekspektasi)</Label>
+        <Label htmlFor={`saldoAkhirExpected-${idPrefix}`}>Ending Balance (Expected)</Label>
         <NumberInput
           id={`saldoAkhirExpected-${idPrefix}`}
           name="saldoAkhirExpected"
           defaultValue={defaults?.saldoAkhirExpected ?? ""}
-          placeholder="Opsional"
+          placeholder="Optional"
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`saldoAkhirActual-${idPrefix}`}>Saldo Akhir (Aktual)</Label>
+        <Label htmlFor={`saldoAkhirActual-${idPrefix}`}>Ending Balance (Actual)</Label>
         <NumberInput
           id={`saldoAkhirActual-${idPrefix}`}
           name="saldoAkhirActual"
           defaultValue={defaults?.saldoAkhirActual ?? ""}
-          placeholder="Opsional"
+          placeholder="Optional"
         />
       </div>
     </>

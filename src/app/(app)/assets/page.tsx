@@ -19,15 +19,15 @@ export default async function AssetsPage() {
   const latest = assets[0];
 
   const summaryItems = [
-    { label: "Total Nilai Aset", value: formatIDR(totalValue), tone: "highlight" as const },
-    { label: "Jumlah Aset", value: String(assets.length) },
+    { label: "Total Asset Value", value: formatIDR(totalValue), tone: "highlight" as const },
+    { label: "Number of Assets", value: String(assets.length) },
     latest
       ? {
-          label: "Aset Terbaru",
+          label: "Latest Asset",
           value: latest.name,
           sublabel: `${formatIDR(Number(latest.value))} · ${formatDate(latest.acquiredDate, "dd MMM yyyy")}`,
         }
-      : { label: "Aset Terbaru", value: "-", sublabel: "Belum ada aset" },
+      : { label: "Latest Asset", value: "-", sublabel: "No assets yet" },
   ];
 
   return (
@@ -35,8 +35,8 @@ export default async function AssetsPage() {
       <SummaryStats items={summaryItems} />
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Aset</CardTitle>
-          <FormDialog title="Tambah Aset" triggerLabel="Tambah" action={createAsset}>
+          <CardTitle>Assets</CardTitle>
+          <FormDialog title="Add Asset" triggerLabel="Add" action={createAsset}>
             <AssetFormFields idPrefix="new" />
           </FormDialog>
         </CardHeader>

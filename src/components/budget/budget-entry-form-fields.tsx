@@ -24,7 +24,7 @@ export function BudgetEntryFormFields({
       {hiddenCategoryId && <input type="hidden" name="categoryId" value={hiddenCategoryId} />}
       {hiddenMonth && <input type="hidden" name="month" value={hiddenMonth} />}
       <div className="space-y-2">
-        <Label htmlFor={`expectation-${idPrefix}`}>Ekspektasi</Label>
+        <Label htmlFor={`expectation-${idPrefix}`}>Expected</Label>
         <NumberInput
           id={`expectation-${idPrefix}`}
           name="expectation"
@@ -33,7 +33,7 @@ export function BudgetEntryFormFields({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`actual-${idPrefix}`}>Aktual</Label>
+        <Label htmlFor={`actual-${idPrefix}`}>Actual</Label>
         <NumberInput
           id={`actual-${idPrefix}`}
           name="actual"
@@ -42,21 +42,21 @@ export function BudgetEntryFormFields({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`minTarget-${idPrefix}`}>Target Minimum</Label>
+        <Label htmlFor={`minTarget-${idPrefix}`}>Minimum Target</Label>
         <NumberInput
           id={`minTarget-${idPrefix}`}
           name="minTarget"
           defaultValue={defaults?.minTarget ?? ""}
-          placeholder="Opsional"
+          placeholder="Optional"
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`maxTarget-${idPrefix}`}>Target Maksimum</Label>
+        <Label htmlFor={`maxTarget-${idPrefix}`}>Maximum Target</Label>
         <NumberInput
           id={`maxTarget-${idPrefix}`}
           name="maxTarget"
           defaultValue={defaults?.maxTarget ?? ""}
-          placeholder="Opsional"
+          placeholder="Optional"
         />
       </div>
     </>

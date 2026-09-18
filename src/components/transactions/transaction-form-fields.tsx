@@ -32,7 +32,7 @@ export function TransactionFormFields({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor={`accountId-${idPrefix}`}>Rekening</Label>
+        <Label htmlFor={`accountId-${idPrefix}`}>Account</Label>
         <select
           id={`accountId-${idPrefix}`}
           name="accountId"
@@ -48,7 +48,7 @@ export function TransactionFormFields({
         </select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`type-${idPrefix}`}>Tipe</Label>
+        <Label htmlFor={`type-${idPrefix}`}>Type</Label>
         <select
           id={`type-${idPrefix}`}
           name="type"
@@ -56,20 +56,20 @@ export function TransactionFormFields({
           required
           className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
         >
-          <option value="EXPENSE">Pengeluaran</option>
-          <option value="INCOME">Pemasukan</option>
+          <option value="EXPENSE">Expense</option>
+          <option value="INCOME">Income</option>
           <option value="TRANSFER">Transfer</option>
         </select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`toAccountId-${idPrefix}`}>Rekening Tujuan (khusus Transfer)</Label>
+        <Label htmlFor={`toAccountId-${idPrefix}`}>Destination Account (Transfer only)</Label>
         <select
           id={`toAccountId-${idPrefix}`}
           name="toAccountId"
           defaultValue={defaults?.toAccountId ?? ""}
           className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
         >
-          <option value="">— Tidak ada (transfer ke luar) —</option>
+          <option value="">— None (external transfer) —</option>
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>
               {a.name}
@@ -82,13 +82,13 @@ export function TransactionFormFields({
         </p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`category-${idPrefix}`}>Kategori</Label>
+        <Label htmlFor={`category-${idPrefix}`}>Category</Label>
         <Input
           id={`category-${idPrefix}`}
           name="category"
           list={datalistId}
           defaultValue={defaults?.category}
-          placeholder="Makan, Bensin, dll"
+          placeholder="Food, Gas, etc."
           required
         />
         <datalist id={datalistId}>
@@ -98,11 +98,11 @@ export function TransactionFormFields({
         </datalist>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`amount-${idPrefix}`}>Jumlah</Label>
+        <Label htmlFor={`amount-${idPrefix}`}>Amount</Label>
         <NumberInput id={`amount-${idPrefix}`} name="amount" defaultValue={defaults?.amount} required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`date-${idPrefix}`}>Tanggal</Label>
+        <Label htmlFor={`date-${idPrefix}`}>Date</Label>
         <Input
           id={`date-${idPrefix}`}
           name="date"
@@ -112,12 +112,12 @@ export function TransactionFormFields({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`note-${idPrefix}`}>Catatan</Label>
+        <Label htmlFor={`note-${idPrefix}`}>Note</Label>
         <Input
           id={`note-${idPrefix}`}
           name="note"
           defaultValue={defaults?.note ?? ""}
-          placeholder="Opsional"
+          placeholder="Optional"
         />
       </div>
       <div className="space-y-1.5">
@@ -126,7 +126,7 @@ export function TransactionFormFields({
             name="affectsBalance"
             defaultChecked={defaults?.affectsBalance ?? true}
           />
-          Transaksi ini mengubah saldo rekening
+          This transaction affects account balance
         </label>
         <p className="pl-6 text-xs text-muted-foreground">
           Aktif = saldo rekening otomatis bertambah/berkurang sesuai jumlah di atas. Matikan

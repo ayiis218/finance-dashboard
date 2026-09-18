@@ -1,8 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
-import { addMonths, format, parse, subMonths } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { format, parse, startOfMonth, subMonths } from "date-fns";
 import {
   Card,
   CardContent,
@@ -19,10 +17,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { MonthlyExpenseChartLazy } from "@/components/charts/monthly-expense-chart-lazy";
 import { BreakdownPieChartLazy } from "@/components/charts/breakdown-pie-chart-lazy";
 import { SummaryStats, type SummaryStatItem } from "@/components/summary-stats";
+import { DateRangeFilter } from "@/components/date-range-filter";
 import {
   MobileCardList,
   MobileEmptyState,
@@ -40,23 +38,26 @@ import { formatIDR } from "@/lib/format";
 
 export default async function ReportsPage({
   searchParams,
-}: Readonly<{ searchParams: Promise<{ month?: string }> }>) {
-  const { month: monthParam } = await searchParams;
-  const month = monthParam ? parse(monthParam, "yyyy-MM", new Date()) : new Date();
+}: Readonly<{ searchParams: Promise<{ from?: string; to?: string }> }>) {
+  const { from: fromParam, to: toParam } = await searchParams;
+  let from = fromParam
+    ? parse(fromParam, "yyyy-MM-dd", new Date())
+    : startOfMonth(subMonths(new Date(), 5));
+  let to = toParam ? parse(toParam, "yyyy-MM-dd", new Date()) : new Date();
+  if (from > to) [from, to] = [to, from];
+
+  const rangeLabel = `${format(from, "d MMM yyyy")} – ${format(to, "d MMM yyyy")}`;
 
   const [monthlyExpense, expenseByCategory, investmentAllocation, spendingDetailed] =
     await Promise.all([
-      getMonthlyExpenseComparison(12),
-      getExpenseByCategory(month),
+      getMonthlyExpenseComparison({ from, to }),
+      getExpenseByCategory({ from, to }),
       getInvestmentAllocation(),
-      getSpendingByCategoryDetailed(month),
+      getSpendingByCategoryDetailed({ from, to }),
     ]);
 
-  const prevMonth = format(subMonths(month, 1), "yyyy-MM");
-  const nextMonth = format(addMonths(month, 1), "yyyy-MM");
-
-  const totalExpense12Months = monthlyExpense.reduce((sum, m) => sum + m.total, 0);
-  const avgExpensePerMonth = monthlyExpense.length > 0 ? totalExpense12Months / monthlyExpense.length : 0;
+  const totalExpenseRange = monthlyExpense.reduce((sum, m) => sum + m.total, 0);
+  const avgExpensePerMonth = monthlyExpense.length > 0 ? totalExpenseRange / monthlyExpense.length : 0;
 
   const topCategory = expenseByCategory.reduce<{ category: string; total: number } | null>(
     (top, c) => (!top || c.total > top.total ? c : top),
@@ -72,24 +73,24 @@ export default async function ReportsPage({
 
   const summaryItems: SummaryStatItem[] = [
     {
-      label: "Total Pengeluaran 12 Bulan",
-      description: "Jumlah semua pengeluaran dalam setahun terakhir",
-      value: formatIDR(totalExpense12Months),
+      label: "Total Expense",
+      description: `Jumlah semua pengeluaran periode ${rangeLabel}`,
+      value: formatIDR(totalExpenseRange),
       tone: "negative",
     },
     {
-      label: "Rata-rata Pengeluaran/Bulan",
-      description: "Total pengeluaran dibagi jumlah bulan",
+      label: "Average Expense/Month",
+      description: "Total pengeluaran dibagi jumlah bulan pada periode terpilih",
       value: formatIDR(avgExpensePerMonth),
     },
     {
-      label: "Kategori Pengeluaran Terbesar",
-      description: `${format(month, "MMMM yyyy")} — kategori yang paling banyak menyerap uangmu`,
+      label: "Top Expense Category",
+      description: `${rangeLabel} — kategori yang paling banyak menyerap uangmu`,
       value: topCategory ? formatIDR(topCategory.total) : "-",
       sublabel: topCategory?.category,
     },
     {
-      label: "Platform Investasi Terbesar",
+      label: "Top Investment Platform",
       description: "Platform dengan nilai investasi paling besar saat ini",
       value: topPlatform ? formatIDR(topPlatform.total) : "-",
       sublabel: topPlatform?.platform,
@@ -100,11 +101,13 @@ export default async function ReportsPage({
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
       <SummaryStats items={summaryItems} />
 
+      <DateRangeFilter from={from} to={to} baseHref="/reports" />
+
       <Card>
         <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-          <CardTitle>Perbandingan Pengeluaran Bulanan</CardTitle>
+          <CardTitle>Monthly Expense Comparison</CardTitle>
           <CardDescription>
-            12 bulan terakhir — batang lebih tinggi berarti pengeluaran lebih besar di bulan itu
+            {rangeLabel} — batang lebih tinggi berarti pengeluaran lebih besar di bulan itu
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -112,34 +115,12 @@ export default async function ReportsPage({
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-center gap-3">
-        <Button
-          variant="outline"
-          size="icon"
-          nativeButton={false}
-          render={<Link href={`?month=${prevMonth}`} />}
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-        <span className="min-w-36 text-center text-sm font-medium">
-          {format(month, "MMMM yyyy")}
-        </span>
-        <Button
-          variant="outline"
-          size="icon"
-          nativeButton={false}
-          render={<Link href={`?month=${nextMonth}`} />}
-        >
-          <ChevronRight className="size-4" />
-        </Button>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle>Pengeluaran per Kategori</CardTitle>
+            <CardTitle>Expense by Category</CardTitle>
             <CardDescription>
-              {format(month, "MMMM yyyy")} — potongan lebih besar berarti kategori itu
+              {rangeLabel} — potongan lebih besar berarti kategori itu
               menghabiskan porsi pengeluaran paling banyak
             </CardDescription>
           </CardHeader>
@@ -155,7 +136,7 @@ export default async function ReportsPage({
 
         <Card>
           <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle>Alokasi Investasi</CardTitle>
+            <CardTitle>Investment Allocation</CardTitle>
             <CardDescription>
               Berdasarkan platform — menunjukkan bagaimana investasimu tersebar
             </CardDescription>
@@ -173,9 +154,9 @@ export default async function ReportsPage({
 
       <Card>
         <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-          <CardTitle>Rincian Pengeluaran per Kategori</CardTitle>
+          <CardTitle>Expense Breakdown by Category</CardTitle>
           <CardDescription>
-            {format(month, "MMMM yyyy")} — mencakup Pengeluaran & Transfer ke luar sistem
+            {rangeLabel} — mencakup Pengeluaran & Transfer ke luar sistem
             (transfer antar rekening sendiri tidak dihitung sebagai pengeluaran), diurutkan dari
             yang paling besar
           </CardDescription>
@@ -186,10 +167,10 @@ export default async function ReportsPage({
               <TableHeader>
                 <TableRow>
                   <TableHead>No.</TableHead>
-                  <TableHead>Kategori</TableHead>
-                  <TableHead className="text-center">Jumlah Transaksi</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-center">Transactions</TableHead>
                   <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">% dari Total</TableHead>
+                  <TableHead className="text-right">% of Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -205,7 +186,7 @@ export default async function ReportsPage({
                 {spendingDetailed.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      Belum ada pengeluaran di bulan ini.
+                      No expenses in this period.
                     </TableCell>
                   </TableRow>
                 )}
@@ -230,19 +211,19 @@ export default async function ReportsPage({
             {spendingDetailed.map((c) => (
               <MobileRowCard key={c.category}>
                 <MobileRowHeader title={c.category} />
-                <MobileRowField label="Jumlah Transaksi" value={c.count} />
-                <MobileRowField label="% dari Total" value={`${c.percentage.toFixed(1)}%`} />
+                <MobileRowField label="Transactions" value={c.count} />
+                <MobileRowField label="% of Total" value={`${c.percentage.toFixed(1)}%`} />
                 <p className="text-lg font-semibold">{formatIDR(c.total)}</p>
               </MobileRowCard>
             ))}
             {spendingDetailed.length === 0 && (
-              <MobileEmptyState>Belum ada pengeluaran di bulan ini.</MobileEmptyState>
+              <MobileEmptyState>No expenses in this period.</MobileEmptyState>
             )}
             {spendingDetailed.length > 0 && (
               <MobileRowCard className="bg-muted/50 font-medium">
                 <MobileRowHeader title="Total" />
-                <MobileRowField label="Jumlah Transaksi" value={spendingCount} />
-                <MobileRowField label="% dari Total" value="100%" />
+                <MobileRowField label="Transactions" value={spendingCount} />
+                <MobileRowField label="% of Total" value="100%" />
                 <p className="text-lg font-semibold">{formatIDR(spendingTotal)}</p>
               </MobileRowCard>
             )}

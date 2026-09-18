@@ -20,31 +20,31 @@ export const navItems = [
   },
   {
     show: true,
-    title: "Transaksi",
+    title: "Transactions",
     url: ROUTES.transactions.list,
     icon: Wallet
   },
   {
     show: true,
-    title: "Rekening",
+    title: "Accounts",
     url: ROUTES.accounts,
     icon: Landmark
   },
   {
     show: true,
-    title: "Aset",
+    title: "Assets",
     url: ROUTES.assets,
     icon: Landmark
   },
   {
     show: true,
-    title: "Piutang/Utang",
+    title: "Receivables & Debts",
     url: ROUTES.receivables,
     icon: HandCoins
   },
   {
     show: true,
-    title: "Investasi",
+    title: "Investments",
     url: ROUTES.investments,
     icon: TrendingUp
   },
@@ -68,7 +68,7 @@ export const navItems = [
   },
   {
     show: true,
-    title: "Laporan",
+    title: "Reports",
     url: ROUTES.reports,
     icon: BarChart3
   },

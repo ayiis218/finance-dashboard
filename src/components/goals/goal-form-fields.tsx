@@ -17,17 +17,17 @@ export function GoalFormFields({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor={`name-${idPrefix}`}>Nama Goal</Label>
+        <Label htmlFor={`name-${idPrefix}`}>Goal Name</Label>
         <Input
           id={`name-${idPrefix}`}
           name="name"
           defaultValue={defaults?.name}
-          placeholder="Wedding, Eid 2026, dll"
+          placeholder="Wedding, Eid 2026, etc."
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`targetAmount-${idPrefix}`}>Target Dana</Label>
+        <Label htmlFor={`targetAmount-${idPrefix}`}>Target Amount</Label>
         <NumberInput
           id={`targetAmount-${idPrefix}`}
           name="targetAmount"
@@ -42,7 +42,7 @@ export function GoalFormFields({
         )}
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`tenorMonths-${idPrefix}`}>Tenor (bulan)</Label>
+        <Label htmlFor={`tenorMonths-${idPrefix}`}>Tenor (months)</Label>
         <NumberInput
           id={`tenorMonths-${idPrefix}`}
           name="tenorMonths"
@@ -51,7 +51,7 @@ export function GoalFormFields({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`startDate-${idPrefix}`}>Mulai Menabung</Label>
+        <Label htmlFor={`startDate-${idPrefix}`}>Start Saving</Label>
         <Input
           id={`startDate-${idPrefix}`}
           name="startDate"

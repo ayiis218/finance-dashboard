@@ -16,17 +16,17 @@ export default async function CashflowPage() {
 
   const summaryItems = latest
     ? [
-        { label: "Saldo Awal", value: formatIDR(latest.saldoAwal) },
+        { label: "Starting Balance", value: formatIDR(latest.saldoAwal) },
         {
-          label: "Saldo Akhir (Ekspektasi)",
+          label: "Ending Balance (Expected)",
           value: latest.saldoAkhirExpected != null ? formatIDR(latest.saldoAkhirExpected) : "-",
         },
         {
-          label: "Saldo Akhir (Aktual)",
+          label: "Ending Balance (Actual)",
           value: latest.saldoAkhirActual != null ? formatIDR(latest.saldoAkhirActual) : "-",
         },
         {
-          label: "Selisih",
+          label: "Variance",
           value: latest.variance != null ? formatIDR(latest.variance) : "-",
           tone:
             latest.variance == null
@@ -43,7 +43,7 @@ export default async function CashflowPage() {
       {latest && (
         <>
           <p className="text-sm text-muted-foreground">
-            Forecast bulan terbaru &middot; {format(latest.month, "MMMM yyyy")}
+            Latest forecast &middot; {format(latest.month, "MMMM yyyy")}
           </p>
           <SummaryStats items={summaryItems} />
         </>
@@ -51,7 +51,7 @@ export default async function CashflowPage() {
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Cashflow Forecast</CardTitle>
-          <FormDialog title="Tambah Forecast" triggerLabel="Tambah" action={createCashflowForecast}>
+          <FormDialog title="Add Forecast" triggerLabel="Add" action={createCashflowForecast}>
             <CashflowFormFields idPrefix="new" />
           </FormDialog>
         </CardHeader>

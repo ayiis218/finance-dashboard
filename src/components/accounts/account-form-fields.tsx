@@ -14,17 +14,17 @@ export function AccountFormFields({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor={`name-${idPrefix}`}>Nama</Label>
+        <Label htmlFor={`name-${idPrefix}`}>Name</Label>
         <Input
           id={`name-${idPrefix}`}
           name="name"
           defaultValue={defaults?.name}
-          placeholder="BCA, Cash, dll"
+          placeholder="BCA, Cash, etc."
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`balance-${idPrefix}`}>Saldo</Label>
+        <Label htmlFor={`balance-${idPrefix}`}>Balance</Label>
         <NumberInput
           id={`balance-${idPrefix}`}
           name="balance"

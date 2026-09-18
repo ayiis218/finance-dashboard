@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma, TransactionType } from "@prisma/client";
-import { startOfDay, endOfDay, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { startOfDay, endOfDay, startOfMonth, endOfMonth, eachMonthOfInterval } from "date-fns";
 
 function toNumber(value: unknown): number {
   return value === null || value === undefined ? 0 : Number(value);
@@ -58,11 +58,9 @@ export async function getDailySummary(date: Date = new Date()) {
   return { transactions, income, expense };
 }
 
-export async function getExpenseByCategory(month: Date = new Date()) {
-  const start = startOfMonth(month);
-  const end = endOfMonth(month);
+export async function getExpenseByCategory({ from, to }: { from: Date; to: Date }) {
   const transactions = await prisma.transaction.findMany({
-    where: { type: "EXPENSE", date: { gte: start, lte: end } },
+    where: { type: "EXPENSE", date: { gte: from, lte: to } },
     select: { amount: true, category: true },
   });
 
@@ -80,12 +78,10 @@ export async function getExpenseByCategory(month: Date = new Date()) {
   }));
 }
 
-export async function getSpendingByCategoryDetailed(month: Date = new Date()) {
-  const start = startOfMonth(month);
-  const end = endOfMonth(month);
+export async function getSpendingByCategoryDetailed({ from, to }: { from: Date; to: Date }) {
   const transactions = await prisma.transaction.findMany({
     where: {
-      date: { gte: start, lte: end },
+      date: { gte: from, lte: to },
       OR: [{ type: "EXPENSE" }, { type: "TRANSFER", toAccountId: null }],
     },
     select: { amount: true, category: true },
@@ -327,17 +323,14 @@ export async function getCashflowForecasts() {
   });
 }
 
-export async function getMonthlyExpenseComparison(months = 6) {
-  const since = startOfMonth(subMonths(new Date(), months - 1));
-
+export async function getMonthlyExpenseComparison({ from, to }: { from: Date; to: Date }) {
   const transactions = await prisma.transaction.findMany({
-    where: { type: "EXPENSE", date: { gte: since } },
+    where: { type: "EXPENSE", date: { gte: from, lte: to } },
     select: { amount: true, date: true },
   });
 
   const buckets = new Map<string, number>();
-  for (let i = months - 1; i >= 0; i--) {
-    const d = startOfMonth(subMonths(new Date(), i));
+  for (const d of eachMonthOfInterval({ start: startOfMonth(from), end: startOfMonth(to) })) {
     const key = d.toLocaleDateString("id-ID", { month: "short", year: "2-digit" });
     buckets.set(key, 0);
   }

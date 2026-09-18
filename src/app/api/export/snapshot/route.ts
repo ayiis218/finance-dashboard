@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { getReceivablesWithStatus, getSummary } from "@/lib/queries";
+import { getReceivablesWithStatus } from "@/lib/queries/receivables";
+import { getSummary } from "@/lib/queries/dashboard";
 import { authorizedSync } from "@/lib/sync-auth";
 
 /**

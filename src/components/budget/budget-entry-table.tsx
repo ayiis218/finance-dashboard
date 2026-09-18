@@ -19,7 +19,8 @@ import {
   MobileRowField,
   MobileRowHeader,
 } from "@/components/mobile-row-card";
-import { createBudgetEntry, updateBudgetEntry, deleteBudgetEntry } from "@/lib/actions";
+import { createBudgetEntry, updateBudgetEntry, deleteBudgetEntry } from "@/lib/actions/budget";
+import type { getBudgetOverview } from "@/lib/queries/budget";
 import { formatIDR } from "@/lib/format";
 
 function budgetStatus(actual: number, minTarget: number | null, maxTarget: number | null) {
@@ -33,17 +34,7 @@ function budgetStatus(actual: number, minTarget: number | null, maxTarget: numbe
   return { label: "On Target", variant: "default" as const };
 }
 
-type BudgetOverviewRow = {
-  categoryId: string;
-  categoryName: string;
-  monthlyPlanned: number;
-  entryId: string | null;
-  actual: number;
-  expectation: number;
-  variance: number;
-  minTarget: number | null;
-  maxTarget: number | null;
-};
+type BudgetOverviewRow = Awaited<ReturnType<typeof getBudgetOverview>>["rows"][number];
 
 export function BudgetEntryTable({
   rows,

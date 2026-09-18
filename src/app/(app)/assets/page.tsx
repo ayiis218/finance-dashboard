@@ -5,17 +5,15 @@ import { FormDialog } from "@/components/form-dialog";
 import { SummaryStats } from "@/components/summary-stats";
 import { AssetFormFields } from "@/components/assets/asset-form-fields";
 import { AssetTable } from "@/components/assets/asset-table";
-import { prisma } from "@/lib/prisma";
-import { createAsset } from "@/lib/actions";
+import { getAssets } from "@/lib/queries/assets";
+import { createAsset } from "@/lib/actions/assets";
 import { formatIDR } from "@/lib/format";
 import { formatDate } from "date-fns";
 
 export default async function AssetsPage() {
-  const assets = await prisma.asset.findMany({
-    orderBy: { acquiredDate: "desc" },
-  });
+  const assets = await getAssets();
 
-  const totalValue = assets.reduce((sum, a) => sum + Number(a.value), 0);
+  const totalValue = assets.reduce((sum, asset) => sum + Number(asset.value), 0);
   const latest = assets[0];
 
   const summaryItems = [

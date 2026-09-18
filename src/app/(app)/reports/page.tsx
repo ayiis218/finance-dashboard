@@ -30,10 +30,10 @@ import {
 } from "@/components/mobile-row-card";
 import {
   getExpenseByCategory,
-  getInvestmentAllocation,
   getMonthlyExpenseComparison,
   getSpendingByCategoryDetailed,
-} from "@/lib/queries";
+} from "@/lib/queries/transactions";
+import { getInvestmentAllocation } from "@/lib/queries/investments";
 import { formatIDR } from "@/lib/format";
 
 export default async function ReportsPage({

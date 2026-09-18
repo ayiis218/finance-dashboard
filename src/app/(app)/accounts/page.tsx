@@ -5,16 +5,14 @@ import { FormDialog } from "@/components/form-dialog";
 import { SummaryStats } from "@/components/summary-stats";
 import { AccountFormFields } from "@/components/accounts/account-form-fields";
 import { AccountTable } from "@/components/accounts/account-table";
-import { prisma } from "@/lib/prisma";
-import { createBankAccount } from "@/lib/actions";
+import { getBankAccounts } from "@/lib/queries/accounts";
+import { createBankAccount } from "@/lib/actions/accounts";
 import { formatIDR } from "@/lib/format";
 
 export default async function AccountsPage() {
-  const accounts = await prisma.bankAccount.findMany({
-    orderBy: { name: "asc" },
-  });
+  const accounts = await getBankAccounts();
 
-  const totalBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0);
+  const totalBalance = accounts.reduce((sum, account) => sum + Number(account.balance), 0);
 
   const summaryItems = [
     { label: "Total Balance", value: formatIDR(totalBalance), tone: "highlight" as const },

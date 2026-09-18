@@ -10,12 +10,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { MonthlyExpenseChartLazy } from "@/components/charts/monthly-expense-chart-lazy";
 import { SummaryStats, type SummaryStatItem } from "@/components/summary-stats";
-import {
-  getBudgetOverview,
-  getDailySummary,
-  getMonthlyExpenseComparison,
-  getSummary,
-} from "@/lib/queries";
+import { getDailySummary, getSummary } from "@/lib/queries/dashboard";
+import { getBudgetOverview } from "@/lib/queries/budget";
+import { getMonthlyExpenseComparison } from "@/lib/queries/transactions";
 import { formatIDR } from "@/lib/format";
 import { startOfMonth, subMonths } from "date-fns";
 
@@ -115,23 +112,23 @@ export default async function DashboardPage() {
                   No transactions today.
                 </p>
               )}
-              {daily.transactions.map((items) => {
-                const category = items?.note
-                  ? `${items.category} - ${items.note}`
-                  : items.category;
+              {daily.transactions.map((transaction) => {
+                const category = transaction?.note
+                  ? `${transaction.category} - ${transaction.note}`
+                  : transaction.category;
                 return (
                   <div
-                    key={items.id}
+                    key={transaction.id}
                     className="flex items-center justify-between text-sm"
                   >
                     <span>{category}</span>
                     <span
                       className={
-                        items.type === "INCOME" ? "text-positive" : "text-destructive"
+                        transaction.type === "INCOME" ? "text-positive" : "text-destructive"
                       }
                     >
-                      {items.type === "INCOME" ? "+" : "-"}
-                      {formatIDR(Number(items.amount))}
+                      {transaction.type === "INCOME" ? "+" : "-"}
+                      {formatIDR(Number(transaction.amount))}
                     </span>
                   </div>
                 )

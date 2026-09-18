@@ -19,10 +19,11 @@ import {
   MobileRowField,
   MobileRowHeader,
 } from "@/components/mobile-row-card";
-import { updateAsset, deleteAsset } from "@/lib/actions";
+import { updateAsset, deleteAsset } from "@/lib/actions/assets";
+import type { getAssets } from "@/lib/queries/assets";
 import { formatIDR } from "@/lib/format";
 
-type AssetRow = { id: string; name: string; category: string; value: unknown; acquiredDate: Date };
+type AssetRow = Awaited<ReturnType<typeof getAssets>>[number];
 
 function AssetRowActions({ item }: Readonly<{ item: AssetRow }>) {
   return (
@@ -65,16 +66,16 @@ export function AssetTable({ rows }: Readonly<{ rows: AssetRow[] }>) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((items, index) => (
-              <TableRow key={items.id}>
+            {rows.map((asset, index) => (
+              <TableRow key={asset.id}>
                 <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                <TableCell>{items.name}</TableCell>
-                <TableCell>{items.category}</TableCell>
-                <TableCell>{formatDate(items.acquiredDate, "dd MMMM yyyy")}</TableCell>
-                <TableCell className="text-right">{formatIDR(Number(items.value))}</TableCell>
+                <TableCell>{asset.name}</TableCell>
+                <TableCell>{asset.category}</TableCell>
+                <TableCell>{formatDate(asset.acquiredDate, "dd MMMM yyyy")}</TableCell>
+                <TableCell className="text-right">{formatIDR(Number(asset.value))}</TableCell>
                 <TableCell className="text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <AssetRowActions item={items} />
+                    <AssetRowActions item={asset} />
                   </div>
                 </TableCell>
               </TableRow>
@@ -91,14 +92,14 @@ export function AssetTable({ rows }: Readonly<{ rows: AssetRow[] }>) {
       </div>
 
       <MobileCardList>
-        {rows.map((items) => (
-          <MobileRowCard key={items.id}>
-            <MobileRowHeader title={items.name} />
-            <MobileRowField label="Category" value={items.category} />
-            <MobileRowField label="Date" value={formatDate(items.acquiredDate, "dd MMM yyyy")} />
-            <p className="text-lg font-semibold">{formatIDR(Number(items.value))}</p>
+        {rows.map((asset) => (
+          <MobileRowCard key={asset.id}>
+            <MobileRowHeader title={asset.name} />
+            <MobileRowField label="Category" value={asset.category} />
+            <MobileRowField label="Date" value={formatDate(asset.acquiredDate, "dd MMM yyyy")} />
+            <p className="text-lg font-semibold">{formatIDR(Number(asset.value))}</p>
             <MobileRowActions>
-              <AssetRowActions item={items} />
+              <AssetRowActions item={asset} />
             </MobileRowActions>
           </MobileRowCard>
         ))}

@@ -17,10 +17,11 @@ import {
   MobileRowCard,
   MobileRowHeader,
 } from "@/components/mobile-row-card";
-import { updateBudgetCategory, deleteBudgetCategory } from "@/lib/actions";
+import { updateBudgetCategory, deleteBudgetCategory } from "@/lib/actions/budget";
+import type { getBudgetCategories } from "@/lib/queries/budget";
 import { formatIDR } from "@/lib/format";
 
-type BudgetCategoryRow = { id: string; name: string; monthlyPlanned: unknown };
+type BudgetCategoryRow = Awaited<ReturnType<typeof getBudgetCategories>>[number];
 
 function BudgetCategoryRowActions({ item }: Readonly<{ item: BudgetCategoryRow }>) {
   return (

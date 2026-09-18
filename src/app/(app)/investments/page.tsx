@@ -5,17 +5,21 @@ import { FormDialog } from "@/components/form-dialog";
 import { SummaryStats } from "@/components/summary-stats";
 import { InvestmentFormFields } from "@/components/investments/investment-form-fields";
 import { InvestmentTable } from "@/components/investments/investment-table";
-import { prisma } from "@/lib/prisma";
-import { createInvestment } from "@/lib/actions";
+import { getInvestments } from "@/lib/queries/investments";
+import { createInvestment } from "@/lib/actions/investments";
 import { formatIDR } from "@/lib/format";
 
 export default async function InvestmentsPage() {
-  const investments = await prisma.investment.findMany({
-    orderBy: { platform: "asc" },
-  });
+  const investments = await getInvestments();
 
-  const totalBuyValue = investments.reduce((sum, i) => sum + Number(i.buyValue), 0);
-  const totalCurrentValue = investments.reduce((sum, i) => sum + Number(i.currentValue), 0);
+  const totalBuyValue = investments.reduce(
+    (sum, investment) => sum + Number(investment.buyValue),
+    0,
+  );
+  const totalCurrentValue = investments.reduce(
+    (sum, investment) => sum + Number(investment.currentValue),
+    0,
+  );
   const gainLoss = totalCurrentValue - totalBuyValue;
   const gainLossPct = totalBuyValue > 0 ? (gainLoss / totalBuyValue) * 100 : 0;
 

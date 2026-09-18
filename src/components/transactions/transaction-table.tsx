@@ -20,24 +20,15 @@ import {
   MobileRowField,
   MobileRowHeader,
 } from "@/components/mobile-row-card";
-import { updateTransaction, deleteTransaction } from "@/lib/actions";
+import { updateTransaction, deleteTransaction } from "@/lib/actions/transactions";
+import type { getTransactionsFiltered } from "@/lib/queries/transactions";
 import { formatIDR } from "@/lib/format";
 
 type Account = { id: string; name: string };
 
-type TransactionRow = {
-  id: string;
-  accountId: string;
-  toAccountId: string | null;
-  account: { name: string };
-  toAccount: { name: string } | null;
-  type: "INCOME" | "EXPENSE" | "TRANSFER";
-  category: string;
-  amount: unknown;
-  date: Date;
-  note: string | null;
-  affectsBalance: boolean;
-};
+type TransactionRow = Awaited<
+  ReturnType<typeof getTransactionsFiltered>
+>["transactions"][number];
 
 function TransactionRowActions({
   item,
@@ -103,38 +94,44 @@ export function TransactionTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((items, index) => {
-              const category = items.note ? `${items.category} - ${items.note}` : items.category;
+            {rows.map((transaction, index) => {
+              const category = transaction.note
+                ? `${transaction.category} - ${transaction.note}`
+                : transaction.category;
               return (
-                <TableRow key={items.id}>
+                <TableRow key={transaction.id}>
                   <TableCell className="text-muted-foreground">
                     {(page - 1) * pageSize + index + 1}
                   </TableCell>
-                  <TableCell>{formatDate(items.date, "dd MMMM yyyy")}</TableCell>
+                  <TableCell>{formatDate(transaction.date, "dd MMMM yyyy")}</TableCell>
                   <TableCell>
-                    {items.account.name}
-                    {items.toAccount && (
-                      <span className="text-muted-foreground"> → {items.toAccount.name}</span>
+                    {transaction.account.name}
+                    {transaction.toAccount && (
+                      <span className="text-muted-foreground"> → {transaction.toAccount.name}</span>
                     )}
                   </TableCell>
                   <TableCell>{category}</TableCell>
                   <TableCell
                     className={
                       "text-right " +
-                      (items.type === "INCOME" ? "text-positive" : "text-destructive")
+                      (transaction.type === "INCOME" ? "text-positive" : "text-destructive")
                     }
                   >
-                    {items.type === "INCOME" ? "+" : "-"}
-                    {formatIDR(Number(items.amount))}
+                    {transaction.type === "INCOME" ? "+" : "-"}
+                    {formatIDR(Number(transaction.amount))}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Badge variant={items.affectsBalance ? "secondary" : "outline"}>
-                      {items.affectsBalance ? "New" : "History"}
+                    <Badge variant={transaction.affectsBalance ? "secondary" : "outline"}>
+                      {transaction.affectsBalance ? "New" : "History"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
-                      <TransactionRowActions item={items} accounts={accounts} categories={categories} />
+                      <TransactionRowActions
+                        item={transaction}
+                        accounts={accounts}
+                        categories={categories}
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -152,15 +149,17 @@ export function TransactionTable({
       </div>
 
       <MobileCardList>
-        {rows.map((items) => {
-          const category = items.note ? `${items.category} - ${items.note}` : items.category;
+        {rows.map((transaction) => {
+          const category = transaction.note
+            ? `${transaction.category} - ${transaction.note}`
+            : transaction.category;
           return (
-            <MobileRowCard key={items.id}>
+            <MobileRowCard key={transaction.id}>
               <MobileRowHeader
-                title={formatDate(items.date, "dd MMM yyyy")}
+                title={formatDate(transaction.date, "dd MMM yyyy")}
                 action={
-                  <Badge variant={items.affectsBalance ? "secondary" : "outline"}>
-                    {items.affectsBalance ? "New" : "History"}
+                  <Badge variant={transaction.affectsBalance ? "secondary" : "outline"}>
+                    {transaction.affectsBalance ? "New" : "History"}
                   </Badge>
                 }
               />
@@ -168,9 +167,9 @@ export function TransactionTable({
                 label="Account"
                 value={
                   <>
-                    {items.account.name}
-                    {items.toAccount && (
-                      <span className="text-muted-foreground"> → {items.toAccount.name}</span>
+                    {transaction.account.name}
+                    {transaction.toAccount && (
+                      <span className="text-muted-foreground"> → {transaction.toAccount.name}</span>
                     )}
                   </>
                 }
@@ -179,14 +178,18 @@ export function TransactionTable({
               <p
                 className={
                   "text-lg font-semibold " +
-                  (items.type === "INCOME" ? "text-positive" : "text-destructive")
+                  (transaction.type === "INCOME" ? "text-positive" : "text-destructive")
                 }
               >
-                {items.type === "INCOME" ? "+" : "-"}
-                {formatIDR(Number(items.amount))}
+                {transaction.type === "INCOME" ? "+" : "-"}
+                {formatIDR(Number(transaction.amount))}
               </p>
               <MobileRowActions>
-                <TransactionRowActions item={items} accounts={accounts} categories={categories} />
+                <TransactionRowActions
+                  item={transaction}
+                  accounts={accounts}
+                  categories={categories}
+                />
               </MobileRowActions>
             </MobileRowCard>
           );

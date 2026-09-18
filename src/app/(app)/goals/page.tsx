@@ -4,19 +4,16 @@ import { FormDialog } from "@/components/form-dialog";
 import { SummaryStats } from "@/components/summary-stats";
 import { GoalFormFields } from "@/components/goals/goal-form-fields";
 import { GoalCard } from "@/components/goals/goal-card";
-import { prisma } from "@/lib/prisma";
-import { createSavingsGoal } from "@/lib/actions";
+import { getSavingsGoals } from "@/lib/queries/goals";
+import { createSavingsGoal } from "@/lib/actions/goals";
 import { formatIDR } from "@/lib/format";
 
 export default async function GoalsPage() {
-  const goals = await prisma.savingsGoal.findMany({
-    include: { entries: true, items: true },
-    orderBy: { createdAt: "desc" },
-  });
+  const goals = await getSavingsGoals();
 
-  const totalTarget = goals.reduce((sum, g) => sum + Number(g.targetAmount), 0);
+  const totalTarget = goals.reduce((sum, goal) => sum + Number(goal.targetAmount), 0);
   const totalSaved = goals.reduce(
-    (sum, g) => sum + g.entries.reduce((s, e) => s + Number(e.amount), 0),
+    (sum, goal) => sum + goal.entries.reduce((s, entry) => s + Number(entry.amount), 0),
     0,
   );
   const overallProgress = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;

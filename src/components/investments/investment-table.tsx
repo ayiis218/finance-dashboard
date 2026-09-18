@@ -18,16 +18,11 @@ import {
   MobileRowField,
   MobileRowHeader,
 } from "@/components/mobile-row-card";
-import { updateInvestment, deleteInvestment } from "@/lib/actions";
+import { updateInvestment, deleteInvestment } from "@/lib/actions/investments";
+import type { getInvestments } from "@/lib/queries/investments";
 import { formatIDR } from "@/lib/format";
 
-type InvestmentRow = {
-  id: string;
-  platform: string;
-  name: string;
-  buyValue: unknown;
-  currentValue: unknown;
-};
+type InvestmentRow = Awaited<ReturnType<typeof getInvestments>>[number];
 
 function InvestmentRowActions({
   item,
@@ -75,15 +70,15 @@ export function InvestmentTable({ rows }: Readonly<{ rows: InvestmentRow[] }>) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((items, index) => {
-              const buy = Number(items.buyValue);
-              const current = Number(items.currentValue);
+            {rows.map((investment, index) => {
+              const buy = Number(investment.buyValue);
+              const current = Number(investment.currentValue);
               const returnValue = current - buy;
               return (
-                <TableRow key={items.id}>
+                <TableRow key={investment.id}>
                   <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                  <TableCell>{items.platform}</TableCell>
-                  <TableCell>{items.name}</TableCell>
+                  <TableCell>{investment.platform}</TableCell>
+                  <TableCell>{investment.name}</TableCell>
                   <TableCell className="text-right">{formatIDR(buy)}</TableCell>
                   <TableCell className="text-right">{formatIDR(current)}</TableCell>
                   <TableCell
@@ -96,7 +91,7 @@ export function InvestmentTable({ rows }: Readonly<{ rows: InvestmentRow[] }>) {
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
-                      <InvestmentRowActions item={items} buy={buy} current={current} />
+                      <InvestmentRowActions item={investment} buy={buy} current={current} />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -114,13 +109,13 @@ export function InvestmentTable({ rows }: Readonly<{ rows: InvestmentRow[] }>) {
       </div>
 
       <MobileCardList>
-        {rows.map((items) => {
-          const buy = Number(items.buyValue);
-          const current = Number(items.currentValue);
+        {rows.map((investment) => {
+          const buy = Number(investment.buyValue);
+          const current = Number(investment.currentValue);
           const returnValue = current - buy;
           return (
-            <MobileRowCard key={items.id}>
-              <MobileRowHeader title={`${items.platform} · ${items.name}`} />
+            <MobileRowCard key={investment.id}>
+              <MobileRowHeader title={`${investment.platform} · ${investment.name}`} />
               <MobileRowField label="Buy Value" value={formatIDR(buy)} />
               <MobileRowField label="Current Value" value={formatIDR(current)} />
               <MobileRowField
@@ -129,7 +124,7 @@ export function InvestmentTable({ rows }: Readonly<{ rows: InvestmentRow[] }>) {
                 valueClassName={returnValue >= 0 ? "text-positive" : "text-destructive"}
               />
               <MobileRowActions>
-                <InvestmentRowActions item={items} buy={buy} current={current} />
+                <InvestmentRowActions item={investment} buy={buy} current={current} />
               </MobileRowActions>
             </MobileRowCard>
           );

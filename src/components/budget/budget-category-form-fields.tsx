@@ -14,17 +14,17 @@ export function BudgetCategoryFormFields({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor={`name-${idPrefix}`}>Nama Kategori</Label>
+        <Label htmlFor={`name-${idPrefix}`}>Category Name</Label>
         <Input
           id={`name-${idPrefix}`}
           name="name"
           defaultValue={defaults?.name}
-          placeholder="Makan, Transport, dll"
+          placeholder="Food, Transport, etc."
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`monthlyPlanned-${idPrefix}`}>Anggaran Bulanan</Label>
+        <Label htmlFor={`monthlyPlanned-${idPrefix}`}>Monthly Budget</Label>
         <NumberInput
           id={`monthlyPlanned-${idPrefix}`}
           name="monthlyPlanned"

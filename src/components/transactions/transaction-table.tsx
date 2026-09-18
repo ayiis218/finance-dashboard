@@ -47,7 +47,7 @@ function TransactionRowActions({
   return (
     <>
       <FormDialog
-        title="Edit Transaksi"
+        title="Edit Transaction"
         triggerIcon={<Pencil className="size-4 text-primary" />}
         triggerVariant="ghost"
         triggerSize="icon"
@@ -94,10 +94,10 @@ export function TransactionTable({
           <TableHeader>
             <TableRow>
               <TableHead>No.</TableHead>
-              <TableHead>Tanggal</TableHead>
-              <TableHead>Rekening</TableHead>
-              <TableHead>Kategori</TableHead>
-              <TableHead className="text-right">Jumlah</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Account</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
               <TableHead className="text-center">Status</TableHead>
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
@@ -129,7 +129,7 @@ export function TransactionTable({
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge variant={items.affectsBalance ? "secondary" : "outline"}>
-                      {items.affectsBalance ? "Baru" : "Histori"}
+                      {items.affectsBalance ? "New" : "History"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
@@ -143,7 +143,7 @@ export function TransactionTable({
             {rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  Tidak ada transaksi ditemukan.
+                  No transactions found.
                 </TableCell>
               </TableRow>
             )}
@@ -160,12 +160,12 @@ export function TransactionTable({
                 title={formatDate(items.date, "dd MMM yyyy")}
                 action={
                   <Badge variant={items.affectsBalance ? "secondary" : "outline"}>
-                    {items.affectsBalance ? "Baru" : "Histori"}
+                    {items.affectsBalance ? "New" : "History"}
                   </Badge>
                 }
               />
               <MobileRowField
-                label="Rekening"
+                label="Account"
                 value={
                   <>
                     {items.account.name}
@@ -175,7 +175,7 @@ export function TransactionTable({
                   </>
                 }
               />
-              <MobileRowField label="Kategori" value={category} />
+              <MobileRowField label="Category" value={category} />
               <p
                 className={
                   "text-lg font-semibold " +
@@ -191,7 +191,7 @@ export function TransactionTable({
             </MobileRowCard>
           );
         })}
-        {rows.length === 0 && <MobileEmptyState>Tidak ada transaksi ditemukan.</MobileEmptyState>}
+        {rows.length === 0 && <MobileEmptyState>No transactions found.</MobileEmptyState>}
       </MobileCardList>
     </>
   );

@@ -37,16 +37,16 @@ export function RepaymentDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button size="sm" variant="outline" className="w-full sm:w-auto" />}>
-        Riwayat Cicilan
+        Repayment History
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Riwayat Pembayaran</DialogTitle>
+          <DialogTitle>Payment History</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-2">
           {payments.length === 0 && (
-            <p className="text-sm text-muted-foreground">Belum ada pembayaran.</p>
+            <p className="text-sm text-muted-foreground">No payments yet.</p>
           )}
           {payments.map((p) => (
             <div
@@ -68,9 +68,9 @@ export function RepaymentDialog({
                   startTransition(async () => {
                     try {
                       await deleteAction(p.id);
-                      toast.success("Berhasil dihapus");
+                      toast.success("Deleted");
                     } catch (err) {
-                      toast.error(err instanceof Error ? err.message : "Gagal menghapus");
+                      toast.error(err instanceof Error ? err.message : "Failed to delete");
                     }
                   })
                 }
@@ -88,19 +88,19 @@ export function RepaymentDialog({
               startTransition(async () => {
                 try {
                   await createAction(formData);
-                  toast.success("Pembayaran tercatat");
+                  toast.success("Payment logged");
                 } catch (err) {
-                  toast.error(err instanceof Error ? err.message : "Gagal mencatat pembayaran");
+                  toast.error(err instanceof Error ? err.message : "Failed to log payment");
                 }
               });
             }}
           >
             <input type="hidden" name="receivableId" value={receivableId} />
             <p className="text-xs text-muted-foreground">
-              Sisa: {formatIDR(remaining)}
+              Remaining: {formatIDR(remaining)}
             </p>
             <div className="space-y-2">
-              <Label htmlFor={`pay-date-${receivableId}`}>Tanggal</Label>
+              <Label htmlFor={`pay-date-${receivableId}`}>Date</Label>
               <Input
                 id={`pay-date-${receivableId}`}
                 name="date"
@@ -110,7 +110,7 @@ export function RepaymentDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`pay-amount-${receivableId}`}>Jumlah Bayar</Label>
+              <Label htmlFor={`pay-amount-${receivableId}`}>Payment Amount</Label>
               <NumberInput
                 id={`pay-amount-${receivableId}`}
                 name="amount"
@@ -119,16 +119,16 @@ export function RepaymentDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`pay-note-${receivableId}`}>Catatan</Label>
+              <Label htmlFor={`pay-note-${receivableId}`}>Note</Label>
               <Input
                 id={`pay-note-${receivableId}`}
                 name="note"
-                placeholder="Opsional"
+                placeholder="Optional"
               />
             </div>
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending && <Loader2 className="size-4 animate-spin" />}
-              {isPending ? "Menyimpan..." : "Catat Pembayaran"}
+              {isPending ? "Saving..." : "Log Payment"}
             </Button>
           </form>
         )}

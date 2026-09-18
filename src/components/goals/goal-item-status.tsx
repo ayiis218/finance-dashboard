@@ -8,9 +8,9 @@ const STATUS_FLOW = ["PLANNED", "BOOKED", "PAID"] as const;
 type Status = (typeof STATUS_FLOW)[number];
 
 const STATUS_LABEL: Record<Status, string> = {
-  PLANNED: "Rencana",
-  BOOKED: "Dipesan",
-  PAID: "Lunas",
+  PLANNED: "Planned",
+  BOOKED: "Booked",
+  PAID: "Paid",
 };
 
 const STATUS_VARIANT: Record<Status, "outline" | "secondary" | "default"> = {
@@ -35,7 +35,7 @@ export function GoalItemStatusBadge({
       try {
         await onChange(nextStatus);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal mengubah status");
+        toast.error(err instanceof Error ? err.message : "Failed to change status");
       }
     });
   };

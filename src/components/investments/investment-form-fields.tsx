@@ -21,22 +21,22 @@ export function InvestmentFormFields({
           id={`platform-${idPrefix}`}
           name="platform"
           defaultValue={defaults?.platform}
-          placeholder="Bibit, Ajaib, Indodax, dll"
+          placeholder="Bibit, Ajaib, Indodax, etc."
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`name-${idPrefix}`}>Nama Instrumen</Label>
+        <Label htmlFor={`name-${idPrefix}`}>Instrument Name</Label>
         <Input
           id={`name-${idPrefix}`}
           name="name"
           defaultValue={defaults?.name}
-          placeholder="Reksadana X, Saham Y, dll"
+          placeholder="Mutual Fund X, Stock Y, etc."
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`buyValue-${idPrefix}`}>Nilai Beli</Label>
+        <Label htmlFor={`buyValue-${idPrefix}`}>Buy Value</Label>
         <NumberInput
           id={`buyValue-${idPrefix}`}
           name="buyValue"
@@ -45,7 +45,7 @@ export function InvestmentFormFields({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`currentValue-${idPrefix}`}>Nilai Sekarang</Label>
+        <Label htmlFor={`currentValue-${idPrefix}`}>Current Value</Label>
         <NumberInput
           id={`currentValue-${idPrefix}`}
           name="currentValue"

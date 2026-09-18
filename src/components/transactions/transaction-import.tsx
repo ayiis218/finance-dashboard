@@ -118,10 +118,10 @@ export function TransactionImport({
           validRows.map((r) => r.row),
           { skipBalanceUpdate },
         );
-        toast.success(`Berhasil import ${res.imported} transaksi`);
+        toast.success(`Imported ${res.imported} transactions`);
         router.push("/transactions");
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal import");
+        toast.error(err instanceof Error ? err.message : "Import failed");
       }
     });
   };
@@ -136,11 +136,11 @@ export function TransactionImport({
           <div className="flex flex-wrap items-center gap-3">
             <Button type="button" variant="outline" onClick={handleDownloadTemplate}>
               <Download className="size-4" />
-              Download Template CSV
+              Download CSV Template
             </Button>
             <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
               <Upload className="size-4" />
-              Pilih File CSV
+              Choose CSV File
             </Button>
             <input
               ref={fileInputRef}
@@ -164,7 +164,7 @@ export function TransactionImport({
                 className="mt-0.5"
               />
               <span>
-                <span className="font-medium">Data historis — jangan ubah saldo rekening</span>
+                <span className="font-medium">Historical data — don&apos;t change account balances</span>
                 <br />
                 <span className="text-muted-foreground">
                   Aktifkan kalau saldo rekening SEKARANG sudah benar dan transaksi yang diimport
@@ -182,7 +182,7 @@ export function TransactionImport({
         <>
           {skipBalanceUpdate ? (
             <p className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-              Mode data historis aktif — saldo rekening <span className="font-medium">tidak akan diubah</span> oleh import ini.
+              Historical data mode is on — account balances <span className="font-medium">will not be changed</span> by this import.
             </p>
           ) : (
             balanceImpact.length > 0 && (
@@ -190,7 +190,7 @@ export function TransactionImport({
                 items={balanceImpact.map((a) => ({
                   label: a.name,
                   value: formatIDR(a.projected),
-                  sublabel: `saat ini ${formatIDR(a.balance)}`,
+                  sublabel: `current ${formatIDR(a.balance)}`,
                   tone: a.projected < 0 ? ("negative" as const) : undefined,
                 }))}
               />
@@ -200,7 +200,7 @@ export function TransactionImport({
           <Card>
             <CardHeader>
               <CardTitle>
-                Preview {results.length} Baris
+                Preview {results.length} Rows
                 {hasErrors && ` — ${results.length - validRows.length} error`}
               </CardTitle>
             </CardHeader>
@@ -210,12 +210,12 @@ export function TransactionImport({
                   <TableHeader>
                     <TableRow>
                       <TableHead>#</TableHead>
-                      <TableHead>Tanggal</TableHead>
-                      <TableHead>Rekening</TableHead>
-                      <TableHead>Rekening Tujuan</TableHead>
-                      <TableHead>Tipe</TableHead>
-                      <TableHead>Kategori</TableHead>
-                      <TableHead className="text-right">Jumlah</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Account</TableHead>
+                      <TableHead>Destination Account</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -256,7 +256,7 @@ export function TransactionImport({
                       checked={ackNegative}
                       onCheckedChange={(checked) => setAckNegative(checked)}
                     />
-                    Saya paham saldo akan menjadi minus, tetap lanjutkan
+                    I understand the balance will go negative, continue anyway
                   </label>
                 )}
                 <Button
@@ -266,7 +266,7 @@ export function TransactionImport({
                   onClick={handleConfirm}
                 >
                   {isPending && <Loader2 className="size-4 animate-spin" />}
-                  {isPending ? "Mengimpor..." : `Konfirmasi Import ${validRows.length} Transaksi`}
+                  {isPending ? "Importing..." : `Confirm Import ${validRows.length} Transactions`}
                 </Button>
               </div>
             </CardContent>

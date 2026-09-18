@@ -26,7 +26,7 @@ function BudgetCategoryRowActions({ item }: Readonly<{ item: BudgetCategoryRow }
   return (
     <>
       <FormDialog
-        title="Edit Kategori"
+        title="Edit Category"
         triggerIcon={<Pencil className="size-4" />}
         triggerVariant="ghost"
         triggerSize="icon"
@@ -50,8 +50,8 @@ export function BudgetCategoryTable({ rows }: Readonly<{ rows: BudgetCategoryRow
           <TableHeader>
             <TableRow>
               <TableHead>No.</TableHead>
-              <TableHead>Nama</TableHead>
-              <TableHead className="text-right">Anggaran Bulanan</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead className="text-right">Monthly Budget</TableHead>
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -71,7 +71,7 @@ export function BudgetCategoryTable({ rows }: Readonly<{ rows: BudgetCategoryRow
             {rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={4} className="text-center text-muted-foreground">
-                  Belum ada kategori anggaran.
+                  No budget categories yet.
                 </TableCell>
               </TableRow>
             )}
@@ -89,7 +89,7 @@ export function BudgetCategoryTable({ rows }: Readonly<{ rows: BudgetCategoryRow
             </MobileRowActions>
           </MobileRowCard>
         ))}
-        {rows.length === 0 && <MobileEmptyState>Belum ada kategori anggaran.</MobileEmptyState>}
+        {rows.length === 0 && <MobileEmptyState>No budget categories yet.</MobileEmptyState>}
       </MobileCardList>
     </>
   );

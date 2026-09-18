@@ -28,7 +28,7 @@ function AssetRowActions({ item }: Readonly<{ item: AssetRow }>) {
   return (
     <>
       <FormDialog
-        title="Edit Aset"
+        title="Edit Asset"
         triggerIcon={<Pencil className="size-4" />}
         triggerVariant="ghost"
         triggerSize="icon"
@@ -57,10 +57,10 @@ export function AssetTable({ rows }: Readonly<{ rows: AssetRow[] }>) {
           <TableHeader>
             <TableRow>
               <TableHead>No.</TableHead>
-              <TableHead>Nama</TableHead>
-              <TableHead>Kategori</TableHead>
-              <TableHead>Tanggal</TableHead>
-              <TableHead className="text-right">Nilai</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead className="text-right">Value</TableHead>
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -82,7 +82,7 @@ export function AssetTable({ rows }: Readonly<{ rows: AssetRow[] }>) {
             {rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground">
-                  Belum ada aset.
+                  No assets yet.
                 </TableCell>
               </TableRow>
             )}
@@ -94,15 +94,15 @@ export function AssetTable({ rows }: Readonly<{ rows: AssetRow[] }>) {
         {rows.map((items) => (
           <MobileRowCard key={items.id}>
             <MobileRowHeader title={items.name} />
-            <MobileRowField label="Kategori" value={items.category} />
-            <MobileRowField label="Tanggal" value={formatDate(items.acquiredDate, "dd MMM yyyy")} />
+            <MobileRowField label="Category" value={items.category} />
+            <MobileRowField label="Date" value={formatDate(items.acquiredDate, "dd MMM yyyy")} />
             <p className="text-lg font-semibold">{formatIDR(Number(items.value))}</p>
             <MobileRowActions>
               <AssetRowActions item={items} />
             </MobileRowActions>
           </MobileRowCard>
         ))}
-        {rows.length === 0 && <MobileEmptyState>Belum ada aset.</MobileEmptyState>}
+        {rows.length === 0 && <MobileEmptyState>No assets yet.</MobileEmptyState>}
       </MobileCardList>
     </>
   );

@@ -37,7 +37,7 @@ function InvestmentRowActions({
   return (
     <>
       <FormDialog
-        title="Edit Investasi"
+        title="Edit Investment"
         triggerIcon={<Pencil className="size-4" />}
         triggerVariant="ghost"
         triggerSize="icon"
@@ -67,9 +67,9 @@ export function InvestmentTable({ rows }: Readonly<{ rows: InvestmentRow[] }>) {
             <TableRow>
               <TableHead>No.</TableHead>
               <TableHead>Platform</TableHead>
-              <TableHead>Nama</TableHead>
-              <TableHead className="text-right">Nilai Beli</TableHead>
-              <TableHead className="text-right">Nilai Sekarang</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead className="text-right">Buy Value</TableHead>
+              <TableHead className="text-right">Current Value</TableHead>
               <TableHead className="text-right">Return</TableHead>
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
@@ -105,7 +105,7 @@ export function InvestmentTable({ rows }: Readonly<{ rows: InvestmentRow[] }>) {
             {rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  Belum ada investasi.
+                  No investments yet.
                 </TableCell>
               </TableRow>
             )}
@@ -121,8 +121,8 @@ export function InvestmentTable({ rows }: Readonly<{ rows: InvestmentRow[] }>) {
           return (
             <MobileRowCard key={items.id}>
               <MobileRowHeader title={`${items.platform} · ${items.name}`} />
-              <MobileRowField label="Nilai Beli" value={formatIDR(buy)} />
-              <MobileRowField label="Nilai Sekarang" value={formatIDR(current)} />
+              <MobileRowField label="Buy Value" value={formatIDR(buy)} />
+              <MobileRowField label="Current Value" value={formatIDR(current)} />
               <MobileRowField
                 label="Return"
                 value={`${returnValue >= 0 ? "+" : ""}${formatIDR(returnValue)}`}
@@ -134,7 +134,7 @@ export function InvestmentTable({ rows }: Readonly<{ rows: InvestmentRow[] }>) {
             </MobileRowCard>
           );
         })}
-        {rows.length === 0 && <MobileEmptyState>Belum ada investasi.</MobileEmptyState>}
+        {rows.length === 0 && <MobileEmptyState>No investments yet.</MobileEmptyState>}
       </MobileCardList>
     </>
   );

@@ -26,11 +26,11 @@ export default async function BudgetPage({
   const remainingBudget = overview.totals.planned - overview.totals.actual;
 
   const summaryItems = [
-    { label: "Total Rencana", value: formatIDR(overview.totals.planned) },
-    { label: "Total Ekspektasi", value: formatIDR(overview.totals.expectation) },
-    { label: "Total Aktual", value: formatIDR(overview.totals.actual) },
+    { label: "Total Planned", value: formatIDR(overview.totals.planned) },
+    { label: "Total Expected", value: formatIDR(overview.totals.expectation) },
+    { label: "Total Actual", value: formatIDR(overview.totals.actual) },
     {
-      label: "Sisa Anggaran",
+      label: "Remaining Budget",
       value: formatIDR(remainingBudget),
       tone: remainingBudget >= 0 ? ("highlight" as const) : ("negative" as const),
     },
@@ -41,8 +41,8 @@ export default async function BudgetPage({
       <SummaryStats items={summaryItems} />
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Kategori Anggaran</CardTitle>
-          <FormDialog title="Tambah Kategori" triggerLabel="Tambah" action={createBudgetCategory}>
+          <CardTitle>Budget</CardTitle>
+          <FormDialog title="Add Category" triggerLabel="Add" action={createBudgetCategory}>
             <BudgetCategoryFormFields idPrefix="new" />
           </FormDialog>
         </CardHeader>
@@ -54,7 +54,7 @@ export default async function BudgetPage({
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle>Realisasi Bulanan</CardTitle>
+            <CardTitle>Monthly Actuals</CardTitle>
             <CardDescription>{format(month, "MMMM yyyy")}</CardDescription>
           </div>
         </CardHeader>

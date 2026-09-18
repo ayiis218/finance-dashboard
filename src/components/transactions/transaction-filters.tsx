@@ -40,7 +40,7 @@ export function TransactionFilters({ accounts }: Readonly<{ accounts: Account[] 
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Cari kategori atau catatan..."
+          placeholder="Search category or note..."
           className="pl-8"
         />
       </div>
@@ -49,9 +49,9 @@ export function TransactionFilters({ accounts }: Readonly<{ accounts: Account[] 
         onChange={(e) => navigate({ type: e.target.value || null }, true)}
         className="w-full rounded-md border bg-transparent px-3 py-2 text-sm sm:w-auto"
       >
-        <option value="">Semua Tipe</option>
-        <option value="EXPENSE">Pengeluaran</option>
-        <option value="INCOME">Pemasukan</option>
+        <option value="">All Types</option>
+        <option value="EXPENSE">Expense</option>
+        <option value="INCOME">Income</option>
         <option value="TRANSFER">Transfer</option>
       </select>
       <select
@@ -59,7 +59,7 @@ export function TransactionFilters({ accounts }: Readonly<{ accounts: Account[] 
         onChange={(e) => navigate({ accountId: e.target.value || null }, true)}
         className="w-full rounded-md border bg-transparent px-3 py-2 text-sm sm:w-auto"
       >
-        <option value="">Semua Rekening</option>
+        <option value="">All Accounts</option>
         {accounts.map((a) => (
           <option key={a.id} value={a.id}>
             {a.name}

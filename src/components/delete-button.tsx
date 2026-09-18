@@ -22,9 +22,9 @@ export function DeleteButton({ action }: Readonly<{ action: () => Promise<void> 
     startTransition(async () => {
       try {
         await action();
-        toast.success("Berhasil dihapus");
+        toast.success("Deleted");
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal menghapus");
+        toast.error(err instanceof Error ? err.message : "Failed to delete");
       } finally {
         setOpen(false);
       }
@@ -38,18 +38,18 @@ export function DeleteButton({ action }: Readonly<{ action: () => Promise<void> 
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Hapus Data</AlertDialogTitle>
+          <AlertDialogTitle>Delete Data</AlertDialogTitle>
           <AlertDialogDescription>
             Yakin ingin menghapus data ini? Tindakan ini tidak bisa dibatalkan.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
-            Batal
+            Cancel
           </Button>
           <Button variant="destructive" onClick={handleConfirm} disabled={isPending}>
             {isPending && <Loader2 className="size-4 animate-spin" />}
-            {isPending ? "Menghapus..." : "Hapus"}
+            {isPending ? "Deleting..." : "Delete"}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

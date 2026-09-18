@@ -20,15 +20,15 @@ export default async function InvestmentsPage() {
   const gainLossPct = totalBuyValue > 0 ? (gainLoss / totalBuyValue) * 100 : 0;
 
   const summaryItems = [
-    { label: "Total Modal", value: formatIDR(totalBuyValue) },
-    { label: "Total Nilai Sekarang", value: formatIDR(totalCurrentValue), tone: "highlight" as const },
+    { label: "Total Invested", value: formatIDR(totalBuyValue) },
+    { label: "Total Current Value", value: formatIDR(totalCurrentValue), tone: "highlight" as const },
     {
       label: "Gain/Loss",
       value: `${gainLoss >= 0 ? "+" : ""}${formatIDR(gainLoss)}`,
       sublabel: `${gainLossPct >= 0 ? "+" : ""}${gainLossPct.toFixed(1)}%`,
       tone: gainLoss >= 0 ? ("positive" as const) : ("negative" as const),
     },
-    { label: "Jumlah Investasi", value: String(investments.length) },
+    { label: "Number of Investments", value: String(investments.length) },
   ];
 
   return (
@@ -36,8 +36,8 @@ export default async function InvestmentsPage() {
       <SummaryStats items={summaryItems} />
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Investasi</CardTitle>
-          <FormDialog title="Tambah Investasi" triggerLabel="Tambah" action={createInvestment}>
+          <CardTitle>Investments</CardTitle>
+          <FormDialog title="Add Investment" triggerLabel="Add" action={createInvestment}>
             <InvestmentFormFields idPrefix="new" />
           </FormDialog>
         </CardHeader>

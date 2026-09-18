@@ -14,9 +14,9 @@ export function MarkSettledButton({
     startTransition(async () => {
       try {
         await action();
-        toast.success("Berhasil ditandai lunas");
+        toast.success("Marked as settled");
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal menandai lunas");
+        toast.error(err instanceof Error ? err.message : "Failed to mark as settled");
       }
     });
   };
@@ -30,7 +30,7 @@ export function MarkSettledButton({
       onClick={handleClick}
     >
       {isPending && <Loader2 className="size-3 animate-spin" />}
-      {isPending ? "Menandai..." : "Tandai lunas manual"}
+      {isPending ? "Marking..." : "Mark as settled"}
     </Button>
   );
 }

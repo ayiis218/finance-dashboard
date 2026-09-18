@@ -26,7 +26,7 @@ function AccountRowActions({ item }: Readonly<{ item: AccountRow }>) {
   return (
     <>
       <FormDialog
-        title="Edit Rekening"
+        title="Edit Account"
         triggerIcon={<Pencil className="size-4" />}
         triggerVariant="ghost"
         triggerSize="icon"
@@ -50,8 +50,8 @@ export function AccountTable({ rows }: Readonly<{ rows: AccountRow[] }>) {
           <TableHeader className="bg-muted rounded-t-lg">
             <TableRow>
               <TableHead>No.</TableHead>
-              <TableHead>Nama</TableHead>
-              <TableHead className="text-right">Saldo</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead className="text-right">Balance</TableHead>
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -71,7 +71,7 @@ export function AccountTable({ rows }: Readonly<{ rows: AccountRow[] }>) {
             {rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={4} className="text-center text-muted-foreground">
-                  Belum ada rekening.
+                  No accounts yet.
                 </TableCell>
               </TableRow>
             )}
@@ -89,7 +89,7 @@ export function AccountTable({ rows }: Readonly<{ rows: AccountRow[] }>) {
             </MobileRowActions>
           </MobileRowCard>
         ))}
-        {rows.length === 0 && <MobileEmptyState>Belum ada rekening.</MobileEmptyState>}
+        {rows.length === 0 && <MobileEmptyState>No accounts yet.</MobileEmptyState>}
       </MobileCardList>
     </>
   );

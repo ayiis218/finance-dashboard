@@ -19,27 +19,27 @@ export function GoalItemFormFields({
     <>
       <input type="hidden" name="goalId" value={goalId} />
       <div className="space-y-2">
-        <Label htmlFor={`category-${idPrefix}`}>Kategori</Label>
+        <Label htmlFor={`category-${idPrefix}`}>Category</Label>
         <Input
           id={`category-${idPrefix}`}
           name="category"
           defaultValue={defaults?.category}
-          placeholder="Mahar, Catering, THR, Individu, dll"
+          placeholder="Mahar, Catering, THR, Individual, etc."
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`name-${idPrefix}`}>Nama Rincian</Label>
+        <Label htmlFor={`name-${idPrefix}`}>Item Name</Label>
         <Input
           id={`name-${idPrefix}`}
           name="name"
           defaultValue={defaults?.name}
-          placeholder="Cincin, Fotografer, nama orang, dll"
+          placeholder="Ring, Photographer, person's name, etc."
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`budgetAmount-${idPrefix}`}>Anggaran</Label>
+        <Label htmlFor={`budgetAmount-${idPrefix}`}>Budget</Label>
         <NumberInput
           id={`budgetAmount-${idPrefix}`}
           name="budgetAmount"
@@ -48,21 +48,21 @@ export function GoalItemFormFields({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`actualAmount-${idPrefix}`}>Aktual</Label>
+        <Label htmlFor={`actualAmount-${idPrefix}`}>Actual</Label>
         <NumberInput
           id={`actualAmount-${idPrefix}`}
           name="actualAmount"
           defaultValue={defaults?.actualAmount}
-          placeholder="Opsional, default 0"
+          placeholder="Optional, default 0"
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`note-${idPrefix}`}>Catatan</Label>
+        <Label htmlFor={`note-${idPrefix}`}>Note</Label>
         <Input
           id={`note-${idPrefix}`}
           name="note"
           defaultValue={defaults?.note ?? ""}
-          placeholder="Opsional"
+          placeholder="Optional"
         />
       </div>
     </>

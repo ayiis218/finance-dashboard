@@ -66,53 +66,53 @@ export default async function TransactionsPage({
 
   const summaryItems = [
     {
-      label: "Pemasukan Bulan Ini",
+      label: "Income This Month",
       description: "Total uang masuk bulan ini",
       value: formatIDR(monthlyIncome),
       tone: "positive" as const,
     },
     {
-      label: "Pengeluaran Bulan Ini",
+      label: "Expense This Month",
       description: "Total uang keluar bulan ini (tipe Pengeluaran)",
       value: formatIDR(monthlyExpense),
       tone: "negative" as const,
     },
     {
-      label: "Selisih Bulan Ini",
+      label: "Net This Month",
       description: "Pemasukan dikurangi pengeluaran bulan ini",
       value: formatIDR(monthlyIncome - monthlyExpense),
       tone: "highlight" as const,
     },
     {
-      label: "Jumlah Transaksi",
+      label: "Number of Transactions",
       description: "Banyaknya transaksi yang tercatat bulan ini (sesuai filter)",
       value: String(result.total),
     },
     topCategory
       ? {
-          label: "Kategori Terbanyak",
+          label: "Top Category",
           description: "Pengeluaran & transfer terbesar bulan ini",
           value: formatIDR(topCategory.total),
           sublabel: topCategory.category,
         }
       : {
-          label: "Kategori Terbanyak",
+          label: "Top Category",
           description: "Pengeluaran & transfer terbesar bulan ini",
           value: "-",
-          sublabel: "Belum ada data",
+          sublabel: "No data yet",
         },
     latestTransaction
       ? {
-          label: "Transaksi Terakhir",
+          label: "Latest Transaction",
           description: "Transaksi paling baru yang tercatat (semua bulan)",
           value: formatIDR(Number(latestTransaction.amount)),
           sublabel: `${latestTransaction.category} · ${formatDate(latestTransaction.date, "dd MMM yyyy")}`,
         }
       : {
-          label: "Transaksi Terakhir",
+          label: "Latest Transaction",
           description: "Transaksi paling baru yang tercatat (semua bulan)",
           value: "-",
-          sublabel: "Belum ada transaksi",
+          sublabel: "No transactions yet",
         },
   ];
 
@@ -123,7 +123,7 @@ export default async function TransactionsPage({
       <SummaryStats items={summaryItems} />
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Transaksi</CardTitle>
+          <CardTitle>Transactions</CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
@@ -134,7 +134,7 @@ export default async function TransactionsPage({
               <Upload className="size-4" />
               Import CSV
             </Button>
-            <FormDialog title="Tambah Transaksi" triggerLabel="Tambah" action={createTransaction}>
+            <FormDialog title="Add Transaction" triggerLabel="Add" action={createTransaction}>
               <TransactionFormFields idPrefix="new" accounts={accounts} categories={categories} />
             </FormDialog>
           </div>

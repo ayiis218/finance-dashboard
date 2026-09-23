@@ -1,58 +1,52 @@
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/number-input";
+import { formatIDR } from "@/lib/format";
 
 export type CashflowFormDefaults = {
-  saldoAwal?: number;
-  saldoAkhirExpected?: number | null;
+  expectedDelta?: number;
   saldoAkhirActual?: number | null;
 };
 
 export function CashflowFormFields({
   idPrefix,
-  defaults,
+  month,
   monthLabel,
+  saldoAwal,
+  defaults,
 }: Readonly<{
   idPrefix: string;
+  month: string;
+  monthLabel: string;
+  saldoAwal: number;
   defaults?: CashflowFormDefaults;
-  /** Provide when editing (month is fixed, shown as read-only text). Omit for create (renders the month input). */
-  monthLabel?: string;
 }>) {
   return (
     <>
-      {monthLabel ? (
-        <p className="text-sm text-muted-foreground">Month: {monthLabel}</p>
-      ) : (
-        <div className="space-y-2">
-          <Label htmlFor={`month-${idPrefix}`}>Month</Label>
-          <Input id={`month-${idPrefix}`} name="month" type="month" required />
-        </div>
-      )}
+      <input type="hidden" name="month" value={month} />
+      <p className="text-sm text-muted-foreground">
+        {monthLabel} &middot; Saldo Awal (otomatis): {formatIDR(saldoAwal)}
+      </p>
       <div className="space-y-2">
-        <Label htmlFor={`saldoAwal-${idPrefix}`}>Starting Balance</Label>
+        <Label htmlFor={`expectedDelta-${idPrefix}`}>Rencana Bulanan</Label>
         <NumberInput
-          id={`saldoAwal-${idPrefix}`}
-          name="saldoAwal"
-          defaultValue={defaults?.saldoAwal}
+          id={`expectedDelta-${idPrefix}`}
+          name="expectedDelta"
+          defaultValue={defaults?.expectedDelta ?? 0}
+          allowNegative
           required
         />
+        <p className="text-xs text-muted-foreground">
+          Ditambahkan ke Saldo Awal untuk hitung Saldo Akhir Ekspektasi. Boleh negatif kalau bulan
+          ini direncanakan defisit.
+        </p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`saldoAkhirExpected-${idPrefix}`}>Ending Balance (Expected)</Label>
-        <NumberInput
-          id={`saldoAkhirExpected-${idPrefix}`}
-          name="saldoAkhirExpected"
-          defaultValue={defaults?.saldoAkhirExpected ?? ""}
-          placeholder="Optional"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor={`saldoAkhirActual-${idPrefix}`}>Ending Balance (Actual)</Label>
+        <Label htmlFor={`saldoAkhirActual-${idPrefix}`}>Saldo Akhir Aktual (override manual)</Label>
         <NumberInput
           id={`saldoAkhirActual-${idPrefix}`}
           name="saldoAkhirActual"
           defaultValue={defaults?.saldoAkhirActual ?? ""}
-          placeholder="Optional"
+          placeholder="Kosongkan untuk ikut saldo wallet otomatis"
         />
       </div>
     </>

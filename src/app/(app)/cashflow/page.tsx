@@ -1,62 +1,53 @@
 export const dynamic = "force-dynamic";
 
-import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormDialog } from "@/components/form-dialog";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { SummaryStats } from "@/components/summary-stats";
-import { CashflowFormFields } from "@/components/cashflow/cashflow-form-fields";
+import { YearNav } from "@/components/year-nav";
 import { CashflowTable } from "@/components/cashflow/cashflow-table";
-import { getCashflowForecasts } from "@/lib/queries/cashflow";
-import { createCashflowForecast } from "@/lib/actions/cashflow";
+import { getCashflowYearOverview } from "@/lib/queries/cashflow";
 import { formatIDR } from "@/lib/format";
 
-export default async function CashflowPage() {
-  const forecasts = await getCashflowForecasts();
-  const latest = forecasts[0];
+export default async function CashflowPage({
+  searchParams,
+}: Readonly<{ searchParams: Promise<{ year?: string }> }>) {
+  const { year: yearParam } = await searchParams;
+  const year = yearParam ? Number(yearParam) : new Date().getFullYear();
 
-  const summaryItems = latest
-    ? [
-        { label: "Starting Balance", value: formatIDR(latest.saldoAwal) },
-        {
-          label: "Ending Balance (Expected)",
-          value: latest.saldoAkhirExpected != null ? formatIDR(latest.saldoAkhirExpected) : "-",
-        },
-        {
-          label: "Ending Balance (Actual)",
-          value: latest.saldoAkhirActual != null ? formatIDR(latest.saldoAkhirActual) : "-",
-        },
-        {
-          label: "Variance",
-          value: latest.variance != null ? formatIDR(latest.variance) : "-",
-          tone:
-            latest.variance == null
-              ? undefined
-              : latest.variance >= 0
-                ? ("highlight" as const)
-                : ("negative" as const),
-        },
-      ]
-    : [];
+  const overview = await getCashflowYearOverview(year);
+  const { rows } = overview;
+
+  const totalExpectedDelta = rows.reduce((sum, r) => sum + r.expectedDelta, 0);
+  const totalVariance = rows.reduce((sum, r) => sum + r.variance, 0);
+
+  const summaryItems = [
+    { label: "Saldo Awal Tahun", value: formatIDR(rows[0].saldoAwal) },
+    {
+      label: "Saldo Akhir Tahun (Live)",
+      value: formatIDR(rows[11].saldoAkhirWalletLive),
+      tone: "highlight" as const,
+    },
+    {
+      label: "Total Rencana Tahun",
+      value: `${totalExpectedDelta > 0 ? "+" : ""}${formatIDR(totalExpectedDelta)}`,
+      tone: totalExpectedDelta >= 0 ? ("positive" as const) : ("negative" as const),
+    },
+    {
+      label: "Total Selisih Tahun",
+      value: `${totalVariance > 0 ? "+" : ""}${formatIDR(totalVariance)}`,
+      tone: totalVariance >= 0 ? ("positive" as const) : ("negative" as const),
+    },
+  ];
 
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
-      {latest && (
-        <>
-          <p className="text-sm text-muted-foreground">
-            Latest forecast &middot; {format(latest.month, "MMMM yyyy")}
-          </p>
-          <SummaryStats items={summaryItems} />
-        </>
-      )}
+      <SummaryStats items={summaryItems} />
       <Card>
-        <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
           <CardTitle>Cashflow Forecast</CardTitle>
-          <FormDialog title="Add Forecast" triggerLabel="Add" action={createCashflowForecast}>
-            <CashflowFormFields idPrefix="new" />
-          </FormDialog>
         </CardHeader>
         <CardContent>
-          <CashflowTable rows={forecasts} />
+          <YearNav year={year} baseHref="/cashflow" />
+          <CashflowTable rows={rows} />
         </CardContent>
       </Card>
     </div>

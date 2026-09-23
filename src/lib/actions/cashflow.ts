@@ -5,39 +5,37 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { pickFormFields } from "@/lib/form-data";
 
-const cashflowForecastSchema = z.object({
+const cashflowPlanSchema = z.object({
   month: z.coerce.date(),
-  saldoAwal: z.coerce.number(),
+  expectedDelta: z.coerce.number(),
   saldoAkhirActual: z.coerce.number().optional(),
-  saldoAkhirExpected: z.coerce.number().optional(),
 });
 
-const cashflowForecastUpdateSchema = cashflowForecastSchema.omit({
-  month: true,
-});
-
-const CASHFLOW_BALANCE_FIELDS = ["saldoAwal", "saldoAkhirActual", "saldoAkhirExpected"] as const;
-
-export async function createCashflowForecast(formData: FormData) {
-  const data = cashflowForecastSchema.parse(
-    pickFormFields(formData, ["month", ...CASHFLOW_BALANCE_FIELDS]),
+/**
+ * `saldoAkhirActual` is written explicitly (`?? null`) rather than left out
+ * of the update when blank — unlike the usual `pickFormFields` pattern where
+ * a blank field means "leave unchanged". Here blank means "clear the manual
+ * override and go back to the live wallet sync", so it must actively reset
+ * the column to null instead of being silently ignored.
+ */
+export async function setCashflowMonthPlan(formData: FormData) {
+  const data = cashflowPlanSchema.parse(
+    pickFormFields(formData, ["month", "expectedDelta", "saldoAkhirActual"]),
   );
-  await prisma.cashflowForecast.create({ data });
-  revalidatePath("/cashflow");
-  revalidatePath("/");
-}
 
-export async function updateCashflowForecast(id: string, formData: FormData) {
-  const data = cashflowForecastUpdateSchema.parse(
-    pickFormFields(formData, CASHFLOW_BALANCE_FIELDS),
-  );
-  await prisma.cashflowForecast.update({ where: { id }, data });
-  revalidatePath("/cashflow");
-  revalidatePath("/");
-}
+  await prisma.cashflowForecast.upsert({
+    where: { month: data.month },
+    create: {
+      month: data.month,
+      expectedDelta: data.expectedDelta,
+      saldoAkhirActual: data.saldoAkhirActual ?? null,
+    },
+    update: {
+      expectedDelta: data.expectedDelta,
+      saldoAkhirActual: data.saldoAkhirActual ?? null,
+    },
+  });
 
-export async function deleteCashflowForecast(id: string) {
-  await prisma.cashflowForecast.delete({ where: { id } });
   revalidatePath("/cashflow");
   revalidatePath("/");
 }

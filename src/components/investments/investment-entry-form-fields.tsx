@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { NumberInput } from "@/components/number-input";
 
@@ -41,7 +42,7 @@ export function InvestmentEntryFormFields({
         </select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`month-${idPrefix}`}>Bulan</Label>
+        <Label htmlFor={`month-${idPrefix}`}>Month</Label>
         <select
           id={`month-${idPrefix}`}
           name="month"
@@ -51,13 +52,13 @@ export function InvestmentEntryFormFields({
         >
           {months.map((m) => (
             <option key={m.toISOString()} value={m.toISOString()}>
-              {m.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
+              {format(m, "MMMM yyyy")}
             </option>
           ))}
         </select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`amount-${idPrefix}`}>Nominal</Label>
+        <Label htmlFor={`amount-${idPrefix}`}>Amount</Label>
         <NumberInput
           id={`amount-${idPrefix}`}
           name="amount"

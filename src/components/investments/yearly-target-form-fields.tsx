@@ -10,7 +10,7 @@ export function YearlyTargetFormFields({
     <>
       <input type="hidden" name="year" value={year} />
       <div className="space-y-2">
-        <Label htmlFor={`targetAmount-${idPrefix}`}>Target Investasi {year}</Label>
+        <Label htmlFor={`targetAmount-${idPrefix}`}>Annual Target {year}</Label>
         <NumberInput
           id={`targetAmount-${idPrefix}`}
           name="targetAmount"

@@ -75,7 +75,7 @@ export default async function InvestmentsPage({
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle>Target Investasi Tahunan</CardTitle>
+            <CardTitle>Annual Investment Target</CardTitle>
             <CardDescription>{year}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -92,11 +92,11 @@ export default async function InvestmentsPage({
               />
             </FormDialog>
             {investments.length > 0 ? (
-              <FormDialog title="Tambah Entry Investasi" triggerLabel="Add Entry" action={createInvestmentEntry}>
+              <FormDialog title="Add Investment Entry" triggerLabel="Add Entry" action={createInvestmentEntry}>
                 <InvestmentEntryFormFields idPrefix="new" year={year} investments={investments} />
               </FormDialog>
             ) : (
-              <p className="text-xs text-muted-foreground">Tambah investasi dulu di atas</p>
+              <p className="text-xs text-muted-foreground">Add an investment above first</p>
             )}
           </div>
         </CardHeader>

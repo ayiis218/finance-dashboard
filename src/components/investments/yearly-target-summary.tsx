@@ -4,8 +4,8 @@ import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const MONTH_LABELS = [
-  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
 export function YearlyTargetSummary({
@@ -25,19 +25,19 @@ export function YearlyTargetSummary({
   const surplus = totalInvested - targetAmount;
 
   const summaryItems = [
-    { label: "Target Tahunan", value: formatIDR(targetAmount) },
+    { label: "Annual Target", value: formatIDR(targetAmount) },
     {
-      label: "Total Terinvestasi",
+      label: "Total Invested",
       value: formatIDR(totalInvested),
       tone: "highlight" as const,
     },
     achieved
       ? {
-          label: "Target Tercapai",
+          label: "Target Achieved",
           value: `+${formatIDR(surplus)}`,
           tone: "positive" as const,
         }
-      : { label: "Sisa Target", value: formatIDR(remaining) },
+      : { label: "Remaining Target", value: formatIDR(remaining) },
     { label: "Progress", value: `${Math.min(progressPct, 100).toFixed(1)}%` },
   ];
 

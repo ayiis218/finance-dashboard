@@ -1,9 +1,9 @@
 import { Label } from "@/components/ui/label";
 import { NumberInput } from "@/components/number-input";
-import { formatIDR } from "@/lib/format";
 
 export type CashflowFormDefaults = {
-  expectedDelta?: number;
+  saldoAwal?: number;
+  monthlyIncome?: number;
   saldoAkhirActual?: number | null;
 };
 
@@ -11,42 +11,42 @@ export function CashflowFormFields({
   idPrefix,
   month,
   monthLabel,
-  saldoAwal,
   defaults,
 }: Readonly<{
   idPrefix: string;
   month: string;
   monthLabel: string;
-  saldoAwal: number;
   defaults?: CashflowFormDefaults;
 }>) {
   return (
     <>
       <input type="hidden" name="month" value={month} />
-      <p className="text-sm text-muted-foreground">
-        {monthLabel} &middot; Saldo Awal (otomatis): {formatIDR(saldoAwal)}
-      </p>
+      <p className="text-sm text-muted-foreground">{monthLabel}</p>
       <div className="space-y-2">
-        <Label htmlFor={`expectedDelta-${idPrefix}`}>Rencana Bulanan</Label>
+        <Label htmlFor={`saldoAwal-${idPrefix}`}>Starting Balance</Label>
         <NumberInput
-          id={`expectedDelta-${idPrefix}`}
-          name="expectedDelta"
-          defaultValue={defaults?.expectedDelta ?? 0}
-          allowNegative
+          id={`saldoAwal-${idPrefix}`}
+          name="saldoAwal"
+          defaultValue={defaults?.saldoAwal ?? 0}
           required
         />
-        <p className="text-xs text-muted-foreground">
-          Ditambahkan ke Saldo Awal untuk hitung Saldo Akhir Ekspektasi. Boleh negatif kalau bulan
-          ini direncanakan defisit.
-        </p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`saldoAkhirActual-${idPrefix}`}>Saldo Akhir Aktual (override manual)</Label>
+        <Label htmlFor={`monthlyIncome-${idPrefix}`}>Monthly Income</Label>
+        <NumberInput
+          id={`monthlyIncome-${idPrefix}`}
+          name="monthlyIncome"
+          defaultValue={defaults?.monthlyIncome ?? 0}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`saldoAkhirActual-${idPrefix}`}>Ending Balance (Actual)</Label>
         <NumberInput
           id={`saldoAkhirActual-${idPrefix}`}
           name="saldoAkhirActual"
           defaultValue={defaults?.saldoAkhirActual ?? ""}
-          placeholder="Kosongkan untuk ikut saldo wallet otomatis"
+          placeholder="Leave blank if not known yet"
         />
       </div>
     </>

@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { Pencil } from "lucide-react";
 import {
   Table,
@@ -41,7 +42,7 @@ function EntryRowActions({
   return (
     <>
       <FormDialog
-        title="Edit Entry Investasi"
+        title="Edit Investment Entry"
         triggerIcon={<Pencil className="size-4" />}
         triggerVariant="ghost"
         triggerSize="icon"
@@ -71,20 +72,18 @@ export function InvestmentEntryTable({
           <TableHeader>
             <TableRow>
               <TableHead>No.</TableHead>
-              <TableHead>Bulan</TableHead>
+              <TableHead>Month</TableHead>
               <TableHead>Platform</TableHead>
-              <TableHead>Instrumen</TableHead>
-              <TableHead className="text-right">Nominal</TableHead>
-              <TableHead className="text-center">Aksi</TableHead>
+              <TableHead>Instrument</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+              <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((row, index) => (
               <TableRow key={row.id}>
                 <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                <TableCell>
-                  {row.month.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
-                </TableCell>
+                <TableCell>{format(row.month, "MMMM yyyy")}</TableCell>
                 <TableCell>{row.platform}</TableCell>
                 <TableCell>{row.name}</TableCell>
                 <TableCell className="text-right">{formatIDR(row.amount)}</TableCell>
@@ -98,7 +97,7 @@ export function InvestmentEntryTable({
             {rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground">
-                  Belum ada entry investasi untuk {year}.
+                  No investment entries yet for {year}.
                 </TableCell>
               </TableRow>
             )}
@@ -109,18 +108,16 @@ export function InvestmentEntryTable({
       <MobileCardList>
         {rows.map((row) => (
           <MobileRowCard key={row.id}>
-            <MobileRowHeader
-              title={`${row.month.toLocaleDateString("id-ID", { month: "long", year: "numeric" })} · ${row.platform}`}
-            />
-            <MobileRowField label="Instrumen" value={row.name} />
-            <MobileRowField label="Nominal" value={formatIDR(row.amount)} />
+            <MobileRowHeader title={`${format(row.month, "MMMM yyyy")} · ${row.platform}`} />
+            <MobileRowField label="Instrument" value={row.name} />
+            <MobileRowField label="Amount" value={formatIDR(row.amount)} />
             <MobileRowActions>
               <EntryRowActions row={row} year={year} investments={investments} />
             </MobileRowActions>
           </MobileRowCard>
         ))}
         {rows.length === 0 && (
-          <MobileEmptyState>Belum ada entry investasi untuk {year}.</MobileEmptyState>
+          <MobileEmptyState>No investment entries yet for {year}.</MobileEmptyState>
         )}
       </MobileCardList>
     </>

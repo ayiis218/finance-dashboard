@@ -13,28 +13,28 @@ export default async function CashflowPage({
   const { year: yearParam } = await searchParams;
   const year = yearParam ? Number(yearParam) : new Date().getFullYear();
 
-  const overview = await getCashflowYearOverview(year);
-  const { rows } = overview;
-
-  const totalExpectedDelta = rows.reduce((sum, r) => sum + r.expectedDelta, 0);
-  const totalVariance = rows.reduce((sum, r) => sum + r.variance, 0);
+  const { rows } = await getCashflowYearOverview(year);
+  const december = rows[11];
+  const totalVariance = rows.reduce((sum, r) => sum + (r.variance ?? 0), 0);
+  const hasAnyActual = rows.some((r) => r.saldoAkhirActual != null);
 
   const summaryItems = [
-    { label: "Saldo Awal Tahun", value: formatIDR(rows[0].saldoAwal) },
+    { label: "Starting Balance (Year)", value: formatIDR(rows[0].saldoAwal) },
     {
-      label: "Saldo Akhir Tahun (Live)",
-      value: formatIDR(rows[11].saldoAkhirWalletLive),
+      label: "Ending Balance Expected (Dec)",
+      value: formatIDR(december.saldoAkhirExpected),
       tone: "highlight" as const,
     },
     {
-      label: "Total Rencana Tahun",
-      value: `${totalExpectedDelta > 0 ? "+" : ""}${formatIDR(totalExpectedDelta)}`,
-      tone: totalExpectedDelta >= 0 ? ("positive" as const) : ("negative" as const),
+      label: "Ending Balance Actual (Dec)",
+      value: december.saldoAkhirActual != null ? formatIDR(december.saldoAkhirActual) : "-",
     },
     {
-      label: "Total Selisih Tahun",
-      value: `${totalVariance > 0 ? "+" : ""}${formatIDR(totalVariance)}`,
-      tone: totalVariance >= 0 ? ("positive" as const) : ("negative" as const),
+      label: "Total Variance (Year)",
+      value: hasAnyActual
+        ? `${totalVariance > 0 ? "+" : ""}${formatIDR(totalVariance)}`
+        : "-",
+      tone: hasAnyActual ? (totalVariance >= 0 ? ("positive" as const) : ("negative" as const)) : undefined,
     },
   ];
 

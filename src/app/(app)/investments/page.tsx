@@ -1,16 +1,38 @@
 export const dynamic = "force-dynamic";
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { FormDialog } from "@/components/form-dialog";
 import { SummaryStats } from "@/components/summary-stats";
+import { YearNav } from "@/components/year-nav";
 import { InvestmentFormFields } from "@/components/investments/investment-form-fields";
 import { InvestmentTable } from "@/components/investments/investment-table";
+import { YearlyTargetFormFields } from "@/components/investments/yearly-target-form-fields";
+import { YearlyTargetSummary } from "@/components/investments/yearly-target-summary";
+import { InvestmentEntryFormFields } from "@/components/investments/investment-entry-form-fields";
+import { InvestmentEntryTable } from "@/components/investments/investment-entry-table";
 import { getInvestments } from "@/lib/queries/investments";
+import { getInvestmentYearOverview } from "@/lib/queries/investment-targets";
 import { createInvestment } from "@/lib/actions/investments";
+import { setInvestmentYearlyTarget } from "@/lib/actions/investment-targets";
+import { createInvestmentEntry } from "@/lib/actions/investment-entries";
 import { formatIDR } from "@/lib/format";
 
-export default async function InvestmentsPage() {
-  const investments = await getInvestments();
+export default async function InvestmentsPage({
+  searchParams,
+}: Readonly<{ searchParams: Promise<{ year?: string }> }>) {
+  const { year: yearParam } = await searchParams;
+  const year = yearParam ? Number(yearParam) : new Date().getFullYear();
+
+  const [investments, yearOverview] = await Promise.all([
+    getInvestments(),
+    getInvestmentYearOverview(year),
+  ]);
 
   const totalBuyValue = investments.reduce(
     (sum, investment) => sum + Number(investment.buyValue),
@@ -47,6 +69,49 @@ export default async function InvestmentsPage() {
         </CardHeader>
         <CardContent>
           <InvestmentTable rows={investments} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>Target Investasi Tahunan</CardTitle>
+            <CardDescription>{year}</CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <FormDialog
+              title={`Set Target — ${year}`}
+              triggerLabel={yearOverview.target ? "Edit Target" : "Set Target"}
+              triggerVariant="outline"
+              action={setInvestmentYearlyTarget}
+            >
+              <YearlyTargetFormFields
+                idPrefix="target"
+                year={year}
+                defaultAmount={yearOverview.targetAmount || undefined}
+              />
+            </FormDialog>
+            {investments.length > 0 ? (
+              <FormDialog title="Tambah Entry Investasi" triggerLabel="Add Entry" action={createInvestmentEntry}>
+                <InvestmentEntryFormFields idPrefix="new" year={year} investments={investments} />
+              </FormDialog>
+            ) : (
+              <p className="text-xs text-muted-foreground">Tambah investasi dulu di atas</p>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <YearNav year={year} baseHref="/investments" />
+          <YearlyTargetSummary
+            targetAmount={yearOverview.targetAmount}
+            totalInvested={yearOverview.totalInvested}
+            remaining={yearOverview.remaining}
+            progressPct={yearOverview.progressPct}
+            monthsWithEntry={yearOverview.monthsWithEntry}
+          />
+          <div className="mt-4">
+            <InvestmentEntryTable rows={yearOverview.rows} year={year} investments={investments} />
+          </div>
         </CardContent>
       </Card>
     </div>

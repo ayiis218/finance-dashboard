@@ -8,45 +8,43 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { FormDialog } from "@/components/form-dialog";
-import { DeleteButton } from "@/components/delete-button";
 import { CashflowFormFields } from "@/components/cashflow/cashflow-form-fields";
 import {
   MobileCardList,
-  MobileEmptyState,
   MobileRowActions,
   MobileRowCard,
   MobileRowField,
   MobileRowHeader,
 } from "@/components/mobile-row-card";
-import { updateCashflowForecast, deleteCashflowForecast } from "@/lib/actions/cashflow";
-import type { getCashflowForecasts } from "@/lib/queries/cashflow";
+import { setCashflowMonthPlan } from "@/lib/actions/cashflow";
+import type { getCashflowYearOverview } from "@/lib/queries/cashflow";
 import { formatIDR } from "@/lib/format";
 
-type CashflowRow = Awaited<ReturnType<typeof getCashflowForecasts>>[number];
+type CashflowRow = Awaited<ReturnType<typeof getCashflowYearOverview>>["rows"][number];
 
-function CashflowRowActions({ item }: Readonly<{ item: CashflowRow }>) {
+function CashflowRowActions({ row }: Readonly<{ row: CashflowRow }>) {
+  const monthLabel = format(row.month, "MMMM yyyy");
   return (
-    <>
-      <FormDialog
-        title={`Edit Forecast — ${format(item.month, "MMMM yyyy")}`}
-        triggerIcon={<Pencil className="size-4" />}
-        triggerVariant="ghost"
-        triggerSize="icon"
-        action={updateCashflowForecast.bind(null, item.id)}
-      >
-        <CashflowFormFields
-          idPrefix={item.id}
-          monthLabel={format(item.month, "MMMM yyyy")}
-          defaults={{
-            saldoAwal: item.saldoAwal,
-            saldoAkhirExpected: item.saldoAkhirExpected,
-            saldoAkhirActual: item.saldoAkhirActual,
-          }}
-        />
-      </FormDialog>
-      <DeleteButton action={deleteCashflowForecast.bind(null, item.id)} />
-    </>
+    <FormDialog
+      title={`Rencana — ${monthLabel}`}
+      triggerIcon={<Pencil className="size-4" />}
+      triggerVariant="ghost"
+      triggerSize="icon"
+      action={setCashflowMonthPlan}
+    >
+      <CashflowFormFields
+        idPrefix={row.month.toISOString()}
+        month={row.month.toISOString()}
+        monthLabel={monthLabel}
+        saldoAwal={row.saldoAwal}
+        defaults={{
+          expectedDelta: row.expectedDelta,
+          saldoAkhirActual: row.isActualOverridden ? row.saldoAkhirActual : null,
+        }}
+      />
+    </FormDialog>
   );
 }
 
@@ -57,89 +55,93 @@ export function CashflowTable({ rows }: Readonly<{ rows: CashflowRow[] }>) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>No.</TableHead>
-              <TableHead>Month</TableHead>
-              <TableHead className="text-right">Starting Balance</TableHead>
-              <TableHead className="text-right">Ending Balance (Expected)</TableHead>
-              <TableHead className="text-right">Ending Balance (Actual)</TableHead>
-              <TableHead className="text-right">Variance</TableHead>
-              <TableHead className="text-center">Action</TableHead>
+              <TableHead>Bulan</TableHead>
+              <TableHead className="text-right">Saldo Awal</TableHead>
+              <TableHead className="text-right">Rencana Bulanan</TableHead>
+              <TableHead className="text-right">Saldo Akhir Ekspektasi</TableHead>
+              <TableHead className="text-right">Saldo Akhir Aktual</TableHead>
+              <TableHead className="text-right">Selisih</TableHead>
+              <TableHead className="text-center">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((f, index) => (
-              <TableRow key={f.id}>
-                <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                <TableCell>{format(f.month, "MMMM yyyy")}</TableCell>
-                <TableCell className="text-right">{formatIDR(f.saldoAwal)}</TableCell>
-                <TableCell className="text-right">
-                  {f.saldoAkhirExpected != null ? formatIDR(f.saldoAkhirExpected) : "-"}
-                </TableCell>
-                <TableCell className="text-right">
-                  {f.saldoAkhirActual != null ? formatIDR(f.saldoAkhirActual) : "-"}
-                </TableCell>
+            {rows.map((row) => (
+              <TableRow key={row.month.toISOString()}>
+                <TableCell>{format(row.month, "MMMM yyyy")}</TableCell>
+                <TableCell className="text-right">{formatIDR(row.saldoAwal)}</TableCell>
                 <TableCell
                   className={
                     "text-right " +
-                    (f.variance == null
-                      ? "text-muted-foreground"
-                      : f.variance >= 0
-                        ? "text-positive"
-                        : "text-destructive")
+                    (row.expectedDelta >= 0 ? "text-positive" : "text-destructive")
                   }
                 >
-                  {f.variance != null ? `${f.variance > 0 ? "+" : ""}${formatIDR(f.variance)}` : "-"}
+                  {row.expectedDelta > 0 ? "+" : ""}
+                  {formatIDR(row.expectedDelta)}
+                </TableCell>
+                <TableCell className="text-right">{formatIDR(row.saldoAkhirExpected)}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1.5">
+                    {formatIDR(row.saldoAkhirActual)}
+                    {row.isActualOverridden && (
+                      <Badge variant="outline" className="text-[10px]">
+                        manual
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell
+                  className={
+                    "text-right " + (row.variance >= 0 ? "text-positive" : "text-destructive")
+                  }
+                >
+                  {row.variance > 0 ? "+" : ""}
+                  {formatIDR(row.variance)}
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <CashflowRowActions item={f} />
+                    <CashflowRowActions row={row} />
                   </div>
                 </TableCell>
               </TableRow>
             ))}
-            {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  No cashflow forecasts yet.
-                </TableCell>
-              </TableRow>
-            )}
           </TableBody>
         </Table>
       </div>
 
       <MobileCardList>
-        {rows.map((f) => (
-          <MobileRowCard key={f.id}>
-            <MobileRowHeader title={format(f.month, "MMMM yyyy")} />
-            <MobileRowField label="Starting Balance" value={formatIDR(f.saldoAwal)} />
-            <MobileRowField
-              label="Ending Balance (Expected)"
-              value={f.saldoAkhirExpected != null ? formatIDR(f.saldoAkhirExpected) : "-"}
-            />
-            <MobileRowField
-              label="Ending Balance (Actual)"
-              value={f.saldoAkhirActual != null ? formatIDR(f.saldoAkhirActual) : "-"}
-            />
-            <MobileRowField
-              label="Variance"
-              value={f.variance != null ? `${f.variance > 0 ? "+" : ""}${formatIDR(f.variance)}` : "-"}
-              valueClassName={
-                f.variance == null
-                  ? "text-muted-foreground"
-                  : f.variance >= 0
-                    ? "text-positive"
-                    : "text-destructive"
+        {rows.map((row) => (
+          <MobileRowCard key={row.month.toISOString()}>
+            <MobileRowHeader
+              title={format(row.month, "MMMM yyyy")}
+              action={
+                row.isActualOverridden && (
+                  <Badge variant="outline" className="text-[10px]">
+                    manual
+                  </Badge>
+                )
               }
             />
+            <MobileRowField label="Saldo Awal" value={formatIDR(row.saldoAwal)} />
+            <MobileRowField
+              label="Rencana Bulanan"
+              value={`${row.expectedDelta > 0 ? "+" : ""}${formatIDR(row.expectedDelta)}`}
+              valueClassName={row.expectedDelta >= 0 ? "text-positive" : "text-destructive"}
+            />
+            <MobileRowField
+              label="Saldo Akhir Ekspektasi"
+              value={formatIDR(row.saldoAkhirExpected)}
+            />
+            <MobileRowField label="Saldo Akhir Aktual" value={formatIDR(row.saldoAkhirActual)} />
+            <MobileRowField
+              label="Selisih"
+              value={`${row.variance > 0 ? "+" : ""}${formatIDR(row.variance)}`}
+              valueClassName={row.variance >= 0 ? "text-positive" : "text-destructive"}
+            />
             <MobileRowActions>
-              <CashflowRowActions item={f} />
+              <CashflowRowActions row={row} />
             </MobileRowActions>
           </MobileRowCard>
         ))}
-        {rows.length === 0 && (
-          <MobileEmptyState>No cashflow forecasts yet.</MobileEmptyState>
-        )}
       </MobileCardList>
     </>
   );

@@ -177,11 +177,10 @@ model BudgetEntry {
 }
 
 model CashflowForecast {
-  id                 String   @id @default(cuid())
-  month              DateTime @unique
-  saldoAwal          Decimal
-  saldoAkhirActual   Decimal?
-  saldoAkhirExpected Decimal?
+  id               String   @id @default(cuid())
+  month            DateTime @unique
+  expectedDelta    Decimal  @default(0) // rencana perubahan saldo bulan ini (input user, boleh negatif)
+  saldoAkhirActual Decimal? // null = ikut sync otomatis dari wallet; terisi = override manual
 }
 
 model SavingsGoal {

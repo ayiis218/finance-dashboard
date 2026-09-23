@@ -3,12 +3,14 @@
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 
-function toDigits(value: string): string {
-  return value.replace(/[^\d]/g, "");
+function toDigits(value: string, allowNegative?: boolean): string {
+  const negative = allowNegative === true && value.trim().startsWith("-");
+  const digits = value.replace(/[^\d]/g, "");
+  return negative && digits ? `-${digits}` : digits;
 }
 
 function formatDisplay(digits: string): string {
-  if (!digits) return "";
+  if (!digits || digits === "-") return "";
   return new Intl.NumberFormat("id-ID").format(Number(digits));
 }
 
@@ -28,6 +30,7 @@ export function NumberInput({
   max,
   className,
   disabled,
+  allowNegative,
 }: Readonly<{
   name: string;
   id?: string;
@@ -38,15 +41,17 @@ export function NumberInput({
   max?: number;
   className?: string;
   disabled?: boolean;
+  /** Allow a leading "-" so the field can carry negative amounts (e.g. a planned monthly deficit). */
+  allowNegative?: boolean;
 }>) {
   const [digits, setDigits] = React.useState(() =>
     defaultValue !== undefined && defaultValue !== null && defaultValue !== ""
-      ? toDigits(String(defaultValue))
+      ? toDigits(String(defaultValue), allowNegative)
       : "",
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let next = toDigits(e.target.value);
+    let next = toDigits(e.target.value, allowNegative);
     if (next && max !== undefined && Number(next) > max) next = String(max);
     setDigits(next);
   };

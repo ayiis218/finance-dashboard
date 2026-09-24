@@ -57,7 +57,7 @@ export function MobileRowActions({
   children,
 }: Readonly<{ className?: string; children: React.ReactNode }>) {
   return (
-    <div className={cn("flex items-center justify-end gap-1 border-t pt-2", className)}>
+    <div className={cn("flex items-center justify-end gap-3 border-t pt-2", className)}>
       {children}
     </div>
   );

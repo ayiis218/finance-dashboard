@@ -14,10 +14,11 @@ export type SummaryStatItem = {
 
 export function SummaryStats({ items }: Readonly<{ items: SummaryStatItem[] }>) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 sm:grid sm:snap-none sm:gap-4 sm:overflow-visible sm:pb-0 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item, index) => (
         <motion.div
           key={item.label}
+          className="min-w-[68%] shrink-0 snap-start sm:min-w-0 sm:shrink"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: index * 0.05, ease: [0.16, 0.84, 0.44, 1] }}

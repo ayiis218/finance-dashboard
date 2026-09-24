@@ -10,21 +10,35 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { MonthlyExpenseChartLazy } from "@/components/charts/monthly-expense-chart-lazy";
 import { SummaryStats, type SummaryStatItem } from "@/components/summary-stats";
+import { DateRangeFilter, parseDateRangeParams } from "@/components/date-range-filter";
 import { getDailySummary, getSummary } from "@/lib/queries/dashboard";
 import { getBudgetOverview } from "@/lib/queries/budget";
 import { getMonthlyExpenseComparison } from "@/lib/queries/transactions";
 import { formatIDR } from "@/lib/format";
-import { startOfMonth, subMonths } from "date-fns";
+import { format, startOfMonth, subMonths } from "date-fns";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: Readonly<{ searchParams: Promise<{ from?: string; to?: string }> }>) {
+  const { from: fromParam, to: toParam } = await searchParams;
+  const { from, to } = parseDateRangeParams(
+    fromParam,
+    toParam,
+    startOfMonth(subMonths(new Date(), 5)),
+  );
+  const rangeLabel = `${format(from, "d MMM yyyy")} – ${format(to, "d MMM yyyy")}`;
+
   const [summary, daily, monthlyExpense, budgetOverview] = await Promise.all([
     getSummary(),
     getDailySummary(),
-    getMonthlyExpenseComparison({ from: startOfMonth(subMonths(new Date(), 5)), to: new Date() }),
+    getMonthlyExpenseComparison({ from, to }),
     getBudgetOverview(new Date()),
   ]);
 
   const remainingBudget = budgetOverview.totals.planned - budgetOverview.totals.actual;
+  const totalExpenseRange = monthlyExpense.reduce((sum, m) => sum + m.total, 0);
+  const avgExpensePerMonth =
+    monthlyExpense.length > 0 ? totalExpenseRange / monthlyExpense.length : 0;
 
   const summaryItems: SummaryStatItem[] = [
     {
@@ -60,18 +74,31 @@ export default async function DashboardPage() {
       value: formatIDR(summary.netWorth),
       tone: "highlight",
     },
+    {
+      label: "Total Expense",
+      description: `Jumlah semua pengeluaran periode ${rangeLabel}`,
+      value: formatIDR(totalExpenseRange),
+      tone: "negative",
+    },
+    {
+      label: "Average Expense/Month",
+      description: "Total pengeluaran dibagi jumlah bulan pada periode terpilih",
+      value: formatIDR(avgExpensePerMonth),
+    },
   ];
 
   return (
     <div className="space-y-6 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
       <SummaryStats items={summaryItems} />
 
+      <DateRangeFilter from={from} to={to} baseHref="/" />
+
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
             <CardTitle>Monthly Expense Comparison</CardTitle>
             <CardDescription>
-              6 bulan terakhir — batang lebih tinggi berarti pengeluaran lebih besar di bulan itu
+              {rangeLabel} — batang lebih tinggi berarti pengeluaran lebih besar di bulan itu
             </CardDescription>
           </CardHeader>
           <CardContent>

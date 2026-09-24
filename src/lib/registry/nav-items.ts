@@ -6,7 +6,6 @@ import {
   HandCoins,
   TrendingUp,
   PiggyBank,
-  BarChart3,
   ClipboardList,
   LineChart,
 } from "lucide-react";
@@ -65,11 +64,5 @@ export const navItems = [
     title: "Cashflow Forecast",
     url: ROUTES.cashflow,
     icon: LineChart
-  },
-  {
-    show: true,
-    title: "Reports",
-    url: ROUTES.reports,
-    icon: BarChart3
   },
 ];

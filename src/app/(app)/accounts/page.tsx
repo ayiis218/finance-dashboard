@@ -16,7 +16,6 @@ export default async function AccountsPage() {
 
   const summaryItems = [
     { label: "Total Balance", value: formatIDR(totalBalance), tone: "highlight" as const },
-    { label: "Number of Accounts", value: String(accounts.length) },
   ];
 
   return (

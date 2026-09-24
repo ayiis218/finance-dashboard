@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Landmark, Wallet, ClipboardList, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Landmark, Wallet, ClipboardList, TrendingUp } from "lucide-react";
 import { ROUTES } from "@/lib/registry/route";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ const centerItem = { title: "Transactions", url: ROUTES.transactions.list, icon:
 
 const trailingItems = [
   { title: "Budget", url: ROUTES.budgets, icon: ClipboardList },
-  { title: "Reports", url: ROUTES.reports, icon: BarChart3 },
+  { title: "Investments", url: ROUTES.investments, icon: TrendingUp },
 ];
 
 export function BottomNav() {

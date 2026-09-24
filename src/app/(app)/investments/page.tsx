@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { FormDialog } from "@/components/form-dialog";
 import { SummaryStats } from "@/components/summary-stats";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { YearNav } from "@/components/year-nav";
 import { BreakdownPieCard } from "@/components/breakdown-pie-card";
 import { InvestmentFormFields } from "@/components/investments/investment-form-fields";
@@ -73,66 +74,78 @@ export default async function InvestmentsPage({
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
       <SummaryStats items={summaryItems} />
-      <Card>
-        <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Investments</CardTitle>
-          <FormDialog title="Add Investment" triggerLabel="Add" action={createInvestment}>
-            <InvestmentFormFields idPrefix="new" />
-          </FormDialog>
-        </CardHeader>
-        <CardContent>
-          <InvestmentTable rows={investments} />
-        </CardContent>
-      </Card>
 
-      <BreakdownPieCard
-        title="Investment Allocation"
-        description="Berdasarkan platform — menunjukkan bagaimana investasimu tersebar"
-        data={investmentAllocation.map((i) => ({ name: i.platform, value: i.total }))}
-      />
+      <Tabs defaultValue="holdings">
+        <TabsList className="w-full sm:w-fit">
+          <TabsTrigger value="holdings">Holdings</TabsTrigger>
+          <TabsTrigger value="target">Annual Target</TabsTrigger>
+        </TabsList>
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle>Annual Investment Target</CardTitle>
-            <CardDescription>{year}</CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <FormDialog
-              title={`Set Target — ${year}`}
-              triggerLabel={yearOverview.target ? "Edit Target" : "Set Target"}
-              triggerVariant="outline"
-              action={setInvestmentYearlyTarget}
-            >
-              <YearlyTargetFormFields
-                idPrefix="target"
-                year={year}
-                defaultAmount={yearOverview.targetAmount || undefined}
-              />
-            </FormDialog>
-            {investments.length > 0 ? (
-              <FormDialog title="Add Investment Entry" triggerLabel="Add Entry" action={createInvestmentEntry}>
-                <InvestmentEntryFormFields idPrefix="new" year={year} investments={investments} />
+        <TabsContent value="holdings" className="space-y-4">
+          <Card>
+            <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>Investments</CardTitle>
+              <FormDialog title="Add Investment" triggerLabel="Add" action={createInvestment}>
+                <InvestmentFormFields idPrefix="new" />
               </FormDialog>
-            ) : (
-              <p className="text-xs text-muted-foreground">Add an investment above first</p>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <YearNav year={year} baseHref="/investments" />
-          <YearlyTargetSummary
-            targetAmount={yearOverview.targetAmount}
-            totalInvested={yearOverview.totalInvested}
-            remaining={yearOverview.remaining}
-            progressPct={yearOverview.progressPct}
-            monthsWithEntry={yearOverview.monthsWithEntry}
+            </CardHeader>
+            <CardContent>
+              <InvestmentTable rows={investments} />
+            </CardContent>
+          </Card>
+
+          <BreakdownPieCard
+            title="Investment Allocation"
+            description="Berdasarkan platform — menunjukkan bagaimana investasimu tersebar"
+            data={investmentAllocation.map((i) => ({ name: i.platform, value: i.total }))}
           />
-          <div className="mt-4">
-            <InvestmentEntryTable rows={yearOverview.rows} year={year} investments={investments} />
-          </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        <TabsContent value="target">
+          <Card>
+            <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>Annual Investment Target</CardTitle>
+                <CardDescription>{year}</CardDescription>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center [&>*]:w-full sm:[&>*]:w-auto">
+                <FormDialog
+                  title={`Set Target — ${year}`}
+                  triggerLabel={yearOverview.target ? "Edit Target" : "Set Target"}
+                  triggerVariant="outline"
+                  action={setInvestmentYearlyTarget}
+                >
+                  <YearlyTargetFormFields
+                    idPrefix="target"
+                    year={year}
+                    defaultAmount={yearOverview.targetAmount || undefined}
+                  />
+                </FormDialog>
+                {investments.length > 0 ? (
+                  <FormDialog title="Add Investment Entry" triggerLabel="Add Entry" action={createInvestmentEntry}>
+                    <InvestmentEntryFormFields idPrefix="new" year={year} investments={investments} />
+                  </FormDialog>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Add an investment above first</p>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <YearNav year={year} baseHref="/investments" />
+              <YearlyTargetSummary
+                targetAmount={yearOverview.targetAmount}
+                totalInvested={yearOverview.totalInvested}
+                remaining={yearOverview.remaining}
+                progressPct={yearOverview.progressPct}
+                monthsWithEntry={yearOverview.monthsWithEntry}
+              />
+              <div className="mt-4">
+                <InvestmentEntryTable rows={yearOverview.rows} year={year} investments={investments} />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

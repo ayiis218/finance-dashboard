@@ -86,7 +86,7 @@ export default async function TransactionsPage({
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Transactions</CardTitle>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center [&>*]:w-full sm:[&>*]:w-auto">
             <Button
               variant="outline"
               size="sm"

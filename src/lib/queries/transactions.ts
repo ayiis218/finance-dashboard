@@ -12,13 +12,6 @@ export async function getDistinctCategories() {
   return rows.map((r) => r.category);
 }
 
-export async function getLatestTransaction() {
-  return prisma.transaction.findFirst({
-    orderBy: { date: "desc" },
-    include: { account: true, toAccount: true },
-  });
-}
-
 export async function getTransactionsForMonth(month: Date) {
   const start = startOfMonth(month);
   const end = endOfMonth(month);
@@ -80,50 +73,75 @@ export async function getTransactionsFiltered({
   };
 }
 
-export async function getExpenseByCategory({ from, to }: { from: Date; to: Date }) {
+/**
+ * Single query backing both the "Expense by Category" pie (EXPENSE rows
+ * only) and the "Expense Breakdown by Category" table (EXPENSE plus TRANSFER
+ * rows that leave the system, i.e. no destination account — an internal
+ * transfer between two owned accounts isn't spending). Merged into one
+ * `findMany` — the pie's row set is a strict subset of the table's, so
+ * fetching them separately was two full scans of the same range for no
+ * reason. `q`/`type`/`accountId` mirror the same filters `getTransactionsFiltered`
+ * applies, so this breakdown always matches whatever the transaction table
+ * above it is currently showing.
+ */
+export async function getCategoryBreakdown({
+  from,
+  to,
+  q,
+  type,
+  accountId,
+}: {
+  from: Date;
+  to: Date;
+  q?: string;
+  type?: TransactionType;
+  accountId?: string;
+}) {
   const transactions = await prisma.transaction.findMany({
-    where: { type: "EXPENSE", date: { gte: from, lte: to } },
-    select: { amount: true, category: true },
+    where: {
+      AND: [
+        { date: { gte: from, lte: to } },
+        { OR: [{ type: "EXPENSE" }, { type: "TRANSFER", toAccountId: null }] },
+        ...(accountId ? [{ accountId }] : []),
+        ...(q
+          ? [
+              {
+                OR: [
+                  { category: { contains: q, mode: "insensitive" as const } },
+                  { note: { contains: q, mode: "insensitive" as const } },
+                ],
+              },
+            ]
+          : []),
+        ...(type ? [{ type }] : []),
+      ],
+    },
+    select: { type: true, amount: true, category: true },
   });
 
-  const byCategory = new Map<string, number>();
+  const expenseTotals = new Map<string, number>();
+  const detailedTotals = new Map<string, { total: number; count: number }>();
+
   for (const t of transactions) {
-    byCategory.set(
-      t.category,
-      (byCategory.get(t.category) ?? 0) + toNumber(t.amount),
-    );
+    const amount = toNumber(t.amount);
+
+    const detailed = detailedTotals.get(t.category) ?? { total: 0, count: 0 };
+    detailed.total += amount;
+    detailed.count += 1;
+    detailedTotals.set(t.category, detailed);
+
+    if (t.type === "EXPENSE") {
+      expenseTotals.set(t.category, (expenseTotals.get(t.category) ?? 0) + amount);
+    }
   }
 
-  return Array.from(byCategory.entries()).map(([category, total]) => ({
+  const expenseByCategory = Array.from(expenseTotals.entries()).map(([category, total]) => ({
     category,
     total,
   }));
-}
 
-/**
- * Counts EXPENSE plus TRANSFER rows that leave the system (no destination
- * account) — an internal transfer between two owned accounts isn't spending.
- */
-export async function getSpendingByCategoryDetailed({ from, to }: { from: Date; to: Date }) {
-  const transactions = await prisma.transaction.findMany({
-    where: {
-      date: { gte: from, lte: to },
-      OR: [{ type: "EXPENSE" }, { type: "TRANSFER", toAccountId: null }],
-    },
-    select: { amount: true, category: true },
-  });
-
-  const byCategory = new Map<string, { total: number; count: number }>();
-  for (const t of transactions) {
-    const entry = byCategory.get(t.category) ?? { total: 0, count: 0 };
-    entry.total += toNumber(t.amount);
-    entry.count += 1;
-    byCategory.set(t.category, entry);
-  }
-
-  const grandTotal = Array.from(byCategory.values()).reduce((sum, c) => sum + c.total, 0);
-
-  return Array.from(byCategory.entries())
+  const grandTotal = Array.from(detailedTotals.values()).reduce((sum, c) => sum + c.total, 0);
+  const spendingDetailed = Array.from(detailedTotals.entries())
     .map(([category, { total, count }]) => ({
       category,
       total,
@@ -131,6 +149,53 @@ export async function getSpendingByCategoryDetailed({ from, to }: { from: Date; 
       percentage: grandTotal > 0 ? (total / grandTotal) * 100 : 0,
     }))
     .sort((a, b) => b.total - a.total);
+
+  return { expenseByCategory, spendingDetailed };
+}
+
+/**
+ * DB-side sums for the month, independent of `getTransactionsFiltered`'s
+ * pagination (which only ever returns one page of rows — summing that
+ * client-side under-counts any month with more than `pageSize` matches).
+ * Deliberately ignores the `type` filter: "Expense This Month"/"Net This
+ * Month" describe the whole month's money movement, not whatever row type
+ * the table is currently narrowed to — `q`/`accountId` still narrow it,
+ * since those genuinely mean "only this account" / "only rows matching this
+ * search", where `type` here would mean "pretend income didn't happen".
+ */
+export async function getTransactionsMonthlyTotals({
+  month,
+  q,
+  accountId,
+}: {
+  month: Date;
+  q?: string;
+  accountId?: string;
+}) {
+  const start = startOfMonth(month);
+  const end = endOfMonth(month);
+  const baseWhere: Prisma.TransactionWhereInput = {
+    date: { gte: start, lte: end },
+    ...(accountId ? { accountId } : {}),
+    ...(q
+      ? {
+          OR: [
+            { category: { contains: q, mode: "insensitive" } },
+            { note: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
+
+  const [incomeAgg, expenseAgg] = await Promise.all([
+    prisma.transaction.aggregate({ where: { ...baseWhere, type: "INCOME" }, _sum: { amount: true } }),
+    prisma.transaction.aggregate({ where: { ...baseWhere, type: "EXPENSE" }, _sum: { amount: true } }),
+  ]);
+
+  return {
+    income: toNumber(incomeAgg._sum.amount),
+    expense: toNumber(expenseAgg._sum.amount),
+  };
 }
 
 export async function getMonthlyExpenseComparison({ from, to }: { from: Date; to: Date }) {

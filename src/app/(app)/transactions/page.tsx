@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { parse, formatDate } from "date-fns";
+import { parse, startOfMonth, endOfMonth, format } from "date-fns";
 import { Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,13 @@ import { PageNav } from "@/components/page-nav";
 import { TransactionFilters } from "@/components/transactions/transaction-filters";
 import { TransactionFormFields } from "@/components/transactions/transaction-form-fields";
 import { TransactionTable } from "@/components/transactions/transaction-table";
+import { CategoryBreakdownCards } from "@/components/transactions/category-breakdown-cards";
 import { getBankAccounts } from "@/lib/queries/accounts";
 import {
+  getCategoryBreakdown,
   getDistinctCategories,
-  getLatestTransaction,
   getTransactionsFiltered,
+  getTransactionsMonthlyTotals,
 } from "@/lib/queries/transactions";
 import { createTransaction } from "@/lib/actions/transactions";
 import { formatIDR } from "@/lib/format";
@@ -31,46 +33,31 @@ export default async function TransactionsPage({
   const page = Number(pageParam) || 1;
   const validType = type === "INCOME" || type === "EXPENSE" || type === "TRANSFER" ? type : undefined;
 
-  const [result, accountRows, categories, latestTransaction] = await Promise.all([
+  const categoryFilters: Parameters<typeof getCategoryBreakdown>[0] = {
+    from: startOfMonth(month),
+    to: endOfMonth(month),
+    q,
+    type: validType,
+    accountId,
+  };
+
+  const [result, accountRows, categories, categoryBreakdown, monthlyTotals] = await Promise.all([
     getTransactionsFiltered({ month, q, type: validType, accountId, page }),
     getBankAccounts(),
     getDistinctCategories(),
-    getLatestTransaction(),
+    getCategoryBreakdown(categoryFilters),
+    getTransactionsMonthlyTotals({ month, q, accountId }),
   ]);
+  const { expenseByCategory, spendingDetailed } = categoryBreakdown;
 
   // Plain, serializable shape — some children (TransactionFilters) are Client
   // Components, and Prisma's Decimal fields can't cross that boundary.
   const accounts = accountRows.map((a) => ({ id: a.id, name: a.name }));
 
   const { transactions } = result;
-
-  const monthlyIncome = transactions
-    .filter((t) => t.type === "INCOME")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-  const monthlyExpense = transactions
-    .filter((t) => t.type === "EXPENSE")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-
-  const spendingByCategory = new Map<string, number>();
-  for (const t of transactions) {
-    if (t.type === "EXPENSE" || (t.type === "TRANSFER" && !t.toAccountId)) {
-      spendingByCategory.set(
-        t.category,
-        (spendingByCategory.get(t.category) ?? 0) + Number(t.amount),
-      );
-    }
-  }
-  const topCategory = Array.from(spendingByCategory.entries()).reduce<
-    { category: string; total: number } | null
-  >((top, [category, total]) => (!top || total > top.total ? { category, total } : top), null);
+  const { income: monthlyIncome, expense: monthlyExpense } = monthlyTotals;
 
   const summaryItems = [
-    {
-      label: "Income This Month",
-      description: "Total uang masuk bulan ini",
-      value: formatIDR(monthlyIncome),
-      tone: "positive" as const,
-    },
     {
       label: "Expense This Month",
       description: "Total uang keluar bulan ini (tipe Pengeluaran)",
@@ -88,35 +75,10 @@ export default async function TransactionsPage({
       description: "Banyaknya transaksi yang tercatat bulan ini (sesuai filter)",
       value: String(result.total),
     },
-    topCategory
-      ? {
-          label: "Top Category",
-          description: "Pengeluaran & transfer terbesar bulan ini",
-          value: formatIDR(topCategory.total),
-          sublabel: topCategory.category,
-        }
-      : {
-          label: "Top Category",
-          description: "Pengeluaran & transfer terbesar bulan ini",
-          value: "-",
-          sublabel: "No data yet",
-        },
-    latestTransaction
-      ? {
-          label: "Latest Transaction",
-          description: "Transaksi paling baru yang tercatat (semua bulan)",
-          value: formatIDR(Number(latestTransaction.amount)),
-          sublabel: `${latestTransaction.category} · ${formatDate(latestTransaction.date, "dd MMM yyyy")}`,
-        }
-      : {
-          label: "Latest Transaction",
-          description: "Transaksi paling baru yang tercatat (semua bulan)",
-          value: "-",
-          sublabel: "No transactions yet",
-        },
   ];
 
   const extraParams = { q, type: validType, accountId };
+  const categoryRangeLabel = format(month, "MMMM yyyy");
 
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
@@ -157,6 +119,12 @@ export default async function TransactionsPage({
           />
         </CardContent>
       </Card>
+
+      <CategoryBreakdownCards
+        rangeLabel={categoryRangeLabel}
+        expenseByCategory={expenseByCategory}
+        spendingDetailed={spendingDetailed}
+      />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import {
 import { FormDialog } from "@/components/form-dialog";
 import { SummaryStats } from "@/components/summary-stats";
 import { YearNav } from "@/components/year-nav";
+import { BreakdownPieCard } from "@/components/breakdown-pie-card";
 import { InvestmentFormFields } from "@/components/investments/investment-form-fields";
 import { InvestmentTable } from "@/components/investments/investment-table";
 import { YearlyTargetFormFields } from "@/components/investments/yearly-target-form-fields";
@@ -34,6 +35,19 @@ export default async function InvestmentsPage({
     getInvestmentYearOverview(year),
   ]);
 
+  // Derived in-memory from the `investments` array already fetched above —
+  // no need for a second full-table scan just to group the same rows by platform.
+  const allocationByPlatform = new Map<string, number>();
+  for (const investment of investments) {
+    allocationByPlatform.set(
+      investment.platform,
+      (allocationByPlatform.get(investment.platform) ?? 0) + Number(investment.currentValue),
+    );
+  }
+  const investmentAllocation = Array.from(allocationByPlatform.entries()).map(
+    ([platform, total]) => ({ platform, total }),
+  );
+
   const totalBuyValue = investments.reduce(
     (sum, investment) => sum + Number(investment.buyValue),
     0,
@@ -54,7 +68,6 @@ export default async function InvestmentsPage({
       sublabel: `${gainLossPct >= 0 ? "+" : ""}${gainLossPct.toFixed(1)}%`,
       tone: gainLoss >= 0 ? ("positive" as const) : ("negative" as const),
     },
-    { label: "Number of Investments", value: String(investments.length) },
   ];
 
   return (
@@ -71,6 +84,12 @@ export default async function InvestmentsPage({
           <InvestmentTable rows={investments} />
         </CardContent>
       </Card>
+
+      <BreakdownPieCard
+        title="Investment Allocation"
+        description="Berdasarkan platform — menunjukkan bagaimana investasimu tersebar"
+        data={investmentAllocation.map((i) => ({ name: i.platform, value: i.total }))}
+      />
 
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">

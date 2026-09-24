@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { FormDialog } from "@/components/form-dialog";
 import { CashflowFormFields } from "@/components/cashflow/cashflow-form-fields";
 import {
@@ -41,6 +42,7 @@ function CashflowRowActions({ row }: Readonly<{ row: CashflowRow }>) {
           idPrefix={monthSlug}
           month={row.month.toISOString()}
           monthLabel={monthLabel}
+          totalBudget={row.totalBudget}
           defaults={{
             saldoAwal: row.saldoAwal,
             monthlyIncome: row.monthlyIncome,
@@ -73,7 +75,16 @@ export function CashflowTable({ rows }: Readonly<{ rows: CashflowRow[] }>) {
           <TableBody>
             {rows.map((row) => (
               <TableRow key={row.month.toISOString()}>
-                <TableCell>{format(row.month, "MMMM yyyy")}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {format(row.month, "MMMM yyyy")}
+                    {row.isDefaultTemplate && (
+                      <Badge variant="outline" className="text-[10px]">
+                        Default
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell className="text-right">{formatIDR(row.saldoAwal)}</TableCell>
                 <TableCell className="text-right">{formatIDR(row.saldoAkhirExpected)}</TableCell>
                 <TableCell className="text-right">
@@ -103,7 +114,10 @@ export function CashflowTable({ rows }: Readonly<{ rows: CashflowRow[] }>) {
       <MobileCardList>
         {rows.map((row) => (
           <MobileRowCard key={row.month.toISOString()}>
-            <MobileRowHeader title={format(row.month, "MMMM yyyy")} />
+            <MobileRowHeader
+              title={format(row.month, "MMMM yyyy")}
+              action={row.isDefaultTemplate && <Badge variant="outline">Default</Badge>}
+            />
             <MobileRowField label="Starting Balance" value={formatIDR(row.saldoAwal)} />
             <MobileRowField
               label="Ending Balance (Expected)"

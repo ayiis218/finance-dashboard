@@ -4,6 +4,7 @@ import Link from "next/link";
 import { format, parse } from "date-fns";
 import { ArrowLeft, Pencil } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { CashflowFormFields } from "@/components/cashflow/cashflow-form-fields";
@@ -38,8 +39,15 @@ export default async function CashflowMonthPage({
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle>{monthLabel}</CardTitle>
-            <CardDescription>This month&apos;s balance &amp; income</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              {monthLabel}
+              {detail.isDefaultTemplate && <Badge variant="outline">Default</Badge>}
+            </CardTitle>
+            <CardDescription>
+              {detail.isDefaultTemplate
+                ? "Not saved yet — showing your default monthly allocation"
+                : "This month's balance & income"}
+            </CardDescription>
           </div>
           <FormDialog
             title={`Balance — ${monthLabel}`}
@@ -51,6 +59,7 @@ export default async function CashflowMonthPage({
               idPrefix="month"
               month={month.toISOString()}
               monthLabel={monthLabel}
+              totalBudget={detail.totalBudget}
               defaults={{
                 saldoAwal: detail.saldoAwal,
                 monthlyIncome: detail.monthlyIncome,
@@ -84,34 +93,59 @@ export default async function CashflowMonthPage({
             <CardDescription>Total Budget: {formatIDR(detail.totalBudget)}</CardDescription>
           </div>
           <FormDialog title="Add Budget Item" triggerLabel="Add Item" action={createCashflowBudgetItem}>
-            <CashflowBudgetItemFormFields idPrefix="new" month={month.toISOString()} />
+            <CashflowBudgetItemFormFields
+              idPrefix="new"
+              month={month.toISOString()}
+              saldoAwal={detail.saldoAwal}
+              monthlyIncome={detail.monthlyIncome}
+              otherItemsTotal={detail.totalBudget}
+            />
           </FormDialog>
         </CardHeader>
         <CardContent className="space-y-2">
-          {detail.budgetItems.map((item) => (
-            <div
-              key={item.id}
-              className="flex flex-col gap-2 rounded-md border px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between"
-            >
-              <span>{item.label}</span>
-              <div className="flex items-center gap-2">
+          {detail.isDefaultTemplate && detail.budgetItems.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Using your default monthly allocation — edit balance or add an item to save this
+              month on its own.
+            </p>
+          )}
+          {detail.budgetItems.map((item) =>
+            detail.isDefaultTemplate ? (
+              <div
+                key={item.id}
+                className="flex items-center justify-between rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground"
+              >
+                <span>{item.label}</span>
                 <span>{formatIDR(item.amount)}</span>
-                <FormDialog
-                  title="Edit Budget Item"
-                  triggerIcon={<Pencil className="size-4" />}
-                  triggerVariant="ghost"
-                  triggerSize="icon"
-                  action={updateCashflowBudgetItem.bind(null, item.id, month)}
-                >
-                  <CashflowBudgetItemFormFields
-                    idPrefix={item.id}
-                    defaults={{ label: item.label, amount: item.amount }}
-                  />
-                </FormDialog>
-                <DeleteButton action={deleteCashflowBudgetItem.bind(null, item.id, month)} />
               </div>
-            </div>
-          ))}
+            ) : (
+              <div
+                key={item.id}
+                className="flex flex-col gap-2 rounded-md border px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between"
+              >
+                <span>{item.label}</span>
+                <div className="flex items-center gap-2">
+                  <span>{formatIDR(item.amount)}</span>
+                  <FormDialog
+                    title="Edit Budget Item"
+                    triggerIcon={<Pencil className="size-4" />}
+                    triggerVariant="ghost"
+                    triggerSize="icon"
+                    action={updateCashflowBudgetItem.bind(null, item.id, month)}
+                  >
+                    <CashflowBudgetItemFormFields
+                      idPrefix={item.id}
+                      defaults={{ label: item.label, amount: item.amount }}
+                      saldoAwal={detail.saldoAwal}
+                      monthlyIncome={detail.monthlyIncome}
+                      otherItemsTotal={detail.totalBudget - item.amount}
+                    />
+                  </FormDialog>
+                  <DeleteButton action={deleteCashflowBudgetItem.bind(null, item.id, month)} />
+                </div>
+              </div>
+            ),
+          )}
           {detail.budgetItems.length === 0 && (
             <p className="text-sm text-muted-foreground">No budget items yet this month.</p>
           )}

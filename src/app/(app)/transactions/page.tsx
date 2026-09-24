@@ -83,6 +83,11 @@ export default async function TransactionsPage({
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
       <SummaryStats items={summaryItems} />
+      <CategoryBreakdownCards
+        rangeLabel={categoryRangeLabel}
+        expenseByCategory={expenseByCategory}
+        spendingDetailed={spendingDetailed}
+      />
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Transactions</CardTitle>
@@ -119,12 +124,6 @@ export default async function TransactionsPage({
           />
         </CardContent>
       </Card>
-
-      <CategoryBreakdownCards
-        rangeLabel={categoryRangeLabel}
-        expenseByCategory={expenseByCategory}
-        spendingDetailed={spendingDetailed}
-      />
     </div>
   );
 }

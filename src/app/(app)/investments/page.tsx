@@ -75,6 +75,12 @@ export default async function InvestmentsPage({
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
       <SummaryStats items={summaryItems} />
 
+      <BreakdownPieCard
+        title="Investment Allocation"
+        description="Berdasarkan platform — menunjukkan bagaimana investasimu tersebar"
+        data={investmentAllocation.map((i) => ({ name: i.platform, value: i.total }))}
+      />
+
       <Tabs defaultValue="holdings">
         <TabsList className="w-full sm:w-fit">
           <TabsTrigger value="holdings">Holdings</TabsTrigger>
@@ -93,12 +99,6 @@ export default async function InvestmentsPage({
               <InvestmentTable rows={investments} />
             </CardContent>
           </Card>
-
-          <BreakdownPieCard
-            title="Investment Allocation"
-            description="Berdasarkan platform — menunjukkan bagaimana investasimu tersebar"
-            data={investmentAllocation.map((i) => ({ name: i.platform, value: i.total }))}
-          />
         </TabsContent>
 
         <TabsContent value="target">

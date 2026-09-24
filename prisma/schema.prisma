@@ -194,6 +194,26 @@ model CashflowBudgetItem {
   createdAt  DateTime         @default(now())
 }
 
+// Singleton: alokasi default (gaji + pos anggaran) yang dipakai sebagai nilai
+// awal untuk bulan yang belum pernah dimaterialisasi (belum punya baris
+// CashflowForecast sendiri). Begitu sebuah bulan disimpan, nilainya di-snapshot
+// ke CashflowForecast/CashflowBudgetItem milik bulan itu dan lepas dari
+// template — perubahan template selanjutnya tidak lagi memengaruhi bulan itu.
+model CashflowAllocationTemplate {
+  id            String                           @id @default(cuid())
+  monthlyIncome Decimal                          @default(0)
+  items         CashflowAllocationTemplateItem[]
+  updatedAt     DateTime                         @updatedAt
+}
+
+model CashflowAllocationTemplateItem {
+  id         String                     @id @default(cuid())
+  template   CashflowAllocationTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateId String
+  label      String
+  amount     Decimal
+}
+
 model SavingsGoal {
   id           String             @id @default(cuid())
   name         String // "Wedding", "Eid 2026", dll

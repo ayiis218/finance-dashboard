@@ -31,6 +31,7 @@ export function NumberInput({
   className,
   disabled,
   allowNegative,
+  onValueChange,
 }: Readonly<{
   name: string;
   id?: string;
@@ -43,6 +44,8 @@ export function NumberInput({
   disabled?: boolean;
   /** Allow a leading "-" so the field can carry negative amounts (e.g. a planned monthly deficit). */
   allowNegative?: boolean;
+  /** Fires with the live numeric value (or null while empty) on every change — for a live-computed preview elsewhere in the same form. Never affects form submission, which still reads the hidden input by `name`. */
+  onValueChange?: (value: number | null) => void;
 }>) {
   const [digits, setDigits] = React.useState(() =>
     defaultValue !== undefined && defaultValue !== null && defaultValue !== ""
@@ -54,10 +57,14 @@ export function NumberInput({
     let next = toDigits(e.target.value, allowNegative);
     if (next && max !== undefined && Number(next) > max) next = String(max);
     setDigits(next);
+    onValueChange?.(next ? Number(next) : null);
   };
 
   const handleBlur = () => {
-    if (digits && min !== undefined && Number(digits) < min) setDigits(String(min));
+    if (digits && min !== undefined && Number(digits) < min) {
+      setDigits(String(min));
+      onValueChange?.(min);
+    }
   };
 
   return (

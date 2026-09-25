@@ -12,7 +12,6 @@ import { MonthlyExpenseChartLazy } from "@/components/charts/monthly-expense-cha
 import { SummaryStats, type SummaryStatItem } from "@/components/summary-stats";
 import { DateRangeFilter, parseDateRangeParams } from "@/components/date-range-filter";
 import { getDailySummary, getSummary } from "@/lib/queries/dashboard";
-import { getBudgetOverview } from "@/lib/queries/budget";
 import { getMonthlyExpenseComparison } from "@/lib/queries/transactions";
 import { formatIDR } from "@/lib/format";
 import { format, startOfMonth, subMonths } from "date-fns";
@@ -28,68 +27,40 @@ export default async function DashboardPage({
   );
   const rangeLabel = `${format(from, "d MMM yyyy")} – ${format(to, "d MMM yyyy")}`;
 
-  const [summary, daily, monthlyExpense, budgetOverview] = await Promise.all([
+  const [summary, daily, monthlyExpense] = await Promise.all([
     getSummary(),
     getDailySummary(),
     getMonthlyExpenseComparison({ from, to }),
-    getBudgetOverview(new Date()),
   ]);
 
-  const remainingBudget = budgetOverview.totals.planned - budgetOverview.totals.actual;
   const totalExpenseRange = monthlyExpense.reduce((sum, m) => sum + m.total, 0);
   const avgExpensePerMonth =
     monthlyExpense.length > 0 ? totalExpenseRange / monthlyExpense.length : 0;
 
-  const summaryItems: SummaryStatItem[] = [
-    {
-      label: "Total Balance",
-      description: "Uang tunai di semua rekening bank & cash",
-      value: formatIDR(summary.totalBalance),
-    },
-    {
-      label: "Total Assets",
-      description: "Nilai properti, kendaraan & barang berharga lain",
-      value: formatIDR(summary.totalAssets),
-    },
-    {
-      label: "Total Investments",
-      description: "Nilai investasi saat ini (reksadana, saham, dll)",
-      value: formatIDR(summary.totalInvestments),
-    },
-    {
-      label: "Total Debt",
-      description: "Sisa utang yang masih harus dibayar (sudah dikurangi cicilan)",
-      value: formatIDR(summary.totalDebt),
-      tone: summary.totalDebt > 0 ? "negative" : "default",
-    },
-    {
-      label: "Remaining Budget",
-      description: "Anggaran bulanan dikurangi pengeluaran yang sudah terjadi",
-      value: formatIDR(remainingBudget),
-      tone: remainingBudget >= 0 ? "positive" : "negative",
-    },
+  const netWorthItem: SummaryStatItem[] = [
     {
       label: "Net Worth",
       description: "Saldo + aset + investasi + piutang, dikurangi utang",
       value: formatIDR(summary.netWorth),
       tone: "highlight",
     },
+  ];
+
+  const compactItems: SummaryStatItem[] = [
+    { label: "Total Balance", value: formatIDR(summary.totalBalance) },
+    { label: "Total Assets", value: formatIDR(summary.totalAssets) },
+    { label: "Total Investments", value: formatIDR(summary.totalInvestments) },
     {
-      label: "Total Expense",
-      description: `Jumlah semua pengeluaran periode ${rangeLabel}`,
-      value: formatIDR(totalExpenseRange),
-      tone: "negative",
-    },
-    {
-      label: "Average Expense/Month",
-      description: "Total pengeluaran dibagi jumlah bulan pada periode terpilih",
-      value: formatIDR(avgExpensePerMonth),
+      label: "Total Debt",
+      value: formatIDR(summary.totalDebt),
+      tone: summary.totalDebt > 0 ? "negative" : "default",
     },
   ];
 
   return (
     <div className="space-y-6 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
-      <SummaryStats items={summaryItems} />
+      <SummaryStats items={netWorthItem} />
+      <SummaryStats items={compactItems} compact />
 
       <DateRangeFilter from={from} to={to} baseHref="/" />
 
@@ -98,7 +69,8 @@ export default async function DashboardPage({
           <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
             <CardTitle>Monthly Expense Comparison</CardTitle>
             <CardDescription>
-              {rangeLabel} — batang lebih tinggi berarti pengeluaran lebih besar di bulan itu
+              {rangeLabel} — Total {formatIDR(totalExpenseRange)}, rata-rata{" "}
+              {formatIDR(avgExpensePerMonth)}/bulan
             </CardDescription>
           </CardHeader>
           <CardContent>

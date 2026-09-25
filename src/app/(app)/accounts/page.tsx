@@ -20,7 +20,7 @@ export default async function AccountsPage() {
 
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
-      <SummaryStats items={summaryItems} />
+      <SummaryStats items={summaryItems} compact />
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Accounts &amp; Cash</CardTitle>

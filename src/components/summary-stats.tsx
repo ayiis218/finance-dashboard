@@ -12,13 +12,37 @@ export type SummaryStatItem = {
   tone?: "default" | "positive" | "negative" | "highlight";
 };
 
-export function SummaryStats({ items }: Readonly<{ items: SummaryStatItem[] }>) {
+export function SummaryStats({
+  items,
+  compact = false,
+}: Readonly<{ items: SummaryStatItem[]; compact?: boolean }>) {
+  if (compact) {
+    return (
+      <div className="flex flex-col divide-y rounded-lg border bg-card sm:flex-row sm:divide-x sm:divide-y-0">
+        {items.map((item) => (
+          <div key={item.label} className="flex flex-1 items-center justify-between gap-3 px-4 py-2.5 sm:flex-col sm:items-start sm:justify-start">
+            <span className="text-xs text-muted-foreground">{item.label}</span>
+            <span
+              className={cn(
+                "text-sm font-semibold sm:text-base",
+                item.tone === "positive" && "text-positive",
+                item.tone === "negative" && "text-destructive",
+              )}
+            >
+              {item.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 sm:grid sm:snap-none sm:gap-4 sm:overflow-visible sm:pb-0 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item, index) => (
         <motion.div
           key={item.label}
-          className="min-w-[68%] shrink-0 snap-start sm:min-w-0 sm:shrink"
+          className="w-full"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: index * 0.05, ease: [0.16, 0.84, 0.44, 1] }}

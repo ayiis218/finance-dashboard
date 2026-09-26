@@ -2,14 +2,7 @@
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { formatIDR } from "@/lib/format";
-
-const COLORS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-];
+import { hashCategoryColor } from "@/lib/chart-colors";
 
 export function BreakdownPieChart({
   data,
@@ -37,15 +30,15 @@ export function BreakdownPieChart({
           outerRadius={100}
           paddingAngle={2}
         >
-          {data.map((_, index) => (
-            <Cell key={index} fill={COLORS[index % COLORS.length]} />
+          {data.map((d) => (
+            <Cell key={d.name} fill={hashCategoryColor(d.name)} />
           ))}
         </Pie>
         <Tooltip
-          formatter={(value) => {
+          formatter={(value, name) => {
             const amount = Number(value ?? 0);
             const percent = total > 0 ? (amount / total) * 100 : 0;
-            return [`${formatIDR(amount)} (${percent.toFixed(0)}%)`, ""];
+            return [`${formatIDR(amount)} (${percent.toFixed(0)}%)`, name];
           }}
         />
         <Legend />

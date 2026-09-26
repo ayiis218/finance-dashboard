@@ -23,6 +23,14 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-chart-cat-8: var(--chart-cat-8);
+  --color-chart-cat-7: var(--chart-cat-7);
+  --color-chart-cat-6: var(--chart-cat-6);
+  --color-chart-cat-5: var(--chart-cat-5);
+  --color-chart-cat-4: var(--chart-cat-4);
+  --color-chart-cat-3: var(--chart-cat-3);
+  --color-chart-cat-2: var(--chart-cat-2);
+  --color-chart-cat-1: var(--chart-cat-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -76,6 +84,17 @@
   --chart-3: #4FB0C6;
   --chart-4: #F2A93B;
   --chart-5: #79A9D9;
+  /* Dedicated 8-hue categorical palette (pie/breakdown charts) — validated for
+     CVD-safety/contrast per the dataviz skill's validate_palette.js, separate
+     from --chart-1..5 above which serve the monthly-expense bar gradient. */
+  --chart-cat-1: #2C74B3;
+  --chart-cat-2: #D9772E;
+  --chart-cat-3: #1BA394;
+  --chart-cat-4: #C98F1B;
+  --chart-cat-5: #C2568F;
+  --chart-cat-6: #2F8F4E;
+  --chart-cat-7: #7859B8;
+  --chart-cat-8: #C24B42;
   --radius: 0.625rem;
   --sidebar: #FBFDFF;
   --sidebar-foreground: #0A2647;
@@ -116,6 +135,14 @@
   --chart-3: #6FD1E8;
   --chart-4: #F2B84B;
   --chart-5: #2C74B3;
+  --chart-cat-1: #3D8FCB;
+  --chart-cat-2: #CC7A3D;
+  --chart-cat-3: #229C8C;
+  --chart-cat-4: #B8850F;
+  --chart-cat-5: #BC6892;
+  --chart-cat-6: #3F9760;
+  --chart-cat-7: #7D6BC2;
+  --chart-cat-8: #C55B50;
   --sidebar: #06111C;
   --sidebar-foreground: #E9F2FA;
   --sidebar-primary: #4DA8DA;

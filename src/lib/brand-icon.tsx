@@ -8,6 +8,8 @@ export function BrandIconMark({ size }: { size: number }) {
         alignItems: "center",
         justifyContent: "center",
         background: "linear-gradient(135deg, #0A2647, #144272 55%, #2C74B3)",
+        borderRadius: size * 0.22,
+        overflow: "hidden",
       }}
     >
       <svg

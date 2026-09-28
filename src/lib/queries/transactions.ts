@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma, TransactionType } from "@prisma/client";
 import { startOfMonth, endOfMonth, eachMonthOfInterval } from "date-fns";
 import { toNumber } from "@/lib/queries/shared";
+import { getWeekRange } from "@/lib/week-range";
 
 export async function getDistinctCategories() {
   const rows = await prisma.transaction.findMany({
@@ -24,6 +25,7 @@ export async function getTransactionsForMonth(month: Date) {
 
 export async function getTransactionsFiltered({
   month,
+  week,
   q,
   type,
   accountId,
@@ -31,14 +33,14 @@ export async function getTransactionsFiltered({
   pageSize = 20,
 }: {
   month: Date;
+  week?: 1 | 2 | 3 | 4;
   q?: string;
   type?: TransactionType;
   accountId?: string;
   page?: number;
   pageSize?: number;
 }) {
-  const start = startOfMonth(month);
-  const end = endOfMonth(month);
+  const { from: start, to: end } = getWeekRange(month, week);
   const where: Prisma.TransactionWhereInput = {
     date: { gte: start, lte: end },
     ...(type ? { type } : {}),
@@ -165,15 +167,16 @@ export async function getCategoryBreakdown({
  */
 export async function getTransactionsMonthlyTotals({
   month,
+  week,
   q,
   accountId,
 }: {
   month: Date;
+  week?: 1 | 2 | 3 | 4;
   q?: string;
   accountId?: string;
 }) {
-  const start = startOfMonth(month);
-  const end = endOfMonth(month);
+  const { from: start, to: end } = getWeekRange(month, week);
   const baseWhere: Prisma.TransactionWhereInput = {
     date: { gte: start, lte: end },
     ...(accountId ? { accountId } : {}),

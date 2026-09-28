@@ -20,16 +20,25 @@ export function SummaryStats({
     return (
       <div className="flex flex-col divide-y rounded-lg border bg-card sm:flex-row sm:divide-x sm:divide-y-0">
         {items.map((item) => (
-          <div key={item.label} className="flex flex-1 items-center justify-between gap-3 px-4 py-2.5 sm:flex-col sm:items-start sm:justify-start">
+          <div
+            key={item.label}
+            className="flex flex-1 items-center justify-between gap-3 px-4 py-2.5 sm:flex-col sm:items-start sm:justify-start"
+          >
             <span className="text-xs text-muted-foreground">{item.label}</span>
-            <span
-              className={cn(
-                "text-sm font-semibold sm:text-base",
-                item.tone === "positive" && "text-positive",
-                item.tone === "negative" && "text-destructive",
+            <span className="flex items-baseline gap-1.5 sm:flex-col sm:items-start sm:gap-0">
+              <span
+                className={cn(
+                  "text-sm font-semibold sm:text-base",
+                  item.tone === "positive" && "text-positive",
+                  item.tone === "negative" && "text-destructive",
+                  item.tone === "highlight" && "text-primary",
+                )}
+              >
+                {item.value}
+              </span>
+              {item.sublabel && (
+                <span className="text-[11px] text-muted-foreground">{item.sublabel}</span>
               )}
-            >
-              {item.value}
             </span>
           </div>
         ))}

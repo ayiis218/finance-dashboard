@@ -37,6 +37,7 @@ export function MonthlyExpenseChart({
           tickLine={false}
           axisLine={false}
           fontSize={12}
+          tick={{ fill: "var(--muted-foreground)" }}
         />
         <YAxis
           tickLine={false}
@@ -44,6 +45,7 @@ export function MonthlyExpenseChart({
           fontSize={12}
           tickFormatter={formatCompact}
           width={48}
+          tick={{ fill: "var(--muted-foreground)" }}
         />
         <Tooltip
           formatter={(value) => [
@@ -55,6 +57,14 @@ export function MonthlyExpenseChart({
             "Expense",
           ]}
           cursor={{ fill: "var(--muted)" }}
+          contentStyle={{
+            backgroundColor: "var(--popover)",
+            borderColor: "var(--border)",
+            borderRadius: "var(--radius)",
+            fontSize: 12,
+          }}
+          itemStyle={{ color: "var(--popover-foreground)" }}
+          labelStyle={{ color: "var(--popover-foreground)" }}
         />
         <Bar dataKey="total" fill="url(#expenseBarGradient)" radius={[4, 4, 0, 0]} />
       </BarChart>

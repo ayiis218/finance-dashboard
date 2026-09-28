@@ -43,7 +43,7 @@ export function YearlyTargetSummary({
 
   return (
     <div className="space-y-4">
-      <SummaryStats items={summaryItems} />
+      <SummaryStats items={summaryItems} compact />
       <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-12">
         {MONTH_LABELS.map((label, i) => (
           <Badge

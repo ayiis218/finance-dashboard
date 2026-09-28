@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { parse, startOfMonth, endOfMonth, format } from "date-fns";
+import { parse, format } from "date-fns";
 import { Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,33 +20,43 @@ import {
   getTransactionsFiltered,
   getTransactionsMonthlyTotals,
 } from "@/lib/queries/transactions";
+import { getWeekRange } from "@/lib/week-range";
 import { createTransaction } from "@/lib/actions/transactions";
 import { formatIDR } from "@/lib/format";
 
 export default async function TransactionsPage({
   searchParams,
 }: Readonly<{
-  searchParams: Promise<{ month?: string; q?: string; type?: string; accountId?: string; page?: string }>;
+  searchParams: Promise<{
+    month?: string;
+    week?: string;
+    q?: string;
+    type?: string;
+    accountId?: string;
+    page?: string;
+  }>;
 }>) {
-  const { month: monthParam, q, type, accountId, page: pageParam } = await searchParams;
+  const { month: monthParam, week: weekParam, q, type, accountId, page: pageParam } = await searchParams;
   const month = monthParam ? parse(monthParam, "yyyy-MM", new Date()) : new Date();
   const page = Number(pageParam) || 1;
   const validType = type === "INCOME" || type === "EXPENSE" || type === "TRANSFER" ? type : undefined;
+  const week = ["1", "2", "3", "4"].includes(weekParam ?? "")
+    ? (Number(weekParam) as 1 | 2 | 3 | 4)
+    : undefined;
 
   const categoryFilters: Parameters<typeof getCategoryBreakdown>[0] = {
-    from: startOfMonth(month),
-    to: endOfMonth(month),
+    ...getWeekRange(month, week),
     q,
     type: validType,
     accountId,
   };
 
   const [result, accountRows, categories, categoryBreakdown, monthlyTotals] = await Promise.all([
-    getTransactionsFiltered({ month, q, type: validType, accountId, page }),
+    getTransactionsFiltered({ month, week, q, type: validType, accountId, page }),
     getBankAccounts(),
     getDistinctCategories(),
     getCategoryBreakdown(categoryFilters),
-    getTransactionsMonthlyTotals({ month, q, accountId }),
+    getTransactionsMonthlyTotals({ month, week, q, accountId }),
   ]);
   const { expenseByCategory, spendingDetailed } = categoryBreakdown;
 
@@ -78,7 +88,10 @@ export default async function TransactionsPage({
   ];
 
   const extraParams = { q, type: validType, accountId };
-  const categoryRangeLabel = format(month, "MMMM yyyy");
+  const pageNavExtraParams = { ...extraParams, week: weekParam, month: monthParam };
+  const categoryRangeLabel = week
+    ? `Week ${week} · ${format(month, "MMMM yyyy")}`
+    : format(month, "MMMM yyyy");
 
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
@@ -120,7 +133,7 @@ export default async function TransactionsPage({
             page={result.page}
             totalPages={result.totalPages}
             baseHref="/transactions"
-            extraParams={{ ...extraParams, month: monthParam }}
+            extraParams={pageNavExtraParams}
           />
         </CardContent>
       </Card>

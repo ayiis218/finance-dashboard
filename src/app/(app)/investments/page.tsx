@@ -73,7 +73,7 @@ export default async function InvestmentsPage({
 
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
-      <SummaryStats items={summaryItems} />
+      <SummaryStats items={summaryItems} compact />
 
       <BreakdownPieCard
         title="Investment Allocation"

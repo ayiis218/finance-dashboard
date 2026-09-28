@@ -31,7 +31,7 @@ export default async function GoalsPage() {
 
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
-      <SummaryStats items={summaryItems} />
+      <SummaryStats items={summaryItems} compact />
       <div className="bg-brand-gradient flex flex-col items-start gap-3 rounded-lg px-4 py-3 text-white sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-lg font-semibold">Savings Goal</h1>
         <FormDialog

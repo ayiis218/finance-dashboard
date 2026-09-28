@@ -37,7 +37,6 @@ export default async function GoalsPage() {
         <FormDialog
           title="Add Savings Goal"
           triggerLabel="Add Goal"
-          triggerVariant="outline"
           action={createSavingsGoal}
         >
           <GoalFormFields idPrefix="new" />

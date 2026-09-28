@@ -10,7 +10,9 @@ export type CategoryInsight = {
   currentTotal: number;
   previousTotal: number;
   delta: number;
-  pctChange: number;
+  /** `null` untuk kategori baru (`previousTotal` 0) — tidak ada baseline buat hitung %. */
+  pctChange: number | null;
+  isNew: boolean;
 };
 
 /**
@@ -45,12 +47,20 @@ export async function getCategorySpendingInsights(month: Date): Promise<Category
     const currentTotal = currentTotals.get(category) ?? 0;
     const previousTotal = previousTotals.get(category) ?? 0;
     const delta = currentTotal - previousTotal;
-    if (previousTotal === 0 || Math.abs(delta) < minDelta) continue;
+    if (Math.abs(delta) < minDelta) continue;
+
+    // Kategori baru (tidak ada bulan lalu) tidak punya baseline buat hitung %,
+    // tapi nominalnya sendiri sudah lolos ambang minDelta di atas — tetap
+    // layak dilaporkan, bukan di-skip diam-diam.
+    if (previousTotal === 0) {
+      insights.push({ category, currentTotal, previousTotal, delta, pctChange: null, isNew: true });
+      continue;
+    }
 
     const pctChange = (delta / previousTotal) * 100;
     if (Math.abs(pctChange) < SIGNIFICANT_PCT_CHANGE) continue;
 
-    insights.push({ category, currentTotal, previousTotal, delta, pctChange });
+    insights.push({ category, currentTotal, previousTotal, delta, pctChange, isNew: false });
   }
 
   return insights

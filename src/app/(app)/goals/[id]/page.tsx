@@ -13,8 +13,10 @@ import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { GoalItemStatusBadge } from "@/components/goals/goal-item-status";
 import { GoalItemFormFields } from "@/components/goals/goal-item-form-fields";
+import { GoalProjectionLine } from "@/components/goals/goal-projection-line";
 import { getGoalDetail } from "@/lib/queries/goals";
 import { getCategoryNames } from "@/lib/queries/categories";
+import { getGoalProjection } from "@/lib/goal-projection";
 import {
   addSavingsGoalEntry,
   createGoalItem,
@@ -37,6 +39,12 @@ export default async function GoalDetailPage({
   ]);
   const target = Number(goal.targetAmount);
   const progress = target > 0 ? Math.min(100, (totalSaved / target) * 100) : 0;
+  const projection = getGoalProjection({
+    targetAmount: target,
+    tenorMonths: goal.tenorMonths,
+    startDate: goal.startDate,
+    entries: goal.entries.map((e) => ({ amount: Number(e.amount), month: e.month })),
+  });
 
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
@@ -67,6 +75,7 @@ export default async function GoalDetailPage({
               style={{ width: `${progress}%` }}
             />
           </div>
+          <GoalProjectionLine projection={projection} />
         </CardContent>
       </Card>
 

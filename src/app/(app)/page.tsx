@@ -14,6 +14,7 @@ import { NetWorthSnapshotButton } from "@/components/net-worth-snapshot-button";
 import { SummaryStats, type SummaryStatItem } from "@/components/summary-stats";
 import { DateRangeFilter, parseDateRangeParams } from "@/components/date-range-filter";
 import { SpendingInsightsCard } from "@/components/insights/spending-insights-card";
+import { PushNotificationToggle } from "@/components/push-notification-toggle";
 import { getDailySummary, getNetWorthHistory, getSummary } from "@/lib/queries/dashboard";
 import { getMonthlyExpenseComparison } from "@/lib/queries/transactions";
 import { getCategorySpendingInsights } from "@/lib/queries/insights";
@@ -157,6 +158,7 @@ export default async function DashboardPage({
       </Card>
 
       <SpendingInsightsCard insights={spendingInsights} />
+      <PushNotificationToggle />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { Pencil, Pause, Play } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -50,7 +51,15 @@ function RecurringRowActions({
         variant="ghost"
         size="icon"
         disabled={isPending}
-        onClick={() => startTransition(() => setRecurringTransactionActive(item.id, !item.active))}
+        onClick={() =>
+          startTransition(async () => {
+            try {
+              await setRecurringTransactionActive(item.id, !item.active);
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : "Failed to update");
+            }
+          })
+        }
         title={item.active ? "Pause" : "Resume"}
       >
         {item.active ? <Pause className="size-4" /> : <Play className="size-4" />}

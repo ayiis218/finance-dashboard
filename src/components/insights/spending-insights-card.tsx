@@ -1,4 +1,4 @@
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -21,18 +21,26 @@ export function SpendingInsightsCard({
           return (
             <div key={insight.category} className="flex items-center justify-between gap-3 text-sm">
               <div className="flex items-center gap-2">
-                {isUp ? (
+                {insight.isNew ? (
+                  <Sparkles className="size-4 text-destructive" />
+                ) : isUp ? (
                   <TrendingUp className="size-4 text-destructive" />
                 ) : (
                   <TrendingDown className="size-4 text-positive" />
                 )}
                 <span>{insight.category}</span>
               </div>
-              <span className={cn("font-medium", isUp ? "text-destructive" : "text-positive")}>
-                {isUp ? "+" : ""}
-                {insight.pctChange.toFixed(0)}% ({isUp ? "+" : ""}
-                {formatIDR(insight.delta)})
-              </span>
+              {insight.isNew ? (
+                <span className="font-medium text-destructive">
+                  Kategori baru ({formatIDR(insight.currentTotal)})
+                </span>
+              ) : (
+                <span className={cn("font-medium", isUp ? "text-destructive" : "text-positive")}>
+                  {isUp ? "+" : ""}
+                  {insight.pctChange!.toFixed(0)}% ({isUp ? "+" : ""}
+                  {formatIDR(insight.delta)})
+                </span>
+              )}
             </div>
           );
         })}

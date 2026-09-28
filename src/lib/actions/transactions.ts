@@ -224,9 +224,13 @@ export async function importTransactions(
   const categoryNames = [...new Set(data.map((r) => r.category))];
 
   await prisma.$transaction(async (tx) => {
-    for (const name of categoryNames) {
-      await ensureCategoryExists(tx, name);
-    }
+    // Satu batch insert, bukan N upsert sekuensial — import bisa sampai 2000
+    // baris dengan puluhan kategori unik, dan N round-trip HTTP di dalam satu
+    // interactive transaction berisiko kena timeout default Prisma (5 detik).
+    await tx.category.createMany({
+      data: categoryNames.map((name) => ({ name })),
+      skipDuplicates: true,
+    });
     await tx.transaction.createMany({
       data: data.map((r) => ({
         accountId: r.accountId,

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { pickFormFields } from "@/lib/form-data";
+import { ensureCategoryExists } from "@/lib/actions/categories";
 
 const savingsGoalSchema = z.object({
   name: z.string().min(1),
@@ -84,6 +85,7 @@ const GOAL_ITEM_FIELDS = [
 
 export async function createGoalItem(formData: FormData) {
   const data = goalItemSchema.parse(pickFormFields(formData, GOAL_ITEM_FIELDS));
+  await ensureCategoryExists(prisma, data.category);
   await prisma.goalItem.create({ data });
   await syncGoalTargetToItems(data.goalId);
   revalidatePath(`/goals/${data.goalId}`);

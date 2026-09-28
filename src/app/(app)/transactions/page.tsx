@@ -16,10 +16,10 @@ import { CategoryBreakdownCards } from "@/components/transactions/category-break
 import { getBankAccounts } from "@/lib/queries/accounts";
 import {
   getCategoryBreakdown,
-  getDistinctCategories,
   getTransactionsFiltered,
   getTransactionsMonthlyTotals,
 } from "@/lib/queries/transactions";
+import { getCategoryNames } from "@/lib/queries/categories";
 import { getWeekRange } from "@/lib/week-range";
 import { createTransaction } from "@/lib/actions/transactions";
 import { formatIDR } from "@/lib/format";
@@ -54,7 +54,7 @@ export default async function TransactionsPage({
   const [result, accountRows, categories, categoryBreakdown, monthlyTotals] = await Promise.all([
     getTransactionsFiltered({ month, week, q, type: validType, accountId, page }),
     getBankAccounts(),
-    getDistinctCategories(),
+    getCategoryNames(),
     getCategoryBreakdown(categoryFilters),
     getTransactionsMonthlyTotals({ month, week, q, accountId }),
   ]);

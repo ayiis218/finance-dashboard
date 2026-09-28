@@ -9,8 +9,11 @@ export type BudgetCategoryFormDefaults = {
 
 export function BudgetCategoryFormFields({
   idPrefix,
+  categories,
   defaults,
-}: Readonly<{ idPrefix: string; defaults?: BudgetCategoryFormDefaults }>) {
+}: Readonly<{ idPrefix: string; categories: string[]; defaults?: BudgetCategoryFormDefaults }>) {
+  const datalistId = `budget-category-suggestions-${idPrefix}`;
+
   return (
     <>
       <div className="space-y-2">
@@ -18,10 +21,16 @@ export function BudgetCategoryFormFields({
         <Input
           id={`name-${idPrefix}`}
           name="name"
+          list={datalistId}
           defaultValue={defaults?.name}
           placeholder="Food, Transport, etc."
           required
         />
+        <datalist id={datalistId}>
+          {categories.map((c) => (
+            <option key={c} value={c} />
+          ))}
+        </datalist>
       </div>
       <div className="space-y-2">
         <Label htmlFor={`monthlyPlanned-${idPrefix}`}>Monthly Budget</Label>

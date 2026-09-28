@@ -7,6 +7,8 @@ export const ROUTES = {
   goals: "/goals",
   investments: "/investments",
   receivables: "/receivables",
+  recurring: "/recurring",
+  categories: "/categories",
   transactions: {
     list: "/transactions",
     import: "/transactions/import",

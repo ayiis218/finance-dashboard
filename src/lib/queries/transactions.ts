@@ -4,15 +4,6 @@ import { startOfMonth, endOfMonth, eachMonthOfInterval } from "date-fns";
 import { toNumber } from "@/lib/queries/shared";
 import { getWeekRange } from "@/lib/week-range";
 
-export async function getDistinctCategories() {
-  const rows = await prisma.transaction.findMany({
-    select: { category: true },
-    distinct: ["category"],
-    orderBy: { category: "asc" },
-  });
-  return rows.map((r) => r.category);
-}
-
 export async function getTransactionsForMonth(month: Date) {
   const start = startOfMonth(month);
   const end = endOfMonth(month);

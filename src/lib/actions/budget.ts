@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { pickFormFields } from "@/lib/form-data";
+import { ensureCategoryExists } from "@/lib/actions/categories";
 
 const budgetCategorySchema = z.object({
   name: z.string().min(1),
@@ -14,6 +15,7 @@ const BUDGET_CATEGORY_FIELDS = ["name", "monthlyPlanned"] as const;
 
 export async function createBudgetCategory(formData: FormData) {
   const data = budgetCategorySchema.parse(pickFormFields(formData, BUDGET_CATEGORY_FIELDS));
+  await ensureCategoryExists(prisma, data.name);
   await prisma.budgetCategory.create({ data });
   revalidatePath("/budget");
   revalidatePath("/");

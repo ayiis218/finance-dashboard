@@ -23,7 +23,10 @@ import { formatIDR } from "@/lib/format";
 
 type BudgetCategoryRow = Awaited<ReturnType<typeof getBudgetCategories>>[number];
 
-function BudgetCategoryRowActions({ item }: Readonly<{ item: BudgetCategoryRow }>) {
+function BudgetCategoryRowActions({
+  item,
+  categories,
+}: Readonly<{ item: BudgetCategoryRow; categories: string[] }>) {
   return (
     <>
       <FormDialog
@@ -35,6 +38,7 @@ function BudgetCategoryRowActions({ item }: Readonly<{ item: BudgetCategoryRow }
       >
         <BudgetCategoryFormFields
           idPrefix={item.id}
+          categories={categories}
           defaults={{ name: item.name, monthlyPlanned: Number(item.monthlyPlanned) }}
         />
       </FormDialog>
@@ -43,7 +47,10 @@ function BudgetCategoryRowActions({ item }: Readonly<{ item: BudgetCategoryRow }
   );
 }
 
-export function BudgetCategoryTable({ rows }: Readonly<{ rows: BudgetCategoryRow[] }>) {
+export function BudgetCategoryTable({
+  rows,
+  categories,
+}: Readonly<{ rows: BudgetCategoryRow[]; categories: string[] }>) {
   return (
     <>
       <div className="hidden sm:block">
@@ -64,7 +71,7 @@ export function BudgetCategoryTable({ rows }: Readonly<{ rows: BudgetCategoryRow
                 <TableCell className="text-right">{formatIDR(Number(c.monthlyPlanned))}</TableCell>
                 <TableCell className="text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <BudgetCategoryRowActions item={c} />
+                    <BudgetCategoryRowActions item={c} categories={categories} />
                   </div>
                 </TableCell>
               </TableRow>
@@ -86,7 +93,7 @@ export function BudgetCategoryTable({ rows }: Readonly<{ rows: BudgetCategoryRow
             <MobileRowHeader title={c.name} />
             <p className="text-lg font-semibold">{formatIDR(Number(c.monthlyPlanned))}</p>
             <MobileRowActions>
-              <BudgetCategoryRowActions item={c} />
+              <BudgetCategoryRowActions item={c} categories={categories} />
             </MobileRowActions>
           </MobileRowCard>
         ))}

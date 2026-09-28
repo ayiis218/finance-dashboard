@@ -9,10 +9,14 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MonthlyExpenseChartLazy } from "@/components/charts/monthly-expense-chart-lazy";
+import { NetWorthChartLazy } from "@/components/charts/net-worth-chart-lazy";
+import { NetWorthSnapshotButton } from "@/components/net-worth-snapshot-button";
 import { SummaryStats, type SummaryStatItem } from "@/components/summary-stats";
 import { DateRangeFilter, parseDateRangeParams } from "@/components/date-range-filter";
-import { getDailySummary, getSummary } from "@/lib/queries/dashboard";
+import { SpendingInsightsCard } from "@/components/insights/spending-insights-card";
+import { getDailySummary, getNetWorthHistory, getSummary } from "@/lib/queries/dashboard";
 import { getMonthlyExpenseComparison } from "@/lib/queries/transactions";
+import { getCategorySpendingInsights } from "@/lib/queries/insights";
 import { formatIDR } from "@/lib/format";
 import { format, startOfMonth, subMonths } from "date-fns";
 
@@ -27,10 +31,12 @@ export default async function DashboardPage({
   );
   const rangeLabel = `${format(from, "d MMM yyyy")} – ${format(to, "d MMM yyyy")}`;
 
-  const [summary, daily, monthlyExpense] = await Promise.all([
+  const [summary, daily, monthlyExpense, spendingInsights, netWorthHistory] = await Promise.all([
     getSummary(),
     getDailySummary(),
     getMonthlyExpenseComparison({ from, to }),
+    getCategorySpendingInsights(new Date()),
+    getNetWorthHistory(12),
   ]);
 
   const totalExpenseRange = monthlyExpense.reduce((sum, m) => sum + m.total, 0);
@@ -136,6 +142,21 @@ export default async function DashboardPage({
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
+          <div>
+            <CardTitle>Net Worth History</CardTitle>
+            <CardDescription>12 bulan terakhir</CardDescription>
+          </div>
+          <NetWorthSnapshotButton />
+        </CardHeader>
+        <CardContent>
+          <NetWorthChartLazy data={netWorthHistory} />
+        </CardContent>
+      </Card>
+
+      <SpendingInsightsCard insights={spendingInsights} />
     </div>
   );
 }

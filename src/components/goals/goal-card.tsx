@@ -12,8 +12,10 @@ import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { GoalFormFields } from "@/components/goals/goal-form-fields";
+import { GoalProjectionLine } from "@/components/goals/goal-projection-line";
 import { updateSavingsGoal, deleteSavingsGoal } from "@/lib/actions/goals";
 import type { getSavingsGoals } from "@/lib/queries/goals";
+import { getGoalProjection } from "@/lib/goal-projection";
 import { formatIDR } from "@/lib/format";
 
 type GoalRow = Awaited<ReturnType<typeof getSavingsGoals>>[number];
@@ -24,6 +26,12 @@ export function GoalCard({ goal }: Readonly<{ goal: GoalRow }>) {
   const target = Number(goal.targetAmount);
   const progress = target > 0 ? Math.min(100, (saved / target) * 100) : 0;
   const monthlyTarget = target / goal.tenorMonths;
+  const projection = getGoalProjection({
+    targetAmount: target,
+    tenorMonths: goal.tenorMonths,
+    startDate: goal.startDate,
+    entries: goal.entries.map((e) => ({ amount: Number(e.amount), month: e.month })),
+  });
 
   return (
     <Card className="transition-shadow hover:shadow-md">
@@ -67,6 +75,7 @@ export function GoalCard({ goal }: Readonly<{ goal: GoalRow }>) {
             style={{ width: `${progress}%` }}
           />
         </div>
+        <GoalProjectionLine projection={projection} />
         {goal.items.length > 0 && (
           <p className="text-xs text-muted-foreground">
             {goal.items.length} budget items &middot; total {formatIDR(totalBudgeted)}

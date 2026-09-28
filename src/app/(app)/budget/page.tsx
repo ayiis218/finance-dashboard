@@ -9,6 +9,7 @@ import { BudgetCategoryFormFields } from "@/components/budget/budget-category-fo
 import { BudgetCategoryTable } from "@/components/budget/budget-category-table";
 import { BudgetEntryTable } from "@/components/budget/budget-entry-table";
 import { getBudgetCategories, getBudgetOverview } from "@/lib/queries/budget";
+import { getCategoryNames } from "@/lib/queries/categories";
 import { createBudgetCategory } from "@/lib/actions/budget";
 import { formatIDR } from "@/lib/format";
 
@@ -18,8 +19,9 @@ export default async function BudgetPage({
   const { month: monthParam } = await searchParams;
   const month = monthParam ? parse(monthParam, "yyyy-MM", new Date()) : new Date();
 
-  const [categories, overview] = await Promise.all([
+  const [budgetCategories, categoryNames, overview] = await Promise.all([
     getBudgetCategories(),
+    getCategoryNames(),
     getBudgetOverview(month),
   ]);
 
@@ -43,11 +45,11 @@ export default async function BudgetPage({
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Budget</CardTitle>
           <FormDialog title="Add Category" triggerLabel="Add" action={createBudgetCategory}>
-            <BudgetCategoryFormFields idPrefix="new" />
+            <BudgetCategoryFormFields idPrefix="new" categories={categoryNames} />
           </FormDialog>
         </CardHeader>
         <CardContent>
-          <BudgetCategoryTable rows={categories} />
+          <BudgetCategoryTable rows={budgetCategories} categories={categoryNames} />
         </CardContent>
       </Card>
 

@@ -13,8 +13,16 @@ export type GoalItemFormDefaults = {
 export function GoalItemFormFields({
   idPrefix,
   goalId,
+  categories,
   defaults,
-}: Readonly<{ idPrefix: string; goalId: string; defaults?: GoalItemFormDefaults }>) {
+}: Readonly<{
+  idPrefix: string;
+  goalId: string;
+  categories: string[];
+  defaults?: GoalItemFormDefaults;
+}>) {
+  const datalistId = `goal-item-category-suggestions-${idPrefix}`;
+
   return (
     <>
       <input type="hidden" name="goalId" value={goalId} />
@@ -23,10 +31,16 @@ export function GoalItemFormFields({
         <Input
           id={`category-${idPrefix}`}
           name="category"
+          list={datalistId}
           defaultValue={defaults?.category}
           placeholder="Mahar, Catering, THR, Individual, etc."
           required
         />
+        <datalist id={datalistId}>
+          {categories.map((c) => (
+            <option key={c} value={c} />
+          ))}
+        </datalist>
       </div>
       <div className="space-y-2">
         <Label htmlFor={`name-${idPrefix}`}>Item Name</Label>

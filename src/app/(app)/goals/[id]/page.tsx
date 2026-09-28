@@ -14,6 +14,7 @@ import { DeleteButton } from "@/components/delete-button";
 import { GoalItemStatusBadge } from "@/components/goals/goal-item-status";
 import { GoalItemFormFields } from "@/components/goals/goal-item-form-fields";
 import { getGoalDetail } from "@/lib/queries/goals";
+import { getCategoryNames } from "@/lib/queries/categories";
 import {
   addSavingsGoalEntry,
   createGoalItem,
@@ -30,7 +31,10 @@ export default async function GoalDetailPage({
   params,
 }: Readonly<{ params: Promise<{ id: string }> }>) {
   const { id } = await params;
-  const { goal, categories, totalSaved, totalBudgeted } = await getGoalDetail(id);
+  const [{ goal, categories, totalSaved, totalBudgeted }, categoryNames] = await Promise.all([
+    getGoalDetail(id),
+    getCategoryNames(),
+  ]);
   const target = Number(goal.targetAmount);
   const progress = target > 0 ? Math.min(100, (totalSaved / target) * 100) : 0;
 
@@ -78,7 +82,7 @@ export default async function GoalDetailPage({
             </CardDescription>
           </div>
           <FormDialog title="Add Item" triggerLabel="Add Item" action={createGoalItem}>
-            <GoalItemFormFields idPrefix="new" goalId={goal.id} />
+            <GoalItemFormFields idPrefix="new" goalId={goal.id} categories={categoryNames} />
           </FormDialog>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -116,6 +120,7 @@ export default async function GoalDetailPage({
                         <GoalItemFormFields
                           idPrefix={item.id}
                           goalId={goal.id}
+                          categories={categoryNames}
                           defaults={{
                             category: item.category,
                             name: item.name,

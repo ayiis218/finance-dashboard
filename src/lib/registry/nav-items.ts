@@ -8,6 +8,8 @@ import {
   PiggyBank,
   ClipboardList,
   LineChart,
+  Repeat,
+  Tags,
 } from "lucide-react";
 
 export const navItems = [
@@ -64,5 +66,17 @@ export const navItems = [
     title: "Cashflow Forecast",
     url: ROUTES.cashflow,
     icon: LineChart
+  },
+  {
+    show: true,
+    title: "Recurring",
+    url: ROUTES.recurring,
+    icon: Repeat
+  },
+  {
+    show: true,
+    title: "Categories",
+    url: ROUTES.categories,
+    icon: Tags
   },
 ];

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDay, endOfDay, startOfMonth, subMonths } from "date-fns";
 import { toNumber } from "@/lib/queries/shared";
 import { getReceivablesWithStatus } from "@/lib/queries/receivables";
 
@@ -40,6 +40,41 @@ export async function getSummary() {
     totalReceivables,
     netWorth,
   };
+}
+
+/**
+ * Histori net worth bulanan dari `NetWorthSnapshot` — TIDAK direkonstruksi
+ * mundur dari data lain, karena Asset/Investment diedit langsung (bukan
+ * lewat log transaksi seperti BankAccount). Grafik hanya seakurat sejak
+ * kapan snapshot pertama diambil.
+ */
+export async function getNetWorthHistory(months = 12) {
+  const since = startOfMonth(subMonths(new Date(), months - 1));
+  const snapshots = await prisma.netWorthSnapshot.findMany({
+    where: { date: { gte: since } },
+    orderBy: { date: "asc" },
+  });
+
+  return snapshots.map((s) => ({
+    date: s.date,
+    netWorth: toNumber(s.netWorth),
+  }));
+}
+
+/**
+ * Dipanggil cron bulanan (`/api/cron/snapshot-net-worth`) dan tombol manual
+ * "Ambil Snapshot Sekarang" di dashboard. Upsert by tanggal 1 bulan berjalan
+ * supaya re-run (retry cron, atau klik tombol manual dobel) aman/idempotent.
+ */
+export async function captureNetWorthSnapshot() {
+  const summary = await getSummary();
+  const date = startOfMonth(new Date());
+
+  await prisma.netWorthSnapshot.upsert({
+    where: { date },
+    create: { date, ...summary },
+    update: { ...summary },
+  });
 }
 
 export async function getDailySummary(date: Date = new Date()) {

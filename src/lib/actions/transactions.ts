@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import type { Prisma, TransactionType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { pickFormFields } from "@/lib/form-data";
+import { ensureCategoryExists } from "@/lib/actions/categories";
 
 const transactionSchema = z.object({
   accountId: z.string().min(1),
@@ -40,31 +42,62 @@ function normalizeTransactionData<T extends z.infer<typeof transactionSchema>>(d
   return { ...data, toAccountId };
 }
 
-export async function createTransaction(formData: FormData) {
-  const data = normalizeTransactionData(
-    transactionSchema.parse(pickFormFields(formData, TRANSACTION_FIELDS)),
-  );
+export type TransactionCoreInput = {
+  accountId: string;
+  toAccountId: string | null;
+  type: TransactionType;
+  category: string;
+  amount: number;
+  date: Date;
+  note?: string;
+  affectsBalance: boolean;
+};
 
-  await prisma.$transaction(async (tx) => {
-    await tx.transaction.create({ data });
-    const delta = data.type === "INCOME" ? data.amount : -data.amount;
-    if (data.affectsBalance) {
+/**
+ * Bagian yang butuh dijalankan di dalam SATU transaction DB bareng
+ * pemanggil lain (mis. cron transaksi berulang, yang sekaligus perlu
+ * memajukan `nextRunDate` rule-nya) — makanya menerima `tx` dari luar,
+ * bukan membuka transaction-nya sendiri.
+ */
+export async function createTransactionWithClient(
+  tx: Prisma.TransactionClient,
+  data: TransactionCoreInput,
+) {
+  await ensureCategoryExists(tx, data.category);
+  await tx.transaction.create({ data });
+  const delta = data.type === "INCOME" ? data.amount : -data.amount;
+  if (data.affectsBalance) {
+    await tx.bankAccount.update({
+      where: { id: data.accountId },
+      data: { balance: { increment: delta } },
+    });
+    if (data.type === "TRANSFER" && data.toAccountId) {
       await tx.bankAccount.update({
-        where: { id: data.accountId },
-        data: { balance: { increment: delta } },
+        where: { id: data.toAccountId },
+        data: { balance: { increment: data.amount } },
       });
-      if (data.type === "TRANSFER" && data.toAccountId) {
-        await tx.bankAccount.update({
-          where: { id: data.toAccountId },
-          data: { balance: { increment: data.amount } },
-        });
-      }
     }
-  });
+  }
+}
+
+/**
+ * Logic inti pembuatan transaksi berdiri sendiri (buka transaction-nya
+ * sendiri) — dipisah dari parsing `FormData` supaya bisa dipanggil ulang
+ * oleh pemanggil non-form yang tidak butuh `tx` bersama.
+ */
+export async function createTransactionCore(data: TransactionCoreInput) {
+  await prisma.$transaction((tx) => createTransactionWithClient(tx, data));
 
   revalidatePath("/transactions");
   revalidatePath("/accounts");
   revalidatePath("/");
+}
+
+export async function createTransaction(formData: FormData) {
+  const data = normalizeTransactionData(
+    transactionSchema.parse(pickFormFields(formData, TRANSACTION_FIELDS)),
+  );
+  await createTransactionCore(data);
 }
 
 export async function updateTransaction(id: string, formData: FormData) {
@@ -188,7 +221,12 @@ export async function importTransactions(
     }
   }
 
+  const categoryNames = [...new Set(data.map((r) => r.category))];
+
   await prisma.$transaction(async (tx) => {
+    for (const name of categoryNames) {
+      await ensureCategoryExists(tx, name);
+    }
     await tx.transaction.createMany({
       data: data.map((r) => ({
         accountId: r.accountId,

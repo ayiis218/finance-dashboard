@@ -94,7 +94,22 @@ export async function createGoalItem(formData: FormData) {
 
 export async function updateGoalItem(id: string, goalId: string, formData: FormData) {
   const data = goalItemSchema.parse(pickFormFields(formData, GOAL_ITEM_FIELDS));
-  await prisma.goalItem.update({ where: { id }, data });
+  const old = await prisma.goalItem.findUniqueOrThrow({ where: { id } });
+
+  // Kalau item ini PAID dan `actualAmount`-nya dulu cuma hasil auto-backfill
+  // dari budget lama (belum pernah disunting manual ke nilai lain), dan form
+  // ini submit actualAmount yang sama persis (user tidak sengaja ubah field
+  // Actual, cuma budgetAmount-nya) — ikut sesuaikan actualAmount ke budget
+  // baru. Kalau user pernah sengaja set actual beda dari budget, nilai itu
+  // tetap dijaga apa adanya.
+  const actualAmount =
+    old.status === "PAID" &&
+    Number(old.actualAmount) === Number(old.budgetAmount) &&
+    data.actualAmount === Number(old.actualAmount)
+      ? data.budgetAmount
+      : data.actualAmount;
+
+  await prisma.goalItem.update({ where: { id }, data: { ...data, actualAmount } });
   await syncGoalTargetToItems(goalId);
   revalidatePath(`/goals/${goalId}`);
   revalidatePath("/goals");

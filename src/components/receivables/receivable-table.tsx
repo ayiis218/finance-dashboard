@@ -57,6 +57,7 @@ function ReceivableRepayment({ item }: Readonly<{ item: ReceivableRow }>) {
         note: p.note,
       }))}
       remaining={item.remaining}
+      isSettled={item.status === "SETTLED"}
       createAction={createRepaymentEntry}
       deleteAction={deleteRepaymentEntry}
     />

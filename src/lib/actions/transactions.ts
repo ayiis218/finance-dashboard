@@ -106,6 +106,7 @@ export async function updateTransaction(id: string, formData: FormData) {
   );
 
   await prisma.$transaction(async (tx) => {
+    await ensureCategoryExists(tx, data.category);
     const old = await tx.transaction.findUniqueOrThrow({ where: { id } });
 
     if (old.affectsBalance) {

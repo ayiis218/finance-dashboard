@@ -58,6 +58,7 @@ export function GoalCard({ goal }: Readonly<{ goal: GoalRow }>) {
                 tenorMonths: goal.tenorMonths,
                 startDate: format(goal.startDate, "yyyy-MM-dd"),
                 hasItems: goal.items.length > 0,
+                autoTarget: goal.autoTarget,
               }}
             />
           </FormDialog>

@@ -1,4 +1,4 @@
-import { startOfYear } from "date-fns";
+import { startOfYear, subMonths } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { toNumber } from "@/lib/queries/shared";
 
@@ -17,7 +17,22 @@ export async function getCashflowAllocationTemplate() {
   };
 }
 
-export async function getCashflowYearOverview(year: number) {
+/**
+ * Default `saldoAwal` untuk bulan yang belum dimaterialisasi — saldo akhir
+ * bulan sebelumnya (aktual kalau sudah diisi, else proyeksi/expected), bukan
+ * literal 0. `maxLookbackYears` membatasi rekursi lintas tahun (Januari yang
+ * butuh Desember tahun sebelumnya) supaya tidak looping mundur tanpa batas
+ * kalau dipanggil untuk tahun yang jauh sebelum data pertama pernah ada.
+ */
+export async function getCarryForwardSaldoAwal(month: Date, maxLookbackYears = 5): Promise<number> {
+  if (maxLookbackYears <= 0) return 0;
+  const prevMonth = subMonths(month, 1);
+  const overview = await getCashflowYearOverview(prevMonth.getFullYear(), maxLookbackYears - 1);
+  const prevRow = overview.rows[prevMonth.getMonth()];
+  return prevRow.saldoAkhirActual ?? prevRow.saldoAkhirExpected;
+}
+
+export async function getCashflowYearOverview(year: number, maxLookbackYears = 5) {
   const yearStart = startOfYear(new Date(year, 0, 1));
   const yearEnd = startOfYear(new Date(year + 1, 0, 1));
 
@@ -30,10 +45,37 @@ export async function getCashflowYearOverview(year: number) {
   ]);
   const forecastByMonth = new Map(forecasts.map((f) => [f.month.getMonth(), f]));
 
-  const rows = Array.from({ length: 12 }, (_, m) => {
+  // Loop sekuensial (bukan Array.from stateless) supaya bulan ke-m bisa baca
+  // saldo akhir bulan ke-(m-1) yang BARU dihitung dalam pemanggilan yang
+  // sama — carry-forward tanpa query tambahan untuk 11 dari 12 bulan.
+  const rows: {
+    id: string | null;
+    month: Date;
+    saldoAwal: number;
+    monthlyIncome: number;
+    totalBudget: number;
+    amountSave: number;
+    saldoAkhirExpected: number;
+    saldoAkhirActual: number | null;
+    variance: number | null;
+    itemCount: number;
+    isDefaultTemplate: boolean;
+  }[] = [];
+
+  for (let m = 0; m < 12; m++) {
     const stored = forecastByMonth.get(m);
     const isDefaultTemplate = !stored;
-    const saldoAwal = stored ? toNumber(stored.saldoAwal) : 0;
+
+    let saldoAwal: number;
+    if (stored) {
+      saldoAwal = toNumber(stored.saldoAwal);
+    } else if (m === 0) {
+      saldoAwal = await getCarryForwardSaldoAwal(new Date(year, 0, 1), maxLookbackYears);
+    } else {
+      const prev = rows[m - 1];
+      saldoAwal = prev.saldoAkhirActual ?? prev.saldoAkhirExpected;
+    }
+
     const monthlyIncome = stored ? toNumber(stored.monthlyIncome) : template.monthlyIncome;
     const totalBudget = stored
       ? stored.budgetItems.reduce((sum, i) => sum + toNumber(i.amount), 0)
@@ -43,7 +85,7 @@ export async function getCashflowYearOverview(year: number) {
     const saldoAkhirActual = stored?.saldoAkhirActual != null ? toNumber(stored.saldoAkhirActual) : null;
     const variance = saldoAkhirActual != null ? saldoAkhirActual - saldoAkhirExpected : null;
 
-    return {
+    rows.push({
       id: stored?.id ?? null,
       month: new Date(year, m, 1),
       saldoAwal,
@@ -55,8 +97,8 @@ export async function getCashflowYearOverview(year: number) {
       variance,
       itemCount: stored ? stored.budgetItems.length : template.items.length,
       isDefaultTemplate,
-    };
-  });
+    });
+  }
 
   return { year, rows };
 }
@@ -71,7 +113,9 @@ export async function getCashflowMonthDetail(month: Date) {
   ]);
   const isDefaultTemplate = !stored;
 
-  const saldoAwal = stored ? toNumber(stored.saldoAwal) : 0;
+  const saldoAwal = stored
+    ? toNumber(stored.saldoAwal)
+    : await getCarryForwardSaldoAwal(month);
   const monthlyIncome = stored ? toNumber(stored.monthlyIncome) : template.monthlyIncome;
   const budgetItems = stored
     ? stored.budgetItems.map((i) => ({ id: i.id, label: i.label, amount: toNumber(i.amount) }))

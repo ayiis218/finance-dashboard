@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { usePrivacyMode } from "@/components/privacy-mode";
 
 export type SummaryStatItem = {
   label: string;
@@ -12,10 +13,15 @@ export type SummaryStatItem = {
   tone?: "default" | "positive" | "negative" | "highlight";
 };
 
+const MASK = "••••••";
+
 export function SummaryStats({
   items,
   compact = false,
 }: Readonly<{ items: SummaryStatItem[]; compact?: boolean }>) {
+  const { hidden } = usePrivacyMode();
+  const mask = (text: string) => (hidden ? MASK : text);
+
   if (compact) {
     return (
       <div className="flex flex-col divide-y rounded-lg border bg-card sm:flex-row sm:divide-x sm:divide-y-0">
@@ -34,10 +40,10 @@ export function SummaryStats({
                   item.tone === "highlight" && "text-primary",
                 )}
               >
-                {item.value}
+                {mask(item.value)}
               </span>
               {item.sublabel && (
-                <span className="text-[11px] text-muted-foreground">{item.sublabel}</span>
+                <span className="text-[11px] text-muted-foreground">{mask(item.sublabel)}</span>
               )}
             </span>
           </div>
@@ -87,10 +93,10 @@ export function SummaryStats({
                   item.tone === "negative" && "text-destructive",
                 )}
               >
-                {item.value}
+                {mask(item.value)}
               </p>
               {item.sublabel && (
-                <p className="mt-1 text-xs text-muted-foreground">{item.sublabel}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{mask(item.sublabel)}</p>
               )}
             </CardContent>
           </Card>

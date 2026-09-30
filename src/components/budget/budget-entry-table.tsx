@@ -72,8 +72,8 @@ export function BudgetEntryTable({
                       <TableCell />
                       <TableCell className="text-center">
                         <FormDialog
-                          title={`Fill Actuals — ${row.categoryName}`}
-                          triggerLabel="Fill Actuals"
+                          title={`Fill Targets — ${row.categoryName}`}
+                          triggerLabel="Fill Targets"
                           triggerVariant="outline"
                           action={createBudgetEntry}
                         >
@@ -104,7 +104,7 @@ export function BudgetEntryTable({
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-1">
                           <FormDialog
-                            title={`Edit Actuals — ${row.categoryName}`}
+                            title={`Edit Targets — ${row.categoryName}`}
                             triggerIcon={<Pencil className="size-4" />}
                             triggerVariant="ghost"
                             triggerSize="icon"
@@ -114,7 +114,6 @@ export function BudgetEntryTable({
                               idPrefix={row.entryId}
                               defaults={{
                                 expectation: row.expectation,
-                                actual: row.actual,
                                 minTarget: row.minTarget,
                                 maxTarget: row.maxTarget,
                               }}
@@ -152,8 +151,8 @@ export function BudgetEntryTable({
               {row.entryId === null ? (
                 <MobileRowActions>
                   <FormDialog
-                    title={`Fill Actuals — ${row.categoryName}`}
-                    triggerLabel="Fill Actuals"
+                    title={`Fill Targets — ${row.categoryName}`}
+                    triggerLabel="Fill Targets"
                     triggerVariant="outline"
                     action={createBudgetEntry}
                   >
@@ -176,7 +175,7 @@ export function BudgetEntryTable({
                   />
                   <MobileRowActions>
                     <FormDialog
-                      title={`Edit Actuals — ${row.categoryName}`}
+                      title={`Edit Targets — ${row.categoryName}`}
                       triggerIcon={<Pencil className="size-4" />}
                       triggerVariant="ghost"
                       triggerSize="icon"
@@ -186,7 +185,6 @@ export function BudgetEntryTable({
                         idPrefix={row.entryId}
                         defaults={{
                           expectation: row.expectation,
-                          actual: row.actual,
                           minTarget: row.minTarget,
                           maxTarget: row.maxTarget,
                         }}

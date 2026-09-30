@@ -23,6 +23,7 @@ import { getInvestmentYearOverview } from "@/lib/queries/investment-targets";
 import { createInvestment } from "@/lib/actions/investments";
 import { setInvestmentYearlyTarget } from "@/lib/actions/investment-targets";
 import { createInvestmentEntry } from "@/lib/actions/investment-entries";
+import { calculateXIRR } from "@/lib/xirr";
 import { formatIDR } from "@/lib/format";
 
 export default async function InvestmentsPage({
@@ -60,6 +61,27 @@ export default async function InvestmentsPage({
   const gainLoss = totalCurrentValue - totalBuyValue;
   const gainLossPct = totalBuyValue > 0 ? (gainLoss / totalBuyValue) * 100 : 0;
 
+  // Cash-flow gabungan seluruh portfolio buat XIRR: tiap InvestmentEntry =
+  // kontribusi keluar (negatif) di tanggalnya sendiri. Residual
+  // `buyValue - sum(entries)` diperlakukan sebagai satu kontribusi implisit
+  // di tanggal `createdAt` — mengakomodasi modal awal yang di-set langsung
+  // saat create (buyValue TIDAK selalu sama dengan sum entries, karena bisa
+  // diedit bebas lewat updateInvestment). Satu cash-flow masuk (positif) di
+  // hari ini mewakili nilai kalau seluruh portfolio dicairkan sekarang.
+  const investmentCashFlows = investments.flatMap((inv) => {
+    const entryTotal = inv.entries.reduce((sum, e) => sum + Number(e.amount), 0);
+    const residual = Number(inv.buyValue) - entryTotal;
+    const flows = inv.entries.map((e) => ({ date: e.month, amount: -Number(e.amount) }));
+    if (Math.abs(residual) > 0.01) {
+      flows.push({ date: inv.createdAt, amount: -residual });
+    }
+    return flows;
+  });
+  const portfolioXIRR =
+    totalCurrentValue > 0
+      ? calculateXIRR([...investmentCashFlows, { date: new Date(), amount: totalCurrentValue }])
+      : null;
+
   const summaryItems = [
     { label: "Total Invested", value: formatIDR(totalBuyValue) },
     { label: "Total Current Value", value: formatIDR(totalCurrentValue), tone: "highlight" as const },
@@ -68,6 +90,12 @@ export default async function InvestmentsPage({
       value: `${gainLoss >= 0 ? "+" : ""}${formatIDR(gainLoss)}`,
       sublabel: `${gainLossPct >= 0 ? "+" : ""}${gainLossPct.toFixed(1)}%`,
       tone: gainLoss >= 0 ? ("positive" as const) : ("negative" as const),
+    },
+    {
+      label: "Return (XIRR)",
+      value: portfolioXIRR != null ? `${(portfolioXIRR * 100).toFixed(1)}%/tahun` : "N/A",
+      tone:
+        portfolioXIRR == null ? undefined : portfolioXIRR >= 0 ? ("positive" as const) : ("negative" as const),
     },
   ];
 

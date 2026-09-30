@@ -37,7 +37,6 @@ export async function deleteBudgetCategory(id: string) {
 const budgetEntrySchema = z.object({
   categoryId: z.string().min(1),
   month: z.coerce.date(),
-  actual: z.coerce.number().nonnegative(),
   expectation: z.coerce.number().nonnegative(),
   minTarget: z.coerce.number().nonnegative().optional(),
   maxTarget: z.coerce.number().nonnegative().optional(),
@@ -48,7 +47,9 @@ const budgetEntryUpdateSchema = budgetEntrySchema.omit({
   month: true,
 });
 
-const BUDGET_ENTRY_AMOUNT_FIELDS = ["actual", "expectation", "minTarget", "maxTarget"] as const;
+// `actual` sengaja tidak lagi di sini — dihitung otomatis dari Transaction
+// sungguhan di getBudgetOverview(), bukan diketik manual lewat form ini.
+const BUDGET_ENTRY_AMOUNT_FIELDS = ["expectation", "minTarget", "maxTarget"] as const;
 
 export async function createBudgetEntry(formData: FormData) {
   const data = budgetEntrySchema.parse(

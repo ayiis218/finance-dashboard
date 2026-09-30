@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { pickFormFields } from "@/lib/form-data";
+import { getCarryForwardSaldoAwal } from "@/lib/queries/cashflow";
 
 function revalidateCashflow(month: Date) {
   revalidatePath("/cashflow");
@@ -41,7 +42,7 @@ async function materializeForecast(
   const forecast = await prisma.cashflowForecast.create({
     data: {
       month,
-      saldoAwal: overrides?.saldoAwal ?? 0,
+      saldoAwal: overrides?.saldoAwal ?? (await getCarryForwardSaldoAwal(month)),
       monthlyIncome: overrides?.monthlyIncome ?? template.monthlyIncome,
       saldoAkhirActual: overrides?.saldoAkhirActual ?? null,
       budgetItems: {

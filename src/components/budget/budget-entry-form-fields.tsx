@@ -3,7 +3,6 @@ import { NumberInput } from "@/components/number-input";
 
 export type BudgetEntryFormDefaults = {
   expectation?: number;
-  actual?: number;
   minTarget?: number | null;
   maxTarget?: number | null;
 };
@@ -29,15 +28,6 @@ export function BudgetEntryFormFields({
           id={`expectation-${idPrefix}`}
           name="expectation"
           defaultValue={defaults?.expectation}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor={`actual-${idPrefix}`}>Actual</Label>
-        <NumberInput
-          id={`actual-${idPrefix}`}
-          name="actual"
-          defaultValue={defaults?.actual}
           required
         />
       </div>

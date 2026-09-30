@@ -5,5 +5,6 @@ export const config: VercelConfig = {
     { path: "/api/cron/snapshot-net-worth", schedule: "0 0 1 * *" },
     { path: "/api/cron/run-recurring-transactions", schedule: "0 1 * * *" },
     { path: "/api/cron/send-weekly-reminder", schedule: "0 12 * * 0" },
+    { path: "/api/cron/check-budget-alerts", schedule: "0 13 * * 0" },
   ],
 };

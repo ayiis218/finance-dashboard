@@ -11,9 +11,16 @@ const savingsGoalSchema = z.object({
   targetAmount: z.coerce.number().positive(),
   tenorMonths: z.coerce.number().int().positive(),
   startDate: z.coerce.date(),
+  autoTarget: z.string().optional().transform((v) => v === "on"),
 });
 
-const SAVINGS_GOAL_FIELDS = ["name", "targetAmount", "tenorMonths", "startDate"] as const;
+const SAVINGS_GOAL_FIELDS = [
+  "name",
+  "targetAmount",
+  "tenorMonths",
+  "startDate",
+  "autoTarget",
+] as const;
 
 export async function createSavingsGoal(formData: FormData) {
   const data = savingsGoalSchema.parse(pickFormFields(formData, SAVINGS_GOAL_FIELDS));
@@ -52,13 +59,17 @@ export async function addSavingsGoalEntry(formData: FormData) {
 /**
  * Once a goal has itemized budget rows, those rows — not the number typed
  * into the goal form — define the real target, so every item mutation
- * re-derives `targetAmount` from their sum. A goal with no items keeps
- * whatever target was entered manually.
+ * re-derives `targetAmount` from their sum. A goal with no items, or one
+ * with `autoTarget` turned off (a manually-set target kept as a deliberate
+ * buffer above the itemized sum), keeps whatever target was entered manually.
  */
 async function syncGoalTargetToItems(goalId: string) {
-  const items = await prisma.goalItem.findMany({ where: { goalId } });
-  if (items.length === 0) return;
-  const total = items.reduce((sum, i) => sum + Number(i.budgetAmount), 0);
+  const goal = await prisma.savingsGoal.findUniqueOrThrow({
+    where: { id: goalId },
+    include: { items: true },
+  });
+  if (!goal.autoTarget || goal.items.length === 0) return;
+  const total = goal.items.reduce((sum, i) => sum + Number(i.budgetAmount), 0);
   await prisma.savingsGoal.update({
     where: { id: goalId },
     data: { targetAmount: total },
@@ -94,7 +105,22 @@ export async function createGoalItem(formData: FormData) {
 
 export async function updateGoalItem(id: string, goalId: string, formData: FormData) {
   const data = goalItemSchema.parse(pickFormFields(formData, GOAL_ITEM_FIELDS));
-  await prisma.goalItem.update({ where: { id }, data });
+  const old = await prisma.goalItem.findUniqueOrThrow({ where: { id } });
+
+  // Kalau item ini PAID dan `actualAmount`-nya dulu cuma hasil auto-backfill
+  // dari budget lama (belum pernah disunting manual ke nilai lain), dan form
+  // ini submit actualAmount yang sama persis (user tidak sengaja ubah field
+  // Actual, cuma budgetAmount-nya) — ikut sesuaikan actualAmount ke budget
+  // baru. Kalau user pernah sengaja set actual beda dari budget, nilai itu
+  // tetap dijaga apa adanya.
+  const actualAmount =
+    old.status === "PAID" &&
+    Number(old.actualAmount) === Number(old.budgetAmount) &&
+    data.actualAmount === Number(old.actualAmount)
+      ? data.budgetAmount
+      : data.actualAmount;
+
+  await prisma.goalItem.update({ where: { id }, data: { ...data, actualAmount } });
   await syncGoalTargetToItems(goalId);
   revalidatePath(`/goals/${goalId}`);
   revalidatePath("/goals");

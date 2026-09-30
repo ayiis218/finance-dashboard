@@ -1,13 +1,27 @@
 import webpush from "web-push";
 import { prisma } from "@/lib/prisma";
 
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT!,
-  process.env.VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!,
-);
-
 type PushPayload = { title: string; body: string; url?: string };
+
+let vapidConfigured = false;
+
+/**
+ * Lazy, bukan dipanggil di level module — kalau env VAPID belum di-set (mis.
+ * belum sempat diisi di Vercel), import file ini saja tidak boleh langsung
+ * crash seluruh route yang memakainya. Dicek tiap panggilan `sendPushToAll`
+ * alih-alih sekali di top-level.
+ */
+function ensureVapidConfigured() {
+  if (vapidConfigured) return;
+  const { VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY } = process.env;
+  if (!VAPID_SUBJECT || !VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+    throw new Error(
+      "VAPID_SUBJECT/VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY belum di-set — push notification tidak bisa dikirim.",
+    );
+  }
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  vapidConfigured = true;
+}
 
 /**
  * Kirim ke semua device/browser yang subscribe (app single-user, tidak ada
@@ -16,6 +30,7 @@ type PushPayload = { title: string; body: string; url?: string };
  * DB — pembersihan standar Web Push, subscription lain tetap lanjut kirim.
  */
 export async function sendPushToAll(payload: PushPayload) {
+  ensureVapidConfigured();
   const subscriptions = await prisma.pushSubscription.findMany();
   const body = JSON.stringify(payload);
 

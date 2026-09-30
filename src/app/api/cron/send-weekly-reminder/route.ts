@@ -17,11 +17,18 @@ export async function GET(req: NextRequest) {
   const count = await prisma.transaction.count({ where: { date: range } });
 
   if (count === 0) {
-    await sendPushToAll({
-      title: "Belum ada transaksi minggu ini",
-      body: "Yuk catat pengeluaran/pemasukan minggu ini biar datanya lengkap.",
-      url: "/transactions",
-    });
+    try {
+      await sendPushToAll({
+        title: "Belum ada transaksi minggu ini",
+        body: "Yuk catat pengeluaran/pemasukan minggu ini biar datanya lengkap.",
+        url: "/transactions",
+      });
+    } catch (err) {
+      return NextResponse.json(
+        { ok: false, error: err instanceof Error ? err.message : "Failed to send push" },
+        { status: 500 },
+      );
+    }
   }
 
   return NextResponse.json({ ok: true, transactionCount: count, notified: count === 0 });

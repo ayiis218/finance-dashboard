@@ -1,21 +1,35 @@
 import { prisma } from "@/lib/prisma";
-import { startOfMonth } from "date-fns";
+import { startOfMonth, endOfMonth } from "date-fns";
 import { toNumber } from "@/lib/queries/shared";
+import { getCategoryBreakdown } from "@/lib/queries/transactions";
 
 export async function getBudgetCategories() {
   return prisma.budgetCategory.findMany({ orderBy: { name: "asc" } });
 }
 
+/**
+ * `actual` dihitung otomatis dari Transaction sungguhan (EXPENSE + TRANSFER
+ * keluar eksternal — definisi "spending" yang sama dengan breakdown kategori
+ * di tempat lain), bukan lagi diketik manual — lihat `BudgetEntry.actual` di
+ * schema, kolomnya sengaja dibiarkan ada tapi tidak dibaca/ditulis lagi.
+ */
 export async function getBudgetOverview(month: Date) {
   const start = startOfMonth(month);
-  const categories = await prisma.budgetCategory.findMany({
-    orderBy: { name: "asc" },
-    include: { entries: { where: { month: start } } },
-  });
+  const end = endOfMonth(month);
+
+  const [categories, breakdown] = await Promise.all([
+    prisma.budgetCategory.findMany({
+      orderBy: { name: "asc" },
+      include: { entries: { where: { month: start } } },
+    }),
+    getCategoryBreakdown({ from: start, to: end }),
+  ]);
+
+  const actualByCategory = new Map(breakdown.spendingDetailed.map((s) => [s.category, s.total]));
 
   const rows = categories.map((c) => {
     const entry = c.entries[0] ?? null;
-    const actual = entry ? toNumber(entry.actual) : 0;
+    const actual = actualByCategory.get(c.name) ?? 0;
     const expectation = entry ? toNumber(entry.expectation) : 0;
     return {
       categoryId: c.id,

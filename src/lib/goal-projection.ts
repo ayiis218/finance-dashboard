@@ -25,8 +25,19 @@ export function getGoalProjection(goal: {
     return { monthlyRate: 0, projectedDate: null, status: "achieved" };
   }
 
-  const monthsElapsed = Math.max(1, differenceInCalendarMonths(new Date(), goal.startDate));
-  const monthlyRate = totalSaved / monthsElapsed;
+  const monthsElapsedRaw = differenceInCalendarMonths(new Date(), goal.startDate);
+  if (monthsElapsedRaw < 0) {
+    // startDate di masa depan — goal belum mulai berjalan, belum ada pace yang bisa diukur.
+    return { monthlyRate: 0, projectedDate: null, status: "no-data" };
+  }
+
+  // Entri sebelum startDate (pre-funding/salah input) tidak dihitung ke pace —
+  // pace cuma representatif kalau diukur dari kontribusi setelah goal resmi mulai.
+  const savedSinceStart = goal.entries
+    .filter((e) => e.month >= goal.startDate)
+    .reduce((sum, e) => sum + e.amount, 0);
+  const monthsElapsed = Math.max(1, monthsElapsedRaw);
+  const monthlyRate = savedSinceStart / monthsElapsed;
 
   if (monthlyRate <= 0) {
     return { monthlyRate, projectedDate: null, status: "no-data" };

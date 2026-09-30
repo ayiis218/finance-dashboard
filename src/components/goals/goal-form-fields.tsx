@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { NumberInput } from "@/components/number-input";
 
 export type GoalFormDefaults = {
@@ -8,6 +9,7 @@ export type GoalFormDefaults = {
   tenorMonths?: number;
   startDate?: string;
   hasItems?: boolean;
+  autoTarget?: boolean;
 };
 
 export function GoalFormFields({
@@ -35,10 +37,16 @@ export function GoalFormFields({
           required
         />
         {defaults?.hasItems && (
-          <p className="text-xs text-muted-foreground">
-            Goal ini punya rincian anggaran — target akan otomatis menyesuaikan lagi begitu
-            rincian ditambah/dihapus.
-          </p>
+          <div className="space-y-1.5 pt-1">
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <Checkbox name="autoTarget" defaultChecked={defaults?.autoTarget ?? true} />
+              Target otomatis mengikuti total rincian anggaran
+            </label>
+            <p className="pl-6 text-xs text-muted-foreground">
+              Aktif = target di atas otomatis menyesuaikan tiap rincian ditambah/diubah/dihapus.
+              Matikan kalau target sengaja dibuat lebih besar sebagai buffer.
+            </p>
+          </div>
         )}
       </div>
       <div className="space-y-2">

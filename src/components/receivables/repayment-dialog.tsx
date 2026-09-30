@@ -22,12 +22,14 @@ export function RepaymentDialog({
   receivableId,
   payments,
   remaining,
+  isSettled,
   createAction,
   deleteAction,
 }: Readonly<{
   receivableId: string;
   payments: Payment[];
   remaining: number;
+  isSettled: boolean;
   createAction: (formData: FormData) => Promise<void>;
   deleteAction: (id: string) => Promise<void>;
 }>) {
@@ -81,7 +83,7 @@ export function RepaymentDialog({
           ))}
         </div>
 
-        {remaining > 0 && (
+        {remaining > 0 && !isSettled && (
           <form
             className="space-y-3 border-t pt-3"
             action={(formData) => {

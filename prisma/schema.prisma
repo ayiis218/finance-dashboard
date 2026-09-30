@@ -273,7 +273,8 @@ model CashflowAllocationTemplateItem {
 model SavingsGoal {
   id           String             @id @default(cuid())
   name         String // "Wedding", "Eid 2026", dll
-  targetAmount Decimal // otomatis mengikuti total GoalItem jika sudah ada rincian
+  targetAmount Decimal // otomatis mengikuti total GoalItem kalau autoTarget true & sudah ada rincian
+  autoTarget   Boolean            @default(true) // false = targetAmount dikunci manual, tidak ikut sum item
   tenorMonths  Int
   startDate    DateTime
   entries      SavingsGoalEntry[]

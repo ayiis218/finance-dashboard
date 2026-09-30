@@ -43,6 +43,7 @@ export default async function DashboardPage({
   const totalExpenseRange = monthlyExpense.reduce((sum, m) => sum + m.total, 0);
   const avgExpensePerMonth =
     monthlyExpense.length > 0 ? totalExpenseRange / monthlyExpense.length : 0;
+  const runwayMonths = avgExpensePerMonth > 0 ? summary.totalBalance / avgExpensePerMonth : null;
 
   const netWorthItem: SummaryStatItem[] = [
     {
@@ -61,6 +62,18 @@ export default async function DashboardPage({
       label: "Total Debt",
       value: formatIDR(summary.totalDebt),
       tone: summary.totalDebt > 0 ? "negative" : "default",
+    },
+    {
+      label: "Runway",
+      value: runwayMonths != null ? `${runwayMonths.toFixed(1)} bulan` : "N/A",
+      tone:
+        runwayMonths == null
+          ? "default"
+          : runwayMonths >= 3
+            ? "positive"
+            : runwayMonths < 1
+              ? "negative"
+              : "default",
     },
   ];
 

@@ -64,7 +64,8 @@ export default async function CashflowPage({
             <CardTitle>Default Monthly Allocation</CardTitle>
             <CardDescription>
               Starting point for months you haven&apos;t saved yet — editing this never changes
-              months already saved.
+              months already saved. Label di sini independen dari kategori di halaman Budget —
+              keduanya memang dua konsep perencanaan yang terpisah.
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -134,6 +135,11 @@ export default async function CashflowPage({
       <Card>
         <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
           <CardTitle>Cashflow Forecast</CardTitle>
+          <CardDescription>
+            Proyeksi alokasi gaji tahunan (whole-paycheck) per bulan — independen dari kategori
+            transaksi, untuk gambaran besar arus kas sepanjang tahun, bukan pengganti halaman
+            Budget.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <YearNav year={year} baseHref="/cashflow" />

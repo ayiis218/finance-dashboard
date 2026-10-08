@@ -43,7 +43,13 @@ export default async function BudgetPage({
       <SummaryStats items={summaryItems} compact />
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Budget</CardTitle>
+          <div>
+            <CardTitle>Budget</CardTitle>
+            <CardDescription>
+              Rencana &amp; aktual pengeluaran per kategori, per bulan — &quot;Actual&quot;
+              dihitung otomatis dari transaksi yang sudah dicatat.
+            </CardDescription>
+          </div>
           <FormDialog title="Add Category" triggerLabel="Add" action={createBudgetCategory}>
             <BudgetCategoryFormFields idPrefix="new" categories={categoryNames} />
           </FormDialog>

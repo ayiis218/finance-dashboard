@@ -17,6 +17,88 @@ export async function getCashflowAllocationTemplate() {
   };
 }
 
+export type CashflowYearRow = {
+  id: string | null;
+  month: Date;
+  saldoAwal: number;
+  monthlyIncome: number;
+  totalBudget: number;
+  amountSave: number;
+  saldoAkhirExpected: number;
+  saldoAkhirActual: number | null;
+  variance: number | null;
+  itemCount: number;
+  isDefaultTemplate: boolean;
+};
+
+type StoredForecastRow = {
+  id: string;
+  saldoAwal: number;
+  monthlyIncome: number;
+  saldoAkhirActual: number | null;
+  budgetItems: { amount: number }[];
+};
+
+type AllocationTemplate = { monthlyIncome: number; items: { amount: number }[] };
+
+/**
+ * Pure month-by-month builder — tidak menyentuh DB sama sekali, supaya bisa
+ * ditest tanpa mocking Prisma. Menerima data yang SUDAH di-fetch (forecast
+ * per index bulan 0-11, template alokasi) plus `januaryCarryForward` yang
+ * sudah diresolve oleh caller (satu-satunya default yang bisa datang dari
+ * TAHUN LAIN, jadi tidak bisa di-derive murni dari array 12 bulan ini saja).
+ * 11 bulan lainnya cascade dari baris sebelumnya yang baru dihitung di loop
+ * yang sama.
+ */
+export function computeCashflowYearRows(
+  year: number,
+  forecastByMonth: Map<number, StoredForecastRow>,
+  template: AllocationTemplate,
+  januaryCarryForward: number,
+): CashflowYearRow[] {
+  const rows: CashflowYearRow[] = [];
+
+  for (let m = 0; m < 12; m++) {
+    const stored = forecastByMonth.get(m);
+    const isDefaultTemplate = !stored;
+
+    let saldoAwal: number;
+    if (stored) {
+      saldoAwal = stored.saldoAwal;
+    } else if (m === 0) {
+      saldoAwal = januaryCarryForward;
+    } else {
+      const prev = rows[m - 1];
+      saldoAwal = prev.saldoAkhirActual ?? prev.saldoAkhirExpected;
+    }
+
+    const monthlyIncome = stored ? stored.monthlyIncome : template.monthlyIncome;
+    const totalBudget = stored
+      ? stored.budgetItems.reduce((sum, i) => sum + i.amount, 0)
+      : template.items.reduce((sum, i) => sum + i.amount, 0);
+    const amountSave = monthlyIncome - totalBudget;
+    const saldoAkhirExpected = saldoAwal + amountSave;
+    const saldoAkhirActual = stored?.saldoAkhirActual ?? null;
+    const variance = saldoAkhirActual != null ? saldoAkhirActual - saldoAkhirExpected : null;
+
+    rows.push({
+      id: stored?.id ?? null,
+      month: new Date(year, m, 1),
+      saldoAwal,
+      monthlyIncome,
+      totalBudget,
+      amountSave,
+      saldoAkhirExpected,
+      saldoAkhirActual,
+      variance,
+      itemCount: stored ? stored.budgetItems.length : template.items.length,
+      isDefaultTemplate,
+    });
+  }
+
+  return rows;
+}
+
 /**
  * Default `saldoAwal` untuk bulan yang belum dimaterialisasi — saldo akhir
  * bulan sebelumnya (aktual kalau sudah diisi, else proyeksi/expected), bukan
@@ -43,63 +125,25 @@ export async function getCashflowYearOverview(year: number, maxLookbackYears = 5
     }),
     getCashflowAllocationTemplate(),
   ]);
-  const forecastByMonth = new Map(forecasts.map((f) => [f.month.getMonth(), f]));
+  const forecastByMonth = new Map<number, StoredForecastRow>(
+    forecasts.map((f) => [
+      f.month.getMonth(),
+      {
+        id: f.id,
+        saldoAwal: toNumber(f.saldoAwal),
+        monthlyIncome: toNumber(f.monthlyIncome),
+        saldoAkhirActual: f.saldoAkhirActual != null ? toNumber(f.saldoAkhirActual) : null,
+        budgetItems: f.budgetItems.map((i) => ({ amount: toNumber(i.amount) })),
+      },
+    ]),
+  );
 
-  // Loop sekuensial (bukan Array.from stateless) supaya bulan ke-m bisa baca
-  // saldo akhir bulan ke-(m-1) yang BARU dihitung dalam pemanggilan yang
-  // sama — carry-forward tanpa query tambahan untuk 11 dari 12 bulan.
-  const rows: {
-    id: string | null;
-    month: Date;
-    saldoAwal: number;
-    monthlyIncome: number;
-    totalBudget: number;
-    amountSave: number;
-    saldoAkhirExpected: number;
-    saldoAkhirActual: number | null;
-    variance: number | null;
-    itemCount: number;
-    isDefaultTemplate: boolean;
-  }[] = [];
+  // Cuma perlu lookback lintas-tahun kalau Januari sendiri belum dimaterialisasi.
+  const januaryCarryForward = forecastByMonth.has(0)
+    ? 0
+    : await getCarryForwardSaldoAwal(new Date(year, 0, 1), maxLookbackYears);
 
-  for (let m = 0; m < 12; m++) {
-    const stored = forecastByMonth.get(m);
-    const isDefaultTemplate = !stored;
-
-    let saldoAwal: number;
-    if (stored) {
-      saldoAwal = toNumber(stored.saldoAwal);
-    } else if (m === 0) {
-      saldoAwal = await getCarryForwardSaldoAwal(new Date(year, 0, 1), maxLookbackYears);
-    } else {
-      const prev = rows[m - 1];
-      saldoAwal = prev.saldoAkhirActual ?? prev.saldoAkhirExpected;
-    }
-
-    const monthlyIncome = stored ? toNumber(stored.monthlyIncome) : template.monthlyIncome;
-    const totalBudget = stored
-      ? stored.budgetItems.reduce((sum, i) => sum + toNumber(i.amount), 0)
-      : template.items.reduce((sum, i) => sum + i.amount, 0);
-    const amountSave = monthlyIncome - totalBudget;
-    const saldoAkhirExpected = saldoAwal + amountSave;
-    const saldoAkhirActual = stored?.saldoAkhirActual != null ? toNumber(stored.saldoAkhirActual) : null;
-    const variance = saldoAkhirActual != null ? saldoAkhirActual - saldoAkhirExpected : null;
-
-    rows.push({
-      id: stored?.id ?? null,
-      month: new Date(year, m, 1),
-      saldoAwal,
-      monthlyIncome,
-      totalBudget,
-      amountSave,
-      saldoAkhirExpected,
-      saldoAkhirActual,
-      variance,
-      itemCount: stored ? stored.budgetItems.length : template.items.length,
-      isDefaultTemplate,
-    });
-  }
-
+  const rows = computeCashflowYearRows(year, forecastByMonth, template, januaryCarryForward);
   return { year, rows };
 }
 

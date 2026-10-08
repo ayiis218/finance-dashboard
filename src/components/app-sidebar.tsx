@@ -12,11 +12,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { navItems } from "@/lib/registry/nav-items";
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
 
   const menuItems = navItems.filter((item) => item.show)
   return (
@@ -35,6 +37,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton
                     isActive={pathname === item.url}
+                    onClick={() => setOpenMobile(false)}
                     render={<Link href={item.url} />}
                   >
                     <item.icon />

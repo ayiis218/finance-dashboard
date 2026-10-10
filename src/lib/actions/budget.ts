@@ -64,7 +64,13 @@ export async function updateBudgetEntry(id: string, formData: FormData) {
   const data = budgetEntryUpdateSchema.parse(
     pickFormFields(formData, BUDGET_ENTRY_AMOUNT_FIELDS),
   );
-  await prisma.budgetEntry.update({ where: { id }, data });
+  // minTarget/maxTarget di-null-kan eksplisit — form kosong mengirim
+  // `undefined`, dan Prisma `update` melewati field `undefined` (bukan
+  // mengosongkannya), jadi target lama akan nyangkut kalau tidak di-null-kan.
+  await prisma.budgetEntry.update({
+    where: { id },
+    data: { ...data, minTarget: data.minTarget ?? null, maxTarget: data.maxTarget ?? null },
+  });
   revalidatePath("/budget");
   revalidatePath("/");
 }

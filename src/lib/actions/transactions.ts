@@ -6,6 +6,7 @@ import type { Prisma, TransactionType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { pickFormFields } from "@/lib/form-data";
 import { ensureCategoryExists } from "@/lib/actions/categories";
+import { normalizeTransactionData } from "@/lib/transaction-normalize";
 
 const transactionSchema = z.object({
   accountId: z.string().min(1),
@@ -29,19 +30,6 @@ const TRANSACTION_FIELDS = [
   "affectsBalance",
 ] as const;
 
-/**
- * `toAccountId` only makes sense for TRANSFER — for INCOME/EXPENSE it's
- * forced to `null` regardless of what the form submitted, so a stale value
- * left over from switching the type dropdown never leaks into storage.
- */
-function normalizeTransactionData<T extends z.infer<typeof transactionSchema>>(data: T) {
-  const toAccountId = data.type === "TRANSFER" ? (data.toAccountId ?? null) : null;
-  if (toAccountId && toAccountId === data.accountId) {
-    throw new Error("Rekening tujuan tidak boleh sama dengan rekening asal.");
-  }
-  return { ...data, toAccountId };
-}
-
 export type TransactionCoreInput = {
   accountId: string;
   toAccountId: string | null;
@@ -49,7 +37,7 @@ export type TransactionCoreInput = {
   category: string;
   amount: number;
   date: Date;
-  note?: string;
+  note?: string | null;
   affectsBalance: boolean;
 };
 

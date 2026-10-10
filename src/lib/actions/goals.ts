@@ -120,7 +120,14 @@ export async function updateGoalItem(id: string, goalId: string, formData: FormD
       ? data.budgetAmount
       : data.actualAmount;
 
-  await prisma.goalItem.update({ where: { id }, data: { ...data, actualAmount } });
+  // `note` dinormalisasi ke `null` — form yang dikosongkan mengirim `undefined`
+  // lewat pickFormFields, dan Prisma `update` melewati field `undefined` sama
+  // sekali (bukan mengosongkannya), jadi note lama akan nyangkut kalau tidak
+  // di-null-kan eksplisit di sini.
+  await prisma.goalItem.update({
+    where: { id },
+    data: { ...data, actualAmount, note: data.note ?? null },
+  });
   await syncGoalTargetToItems(goalId);
   revalidatePath(`/goals/${goalId}`);
   revalidatePath("/goals");

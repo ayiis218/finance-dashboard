@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { pickFormFields } from "@/lib/form-data";
 import { createTransactionWithClient } from "@/lib/actions/transactions";
 import { ensureCategoryExists } from "@/lib/actions/categories";
+import { normalizeRecurringData } from "@/lib/recurring-normalize";
 
 const recurringSchema = z.object({
   accountId: z.string().min(1),
@@ -35,17 +36,6 @@ const RECURRING_FIELDS = [
   "endDate",
 ] as const;
 
-/** Sama seperti `normalizeTransactionData` di transactions.ts — `toAccountId` cuma valid untuk TRANSFER. */
-function normalizeRecurringData<T extends z.infer<typeof recurringSchema>>(data: T) {
-  const toAccountId = data.type === "TRANSFER" ? (data.toAccountId ?? null) : null;
-  if (toAccountId && toAccountId === data.accountId) {
-    throw new Error("Rekening tujuan tidak boleh sama dengan rekening asal.");
-  }
-  if (data.endDate && data.endDate < data.startDate) {
-    throw new Error("End Date tidak boleh lebih awal dari Start Date.");
-  }
-  return { ...data, toAccountId };
-}
 
 export async function createRecurringTransaction(formData: FormData) {
   const data = normalizeRecurringData(
@@ -126,7 +116,7 @@ export async function runDueRecurringTransactions() {
           category: rule.category,
           amount: Number(rule.amount),
           date: rule.nextRunDate,
-          note: rule.note ?? undefined,
+          note: rule.note,
           affectsBalance: rule.affectsBalance,
         });
 

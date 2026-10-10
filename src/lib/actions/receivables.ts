@@ -24,7 +24,9 @@ export async function createReceivable(formData: FormData) {
 
 export async function updateReceivable(id: string, formData: FormData) {
   const data = receivableSchema.parse(pickFormFields(formData, RECEIVABLE_FIELDS));
-  await prisma.receivable.update({ where: { id }, data });
+  // `note` di-null-kan eksplisit — form kosong mengirim `undefined`, dan Prisma
+  // `update` melewati field `undefined` (bukan mengosongkannya).
+  await prisma.receivable.update({ where: { id }, data: { ...data, note: data.note ?? null } });
   revalidatePath("/receivables");
   revalidatePath("/");
 }

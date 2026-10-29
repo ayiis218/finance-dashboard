@@ -12,6 +12,7 @@ import { PageNav } from "@/components/page-nav";
 import { TransactionFilters } from "@/components/transactions/transaction-filters";
 import { TransactionFormFields } from "@/components/transactions/transaction-form-fields";
 import { TransactionTable } from "@/components/transactions/transaction-table";
+import { QuickEntryButton } from "@/components/transactions/cashier/quick-entry-button";
 import { CategoryBreakdownCards } from "@/components/transactions/category-breakdown-cards";
 import { getBankAccounts } from "@/lib/queries/accounts";
 import {
@@ -20,6 +21,7 @@ import {
   getTransactionsMonthlyTotals,
 } from "@/lib/queries/transactions";
 import { getCategoryNames } from "@/lib/queries/categories";
+import { getTransactionSuggestions } from "@/lib/queries/transaction-suggestions";
 import { getWeekRange } from "@/lib/week-range";
 import { createTransaction } from "@/lib/actions/transactions";
 import { formatIDR } from "@/lib/format";
@@ -51,12 +53,13 @@ export default async function TransactionsPage({
     accountId,
   };
 
-  const [result, accountRows, categories, categoryBreakdown, monthlyTotals] = await Promise.all([
+  const [result, accountRows, categories, categoryBreakdown, monthlyTotals, suggestions] = await Promise.all([
     getTransactionsFiltered({ month, week, q, type: validType, accountId, page }),
     getBankAccounts(),
     getCategoryNames(),
     getCategoryBreakdown(categoryFilters),
     getTransactionsMonthlyTotals({ month, week, q, accountId }),
+    getTransactionSuggestions(),
   ]);
   const { expenseByCategory, spendingDetailed } = categoryBreakdown;
 
@@ -114,6 +117,7 @@ export default async function TransactionsPage({
               <Upload className="size-4" />
               Import CSV
             </Button>
+            <QuickEntryButton accounts={accounts} categories={categories} suggestions={suggestions} />
             <FormDialog title="Add Transaction" triggerLabel="Add" action={createTransaction}>
               <TransactionFormFields idPrefix="new" accounts={accounts} categories={categories} />
             </FormDialog>

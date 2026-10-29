@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Delete } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/format";
@@ -13,12 +13,20 @@ const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "000", "0"] as const;
 export function AmountKeypad({ onSubmit }: Readonly<{ onSubmit: (amount: number) => void }>) {
   const [digits, setDigits] = useState("");
   const amount = Number(digits || 0);
+  const keypadRef = useRef<HTMLDivElement>(null);
+
+  // React mengabaikan `autoFocus` pada <div>; fokus wrapper manual supaya keyboard fisik langsung aktif.
+  useEffect(() => {
+    keypadRef.current?.focus();
+  }, []);
 
   const append = (key: string) => setDigits((d) => (d + key).replace(/^0+/, "").slice(0, MAX_DIGITS));
   const erase = () => setDigits((d) => d.slice(0, -1));
   const submit = () => amount > 0 && onSubmit(amount);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    // Shortcut browser (Ctrl/Cmd/Alt + angka) tidak boleh ikut mengetik.
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (/^\d$/.test(e.key)) append(e.key);
     else if (e.key === "Backspace") erase();
     else if (e.key === "Enter" && e.target === e.currentTarget) submit();
@@ -26,10 +34,10 @@ export function AmountKeypad({ onSubmit }: Readonly<{ onSubmit: (amount: number)
 
   return (
     <div
+      ref={keypadRef}
       role="group"
       aria-label="Keypad jumlah"
       tabIndex={-1}
-      autoFocus
       onKeyDown={handleKeyDown}
       className="space-y-3 outline-none"
     >
@@ -38,7 +46,7 @@ export function AmountKeypad({ onSubmit }: Readonly<{ onSubmit: (amount: number)
       </output>
       <div className="flex flex-wrap gap-1.5">
         {QUICK_AMOUNTS.map((value) => (
-          <Button key={value} type="button" size="sm" variant="secondary" onClick={() => setDigits(String(value))}>
+          <Button key={value} type="button" size="sm" variant="secondary" className="h-9" onClick={() => setDigits(String(value))}>
             {formatIDR(value)}
           </Button>
         ))}

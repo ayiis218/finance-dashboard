@@ -10,6 +10,15 @@
   --font-sans: var(--font-roboto);
   --font-mono: var(--font-geist-mono);
   --font-hand: var(--font-patrick-hand);
+  --color-chat-wall: var(--chat-wall);
+  --color-chat-wall-shade: var(--chat-wall-shade);
+  --color-chat-wood: var(--chat-wood);
+  --color-chat-wood-dark: var(--chat-wood-dark);
+  --color-chat-ink: var(--chat-ink);
+  --color-chat-bubble: var(--chat-bubble);
+  --color-chat-bubble-ink: var(--chat-bubble-ink);
+  --color-chat-paper: var(--chat-paper);
+  --color-chat-stamp: var(--chat-stamp);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -181,4 +190,70 @@
       var(--gradient-to)
     );
   }
+}
+/*
+ * "Catat cepat" (kasir): palet kedai yang hangat, terisolasi di dalam
+ * `.cashier-scene` supaya tema dashboard tidak berubah. Mode gelap = suasana
+ * malam: dinding gelap, lampu lebih terang.
+ */
+.cashier-scene {
+  --chat-wall: #f3e6cc;
+  --chat-wall-shade: #e6d3ae;
+  --chat-wood: #8a5a36;
+  --chat-wood-dark: #6b4226;
+  --chat-lamp: #ffd98a;
+  --chat-ink: #2b1d12;
+  --chat-bubble: #fffaf0;
+  --chat-bubble-ink: #2b1d12;
+  /* Kertas dan tinta cap tetap sama di kedua tema (kertas asli); kontras tinta cap di atas kertas 6,4:1. */
+  --chat-paper: #fffdf6;
+  --chat-stamp: #176b45;
+  --chat-glow: 0.55;
+}
+
+.dark .cashier-scene {
+  --chat-wall: #2a2017;
+  --chat-wall-shade: #1f1812;
+  --chat-wood: #5a381f;
+  --chat-wood-dark: #3f2714;
+  --chat-lamp: #ffc861;
+  --chat-bubble: #3b2d21;
+  --chat-bubble-ink: #f6e8cf;
+  --chat-glow: 0.9;
+}
+
+/* Kertas struk: tetap krem di kedua tema (kertas asli), tepi bawah bergerigi. */
+.receipt-paper {
+  background: var(--chat-paper);
+  color: #2b1d12;
+  -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 14px 100%;
+  mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 14px 100%;
+}
+
+@keyframes cashier-breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.018); }
+}
+@keyframes cashier-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes cashier-wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-22deg); }
+  50% { transform: rotate(6deg); }
+  75% { transform: rotate(-22deg); }
+}
+@keyframes cashier-glow {
+  0%, 100% { opacity: var(--chat-glow); }
+  50% { opacity: calc(var(--chat-glow) * 0.85); }
+}
+
+.cashier-breathe { transform-box: fill-box; transform-origin: 50% 100%; animation: cashier-breathe 3.4s ease-in-out infinite; }
+.cashier-blink { transform-box: fill-box; transform-origin: 50% 50%; animation: cashier-blink 5.2s infinite; }
+.cashier-wave { transform-box: fill-box; transform-origin: 20% 90%; animation: cashier-wave 1.6s ease-in-out 2; }
+.cashier-glow { animation: cashier-glow 4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cashier-breathe, .cashier-blink, .cashier-wave, .cashier-glow { animation: none; }
 }

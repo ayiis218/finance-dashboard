@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { usePrivacyMode } from "@/components/privacy-mode";
 import { Button } from "@/components/ui/button";
 import { AmountKeypad } from "@/components/transactions/cashier/amount-keypad";
 import { CategoryPicker } from "@/components/transactions/cashier/category-picker";
@@ -7,7 +8,7 @@ import { ChoiceTray, type Choice } from "@/components/transactions/cashier/choic
 import { DateStep } from "@/components/transactions/cashier/date-step";
 import { NoteInput } from "@/components/transactions/cashier/note-input";
 import { ReceiptSummary } from "@/components/transactions/cashier/receipt-summary";
-import { repeatLabel, reviewLines, TYPE_LABELS } from "@/lib/transaction-cashier/copy";
+import { EXTERNAL_LABEL, repeatLabel, reviewLines, TYPE_LABELS } from "@/lib/transaction-cashier/copy";
 import type {
   ChatAction,
   ChatState,
@@ -17,6 +18,7 @@ import type {
 import { rankAccounts, rankOptions, type TransactionSuggestions } from "@/lib/transaction-cashier/suggestions";
 
 const REPEAT_ID = "repeat";
+const EXTERNAL_ID = "external";
 const TYPES: TransactionKind[] = ["EXPENSE", "INCOME", "TRANSFER"];
 
 type Props = Readonly<{
@@ -30,9 +32,10 @@ type Props = Readonly<{
   onClose: () => void;
 }>;
 
-function typeChoices(ctx: FlowContext): Choice[] {
+function typeChoices(ctx: FlowContext, maskAmount: boolean): Choice[] {
   const choices: Choice[] = TYPES.map((type) => ({ id: type, label: TYPE_LABELS[type] }));
-  return ctx.last ? [{ id: REPEAT_ID, label: repeatLabel(ctx.last), emphasis: true }, ...choices] : choices;
+  if (!ctx.last) return choices;
+  return [{ id: REPEAT_ID, label: repeatLabel(ctx.last, { maskAmount }), emphasis: true }, ...choices];
 }
 
 function accountChoices(ctx: FlowContext, suggestions: TransactionSuggestions, excludeId?: string): Choice[] {
@@ -44,12 +47,13 @@ function accountChoices(ctx: FlowContext, suggestions: TransactionSuggestions, e
 /** Input untuk langkah saat ini: tombol, keypad, tanggal, catatan, atau struk. */
 export function StepInput({ state, ctx, categories, suggestions, dispatch, onConfirm, onRetry, onClose }: Props) {
   const { step, draft } = state;
+  const { hidden: privacyMode } = usePrivacyMode();
 
   switch (step) {
     case "type":
       return (
         <ChoiceTray
-          choices={typeChoices(ctx)}
+          choices={typeChoices(ctx, privacyMode)}
           onPick={(id) =>
             id === REPEAT_ID ? dispatch({ type: "repeatLast" }) : dispatch({ type: "pickType", value: id as TransactionKind })
           }
@@ -71,8 +75,8 @@ export function StepInput({ state, ctx, categories, suggestions, dispatch, onCon
     case "toAccount":
       return (
         <ChoiceTray
-          choices={accountChoices(ctx, suggestions, draft.accountId)}
-          onPick={(id) => dispatch({ type: "pickToAccount", id })}
+          choices={[...accountChoices(ctx, suggestions, draft.accountId), { id: EXTERNAL_ID, label: EXTERNAL_LABEL }]}
+          onPick={(id) => dispatch({ type: "pickToAccount", id: id === EXTERNAL_ID ? null : id })}
         />
       );
     case "date":

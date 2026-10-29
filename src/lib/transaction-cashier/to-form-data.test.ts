@@ -32,6 +32,11 @@ describe("toFormData", () => {
     expect(formData.has("toAccountId")).toBe(false);
   });
 
+  it("omits the destination for a transfer out of the system", () => {
+    const formData = toFormData({ ...EXPENSE, type: "TRANSFER", category: "Transfer", toAccountId: null });
+    expect(formData.has("toAccountId")).toBe(false);
+  });
+
   it("includes the destination account for a transfer", () => {
     const formData = toFormData({ ...EXPENSE, type: "TRANSFER", category: "Transfer", toAccountId: "cash" });
     expect(formData.get("toAccountId")).toBe("cash");

@@ -11,7 +11,6 @@ import {
   type EditableStep,
   type FlowContext,
   type LastTransaction,
-  type Notice,
   type QuestionStep,
   type Step,
   type TransactionKind,
@@ -23,22 +22,22 @@ import {
  * dan nada bicara bisa diubah di satu tempat.
  */
 
+export const EXTERNAL_LABEL = "Di luar sistem";
+
 export const TYPE_LABELS: Record<TransactionKind, string> = {
   EXPENSE: "Pengeluaran",
   INCOME: "Pemasukan",
   TRANSFER: "Transfer",
 };
 
-/** Label tombol "ulangi transaksi terakhir" di langkah pertama. */
-export function repeatLabel(last: LastTransaction): string {
-  if (last.type === "TRANSFER") return `Ulangi transfer ${formatIDR(last.amount)}`;
-  return `Ulangi: ${last.category} ${formatIDR(last.amount)}`;
-}
+export const AMOUNT_MASK = "••••••";
 
-const NOTICE_TEXT: Record<Notice, string> = {
-  "transfer-needs-two-accounts":
-    "Transfer butuh minimal 2 rekening. Tambah rekening dulu di halaman Accounts, ya.",
-};
+/** Label tombol "ulangi transaksi terakhir"; nominal riwayat disamarkan saat privacy mode aktif. */
+export function repeatLabel(last: LastTransaction, options: { maskAmount?: boolean } = {}): string {
+  const amount = options.maskAmount ? AMOUNT_MASK : formatIDR(last.amount);
+  if (last.type === "TRANSFER") return `Ulangi transfer ${amount}`;
+  return `Ulangi: ${last.category} ${amount}`;
+}
 
 const EDIT_PROMPTS: Record<EditableStep, string> = {
   category: "Kategorinya jadi apa?",
@@ -84,7 +83,6 @@ const STATUS_PROMPTS: Record<Exclude<Step, QuestionStep>, string> = {
 /** Satu ucapan kasir untuk keadaan saat ini (ditampilkan di bubble atas kepalanya). */
 export function promptFor(state: ChatState): string {
   const { step } = state;
-  if (state.notice) return NOTICE_TEXT[state.notice];
   if (!isQuestionStep(step)) return STATUS_PROMPTS[step];
   if (state.returnToReview && step !== "type") return EDIT_PROMPTS[step];
   return questionPrompt(step, state.draft, state.savedCount);
@@ -112,7 +110,7 @@ export function answerLabel(step: QuestionStep, draft: Draft, ctx: FlowContext):
     case "account":
       return accountName(draft.accountId, ctx);
     case "toAccount":
-      return accountName(draft.toAccountId, ctx);
+      return draft.toAccountId === null ? EXTERNAL_LABEL : accountName(draft.toAccountId, ctx);
     case "date":
       return dateLabel(draft.date!, ctx);
     case "note":
@@ -154,6 +152,14 @@ export function reviewLines(draft: Draft, ctx: FlowContext): ReviewLine[] {
   return lines;
 }
 
+/** Chip transfer memuat arahnya ("Dari BCA", "Ke Cash"); jenis lain memakai label jawaban apa adanya. */
+function chipLabel(step: QuestionStep, draft: Draft, label: string): string {
+  if (draft.type !== "TRANSFER") return label;
+  if (step === "account") return `Dari ${label}`;
+  if (step === "toAccount") return draft.toAccountId === null ? "Ke luar sistem" : `Ke ${label}`;
+  return label;
+}
+
 /** Jawaban yang sudah terkumpul, untuk ditampilkan sebagai chip kecil di bawah kasir. */
 export function collectedAnswers(state: ChatState, ctx: FlowContext): string[] {
   const { type } = state.draft;
@@ -163,7 +169,7 @@ export function collectedAnswers(state: ChatState, ctx: FlowContext): string[] {
   for (const step of steps) {
     if (step === state.step) break;
     const label = answerLabel(step, state.draft, ctx);
-    if (label !== undefined) answers.push(label);
+    if (label !== undefined) answers.push(chipLabel(step, state.draft, label));
   }
   return answers;
 }

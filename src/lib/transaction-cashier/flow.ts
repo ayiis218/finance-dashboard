@@ -142,6 +142,11 @@ export function canGoBack(state: ChatState): boolean {
   return state.history.length > 0 && !NOT_REVERSIBLE.includes(state.step);
 }
 
+/** True bila user sudah menjawab sesuatu dan transaksinya belum selesai dicatat (untuk konfirmasi saat menutup). */
+export function hasUnsavedProgress(state: ChatState): boolean {
+  return state.history.length > 0 && state.step !== "done" && state.step !== "blocked";
+}
+
 export function createInitialState(ctx: FlowContext): ChatState {
   return {
     step: ctx.accounts.length === 0 ? "blocked" : "type",

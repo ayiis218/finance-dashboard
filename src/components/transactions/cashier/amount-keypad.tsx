@@ -38,7 +38,7 @@ export function AmountKeypad({ onSubmit }: Readonly<{ onSubmit: (amount: number)
       </output>
       <div className="flex flex-wrap gap-1.5">
         {QUICK_AMOUNTS.map((value) => (
-          <Button key={value} type="button" size="sm" variant="secondary" onClick={() => setDigits(String(value))}>
+          <Button key={value} type="button" size="sm" variant="secondary" className="h-9" onClick={() => setDigits(String(value))}>
             {formatIDR(value)}
           </Button>
         ))}

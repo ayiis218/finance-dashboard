@@ -4,6 +4,7 @@ import {
   canGoBack,
   chatReducer,
   createInitialState,
+  hasUnsavedProgress,
   isIsoDate,
   quickDates,
   stepsFor,
@@ -336,5 +337,23 @@ describe("date helpers", () => {
     ["", false],
   ])("isIsoDate(%j) is %s", (value, expected) => {
     expect(isIsoDate(value)).toBe(expected);
+  });
+});
+
+describe("hasUnsavedProgress", () => {
+  it("is false on a fresh conversation and after starting over", () => {
+    expect(hasUnsavedProgress(createInitialState(CTX))).toBe(false);
+    const again = run(CTX, [...EXPENSE_TO_REVIEW, { type: "submit" }, { type: "saveSucceeded" }, { type: "startOver" }]);
+    expect(hasUnsavedProgress(again)).toBe(false);
+  });
+
+  it("is true once an answer was given and until the transaction is recorded", () => {
+    expect(hasUnsavedProgress(run(CTX, [{ type: "pickType", value: "EXPENSE" }]))).toBe(true);
+    expect(hasUnsavedProgress(run(CTX, [...EXPENSE_TO_REVIEW, { type: "submit" }, { type: "saveFailed" }]))).toBe(true);
+  });
+
+  it("is false once recorded or when blocked", () => {
+    expect(hasUnsavedProgress(run(CTX, [...EXPENSE_TO_REVIEW, { type: "submit" }, { type: "saveSucceeded" }]))).toBe(false);
+    expect(hasUnsavedProgress(createInitialState({ ...CTX, accounts: [] }))).toBe(false);
   });
 });

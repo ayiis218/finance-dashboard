@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useReducer, useState, useTransition } from "react";
+import { useEffect, useMemo, useReducer, useState, useTransition } from "react";
+import { MotionConfig } from "motion/react";
 import { format } from "date-fns";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import {
   canGoBack,
   chatReducer,
   createInitialState,
+  hasUnsavedProgress,
   toCompleteDraft,
   type ChatAction,
   type ChatState,
@@ -31,11 +33,14 @@ export function CashierFlow({
   categories,
   suggestions,
   onClose,
+  onProgressChange,
 }: Readonly<{
   accounts: FlowAccount[];
   categories: string[];
   suggestions: TransactionSuggestions;
   onClose: () => void;
+  /** Dikabari saat ada jawaban yang belum tercatat, supaya penutup dialog bisa meminta konfirmasi. */
+  onProgressChange: (inProgress: boolean) => void;
 }>) {
   const [today] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const ctx = useMemo<FlowContext>(
@@ -48,6 +53,12 @@ export function CashierFlow({
     createInitialState,
   );
   const [, startTransition] = useTransition();
+
+  const inProgress = hasUnsavedProgress(state);
+  useEffect(() => {
+    onProgressChange(inProgress);
+    return () => onProgressChange(false);
+  }, [inProgress, onProgressChange]);
 
   function save(draft: Draft) {
     const complete = toCompleteDraft(draft);
@@ -73,26 +84,29 @@ export function CashierFlow({
   }
 
   return (
-    <div className="space-y-4">
-      <CashierStage state={state} ctx={ctx} />
-      <StepInput
-        // Remount tiap langkah supaya fokus dan state lokal input (keypad, catatan) mulai bersih.
-        key={`${state.step}-${state.history.length}`}
-        state={state}
-        ctx={ctx}
-        categories={categories}
-        suggestions={suggestions}
-        dispatch={dispatch}
-        onConfirm={confirm}
-        onRetry={retry}
-        onClose={onClose}
-      />
-      {canGoBack(state) && (
-        <Button type="button" variant="ghost" size="sm" onClick={() => dispatch({ type: "back" })}>
-          <ArrowLeft className="size-4" aria-hidden="true" />
-          Kembali
-        </Button>
-      )}
-    </div>
+    // reducedMotion="user": semua animasi motion mengikuti preferensi sistem.
+    <MotionConfig reducedMotion="user">
+      <div className="cashier-scene space-y-4">
+        <CashierStage state={state} ctx={ctx} />
+        <StepInput
+          // Remount tiap langkah supaya fokus dan state lokal input (keypad, catatan) mulai bersih.
+          key={`${state.step}-${state.history.length}`}
+          state={state}
+          ctx={ctx}
+          categories={categories}
+          suggestions={suggestions}
+          dispatch={dispatch}
+          onConfirm={confirm}
+          onRetry={retry}
+          onClose={onClose}
+        />
+        {canGoBack(state) && (
+          <Button type="button" variant="ghost" size="sm" className="h-9" onClick={() => dispatch({ type: "back" })}>
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            Kembali
+          </Button>
+        )}
+      </div>
+    </MotionConfig>
   );
 }

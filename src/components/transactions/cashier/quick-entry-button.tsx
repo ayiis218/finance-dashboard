@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,9 +32,19 @@ export function QuickEntryButton({
   suggestions: TransactionSuggestions;
 }>) {
   const [open, setOpen] = useState(false);
+  const inProgress = useRef(false);
+  const trackProgress = useCallback((value: boolean) => {
+    inProgress.current = value;
+  }, []);
+
+  // Esc, klik di luar, dan tombol X lewat sini; "Selesai" menutup langsung karena sudah tercatat.
+  function handleOpenChange(next: boolean) {
+    if (!next && inProgress.current && !window.confirm("Batalkan pencatatan yang belum selesai?")) return;
+    setOpen(next);
+  }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={<Button size="sm" variant="outline" className="cursor-pointer" />}>
         <MessageCircle className="size-4" aria-hidden="true" />
         Catat cepat
@@ -51,6 +61,7 @@ export function QuickEntryButton({
           categories={categories}
           suggestions={suggestions}
           onClose={() => setOpen(false)}
+          onProgressChange={trackProgress}
         />
       </DialogContent>
     </Dialog>

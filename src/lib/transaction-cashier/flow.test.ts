@@ -3,6 +3,7 @@ import {
   MAX_AMOUNT,
   canGoBack,
   chatReducer,
+  closeGuard,
   createInitialState,
   hasUnsavedProgress,
   isIsoDate,
@@ -55,6 +56,7 @@ describe("stepsFor", () => {
 
   it("skips the account question when only one account exists", () => {
     expect(stepsFor("EXPENSE", SINGLE_CTX)).toEqual(["category", "amount", "date", "note", "review"]);
+    expect(stepsFor("TRANSFER", SINGLE_CTX)).toEqual(["toAccount", "amount", "date", "note", "review"]);
   });
 });
 
@@ -135,10 +137,43 @@ describe("transfer flow", () => {
     expect(state.draft.toAccountId).toBeUndefined();
   });
 
-  it("stays on the type question with a notice when fewer than two accounts exist", () => {
-    const state = run(SINGLE_CTX, [{ type: "pickType", value: "TRANSFER" }]);
-    expect(state.step).toBe("type");
-    expect(state.notice).toBe("transfer-needs-two-accounts");
+  it("records a transfer out of the system with no destination account", () => {
+    const state = run(CTX, [
+      { type: "pickType", value: "TRANSFER" },
+      { type: "pickAccount", id: "bca" },
+      { type: "pickToAccount", id: null },
+      { type: "setAmount", value: 500_000 },
+      { type: "pickDate", value: "2026-11-07" },
+      { type: "setNote", value: "Tarik tunai" },
+    ]);
+    expect(state.step).toBe("review");
+    expect(toCompleteDraft(state.draft)).toMatchObject({ type: "TRANSFER", toAccountId: null, note: "Tarik tunai" });
+  });
+
+  it("lets a single-account user transfer out of the system, skipping the source question", () => {
+    const state = run(SINGLE_CTX, [
+      { type: "pickType", value: "TRANSFER" },
+      { type: "pickToAccount", id: null },
+    ]);
+    expect(state.step).toBe("amount");
+    expect(state.draft.accountId).toBe("bca");
+  });
+
+  it("does not treat an unanswered destination as external", () => {
+    const state = run(CTX, [
+      { type: "pickType", value: "TRANSFER" },
+      { type: "pickAccount", id: "bca" },
+    ]);
+    expect(state.step).toBe("toAccount");
+    expect(state.draft.toAccountId).toBeUndefined();
+  });
+
+  it("rejects an unknown destination account", () => {
+    const state = run(CTX, [
+      { type: "pickType", value: "TRANSFER" },
+      { type: "pickAccount", id: "bca" },
+    ]);
+    expect(chatReducer(state, { type: "pickToAccount", id: "ghost" }, CTX)).toBe(state);
   });
 });
 
@@ -310,6 +345,20 @@ describe("repeatLast", () => {
     expect(toCompleteDraft(state.draft)).toEqual({ ...last, date: "2026-11-07", note: null });
   });
 
+  it("repeats a transfer out of the system", () => {
+    const external = { type: "TRANSFER" as const, category: "Transfer", amount: 500_000, accountId: "bca", toAccountId: null };
+    const ctx = { ...CTX, last: external };
+    const state = run(ctx, [{ type: "repeatLast" }]);
+    expect(state.step).toBe("review");
+    expect(toCompleteDraft(state.draft)).toMatchObject({ type: "TRANSFER", toAccountId: null });
+  });
+
+  it("does nothing when the last transfer destination no longer exists", () => {
+    const ctx = { ...CTX, last: { type: "TRANSFER" as const, category: "Transfer", amount: 1000, accountId: "bca", toAccountId: "deleted" } };
+    const state = createInitialState(ctx);
+    expect(chatReducer(state, { type: "repeatLast" }, ctx)).toBe(state);
+  });
+
   it("does nothing without a last transaction", () => {
     const state = createInitialState(CTX);
     expect(chatReducer(state, { type: "repeatLast" }, CTX)).toBe(state);
@@ -355,5 +404,21 @@ describe("hasUnsavedProgress", () => {
   it("is false once recorded or when blocked", () => {
     expect(hasUnsavedProgress(run(CTX, [...EXPENSE_TO_REVIEW, { type: "submit" }, { type: "saveSucceeded" }]))).toBe(false);
     expect(hasUnsavedProgress(createInitialState({ ...CTX, accounts: [] }))).toBe(false);
+  });
+});
+
+describe("closeGuard", () => {
+  it("is free on a fresh conversation and once recorded", () => {
+    expect(closeGuard(createInitialState(CTX))).toBe("free");
+    expect(closeGuard(run(CTX, [...EXPENSE_TO_REVIEW, { type: "submit" }, { type: "saveSucceeded" }]))).toBe("free");
+  });
+
+  it("asks to discard while answers are not yet recorded, including after a failure", () => {
+    expect(closeGuard(run(CTX, [{ type: "pickType", value: "EXPENSE" }]))).toBe("discard");
+    expect(closeGuard(run(CTX, [...EXPENSE_TO_REVIEW, { type: "submit" }, { type: "saveFailed" }]))).toBe("discard");
+  });
+
+  it("warns differently while the transaction is being saved", () => {
+    expect(closeGuard(run(CTX, [...EXPENSE_TO_REVIEW, { type: "submit" }]))).toBe("saving");
   });
 });

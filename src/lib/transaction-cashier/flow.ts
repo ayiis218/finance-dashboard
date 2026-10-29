@@ -35,7 +35,8 @@ export type Draft = {
   category?: string;
   amount?: number;
   accountId?: string;
-  toAccountId?: string;
+  /** `null` = transfer ke luar sistem (jawaban sah); `undefined` = belum ditanya. */
+  toAccountId?: string | null;
   date?: string;
   /** `null` = user sengaja melewati catatan; `undefined` = belum ditanya. */
   note?: string | null;
@@ -51,8 +52,6 @@ export type CompleteDraft = {
   note: string | null;
 };
 
-export type Notice = "transfer-needs-two-accounts";
-
 export type ChatState = {
   step: Step;
   draft: Draft;
@@ -60,7 +59,6 @@ export type ChatState = {
   history: Step[];
   /** True saat user lompat dari ringkasan untuk mengubah satu jawaban. */
   returnToReview: boolean;
-  notice: Notice | null;
   savedCount: number;
 };
 
@@ -70,7 +68,7 @@ export type ChatAction =
   | { type: "pickCategory"; value: string }
   | { type: "setAmount"; value: number }
   | { type: "pickAccount"; id: string }
-  | { type: "pickToAccount"; id: string }
+  | { type: "pickToAccount"; id: string | null }
   | { type: "pickDate"; value: string }
   | { type: "setNote"; value: string | null }
   | { type: "edit"; step: EditableStep }
@@ -102,8 +100,8 @@ export function quickDates(today: string): { label: string; value: string }[] {
 
 /** Urutan pertanyaan setelah jenis transaksi dipilih. */
 export function stepsFor(type: TransactionKind, ctx: FlowContext): Step[] {
-  if (type === "TRANSFER") return ["account", "toAccount", "amount", "date", "note", "review"];
   const account: Step[] = ctx.accounts.length === 1 ? [] : ["account"];
+  if (type === "TRANSFER") return [...account, "toAccount", "amount", "date", "note", "review"];
   return ["category", "amount", ...account, "date", "note", "review"];
 }
 
@@ -112,7 +110,7 @@ const IS_ANSWERED: Record<QuestionStep, (draft: Draft) => boolean> = {
   category: (d) => Boolean(d.category),
   amount: (d) => d.amount !== undefined,
   account: (d) => Boolean(d.accountId),
-  toAccount: (d) => Boolean(d.toAccountId),
+  toAccount: (d) => d.toAccountId !== undefined,
   date: (d) => Boolean(d.date),
   note: (d) => d.note !== undefined,
 };
@@ -131,7 +129,7 @@ export function toCompleteDraft(draft: Draft): CompleteDraft | null {
   const note = draft.note ?? null;
 
   if (type === "TRANSFER") {
-    if (!draft.toAccountId) return null;
+    if (draft.toAccountId === undefined) return null;
     return { type, category: TRANSFER_CATEGORY, amount, accountId, toAccountId: draft.toAccountId, date, note };
   }
   if (!draft.category) return null;
@@ -147,13 +145,20 @@ export function hasUnsavedProgress(state: ChatState): boolean {
   return state.history.length > 0 && state.step !== "done" && state.step !== "blocked";
 }
 
+export type CloseGuard = "free" | "discard" | "saving";
+
+/** Seberapa hati-hati dialog saat ditutup: bebas, konfirmasi buang jawaban, atau konfirmasi saat sedang menyimpan. */
+export function closeGuard(state: ChatState): CloseGuard {
+  if (state.step === "saving") return "saving";
+  return hasUnsavedProgress(state) ? "discard" : "free";
+}
+
 export function createInitialState(ctx: FlowContext): ChatState {
   return {
     step: ctx.accounts.length === 0 ? "blocked" : "type",
     draft: {},
     history: [],
     returnToReview: false,
-    notice: null,
     savedCount: 0,
   };
 }
@@ -163,13 +168,13 @@ function hasAccount(ctx: FlowContext, id: string): boolean {
 }
 
 function moveTo(state: ChatState, step: Step, draft: Draft): ChatState {
-  return { ...state, draft, step, history: [...state.history, state.step], notice: null };
+  return { ...state, draft, step, history: [...state.history, state.step] };
 }
 
 function backToReview(state: ChatState, draft: Draft): ChatState {
   const reviewIndex = state.history.lastIndexOf("review");
   const history = reviewIndex >= 0 ? state.history.slice(0, reviewIndex) : state.history;
-  return { ...state, draft, step: "review", history, returnToReview: false, notice: null };
+  return { ...state, draft, step: "review", history, returnToReview: false };
 }
 
 function firstMissingStep(draft: Draft, ctx: FlowContext): QuestionStep | null {
@@ -195,15 +200,12 @@ function answer(state: ChatState, ctx: FlowContext, step: Step, patch: Partial<D
 }
 
 function withAutoAccount(draft: Draft, ctx: FlowContext): Draft {
-  if (draft.type === "TRANSFER" || ctx.accounts.length !== 1) return draft;
+  if (ctx.accounts.length !== 1) return draft;
   return { ...draft, accountId: ctx.accounts[0].id };
 }
 
 function pickType(state: ChatState, ctx: FlowContext, value: TransactionKind): ChatState {
   if (state.step !== "type") return state;
-  if (value === "TRANSFER" && ctx.accounts.length < 2) {
-    return { ...state, notice: "transfer-needs-two-accounts" };
-  }
   const changed = state.draft.type !== value;
   const base: Draft = changed
     ? { ...state.draft, type: value, category: undefined, toAccountId: undefined }
@@ -215,16 +217,15 @@ function pickType(state: ChatState, ctx: FlowContext, value: TransactionKind): C
 function repeatLast(state: ChatState, ctx: FlowContext): ChatState {
   const { last } = ctx;
   if (state.step !== "type" || !last || !hasAccount(ctx, last.accountId)) return state;
-  if (last.type === "TRANSFER") {
-    const validTarget = last.toAccountId !== null && hasAccount(ctx, last.toAccountId);
-    if (!validTarget || last.toAccountId === last.accountId) return state;
+  if (last.type === "TRANSFER" && last.toAccountId !== null) {
+    if (!hasAccount(ctx, last.toAccountId) || last.toAccountId === last.accountId) return state;
   }
   const draft: Draft = {
     type: last.type,
     category: last.category,
     amount: last.amount,
     accountId: last.accountId,
-    toAccountId: last.toAccountId ?? undefined,
+    toAccountId: last.type === "TRANSFER" ? last.toAccountId : undefined,
     date: ctx.today,
     note: null,
   };
@@ -247,8 +248,9 @@ function pickAccount(state: ChatState, ctx: FlowContext, id: string): ChatState 
   return answer(state, ctx, "account", { accountId: id, toAccountId });
 }
 
-function pickToAccount(state: ChatState, ctx: FlowContext, id: string): ChatState {
-  if (!hasAccount(ctx, id) || id === state.draft.accountId) return state;
+/** `id === null` = transfer ke luar sistem (tarik tunai, transfer ke orang lain). */
+function pickToAccount(state: ChatState, ctx: FlowContext, id: string | null): ChatState {
+  if (id !== null && (!hasAccount(ctx, id) || id === state.draft.accountId)) return state;
   return answer(state, ctx, "toAccount", { toAccountId: id });
 }
 
@@ -270,7 +272,7 @@ function edit(state: ChatState, ctx: FlowContext, step: EditableStep): ChatState
 function back(state: ChatState): ChatState {
   if (!canGoBack(state)) return state;
   const step = state.history[state.history.length - 1];
-  return { ...state, step, history: state.history.slice(0, -1), returnToReview: false, notice: null };
+  return { ...state, step, history: state.history.slice(0, -1), returnToReview: false };
 }
 
 function submit(state: ChatState): ChatState {
@@ -281,7 +283,7 @@ function submit(state: ChatState): ChatState {
 function startOver(state: ChatState): ChatState {
   if (state.step !== "done") return state;
   const { accountId, date } = state.draft;
-  return { ...state, step: "type", draft: { accountId, date }, history: [], returnToReview: false, notice: null };
+  return { ...state, step: "type", draft: { accountId, date }, history: [], returnToReview: false };
 }
 
 export function chatReducer(state: ChatState, action: ChatAction, ctx: FlowContext): ChatState {

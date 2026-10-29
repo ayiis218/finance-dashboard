@@ -57,6 +57,13 @@ export function rankOptions<T>(all: T[], preferred: T[]): T[] {
   return [...head, ...all.filter((a) => !headSet.has(a))];
 }
 
+/** Pakai nama kategori yang sudah ada bila hanya beda huruf besar/kecil, supaya tidak muncul duplikat ("kopi" vs "Kopi"). */
+export function matchExistingCategory(input: string, categories: string[]): string {
+  const typed = input.trim();
+  const lower = typed.toLowerCase();
+  return categories.find((c) => c.toLowerCase() === lower) ?? typed;
+}
+
 /** Rekening yang sering dipakai tampil duluan. */
 export function rankAccounts(accounts: FlowAccount[], preferredIds: string[]): FlowAccount[] {
   const byId = new Map(accounts.map((a) => [a.id, a]));

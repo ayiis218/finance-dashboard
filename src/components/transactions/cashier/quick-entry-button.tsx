@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { FlowAccount } from "@/lib/transaction-cashier/flow";
+import type { CloseGuard, FlowAccount } from "@/lib/transaction-cashier/flow";
 import type { TransactionSuggestions } from "@/lib/transaction-cashier/suggestions";
 
 // Kasir baru dimuat saat dialog pertama kali dibuka, jadi tidak membesarkan bundle awal halaman.
@@ -20,6 +20,12 @@ const CashierFlow = dynamic(
   () => import("@/components/transactions/cashier/cashier-flow").then((m) => m.CashierFlow),
   { ssr: false, loading: () => <p className="py-10 text-center text-sm text-muted-foreground">Memanggil kasir…</p> },
 );
+
+const CLOSE_QUESTIONS: Record<CloseGuard, string | null> = {
+  free: null,
+  discard: "Batalkan pencatatan yang belum selesai?",
+  saving: "Transaksi sedang disimpan. Tutup jendela ini?",
+};
 
 /** Tombol "Catat cepat": membuka kasir berkarakter sebagai mode tambahan di samping form Add. */
 export function QuickEntryButton({
@@ -32,14 +38,15 @@ export function QuickEntryButton({
   suggestions: TransactionSuggestions;
 }>) {
   const [open, setOpen] = useState(false);
-  const inProgress = useRef(false);
-  const trackProgress = useCallback((value: boolean) => {
-    inProgress.current = value;
+  const guard = useRef<CloseGuard>("free");
+  const trackGuard = useCallback((value: CloseGuard) => {
+    guard.current = value;
   }, []);
 
   // Esc, klik di luar, dan tombol X lewat sini; "Selesai" menutup langsung karena sudah tercatat.
   function handleOpenChange(next: boolean) {
-    if (!next && inProgress.current && !window.confirm("Batalkan pencatatan yang belum selesai?")) return;
+    const question = next ? null : CLOSE_QUESTIONS[guard.current];
+    if (question && !window.confirm(question)) return;
     setOpen(next);
   }
 
@@ -61,7 +68,7 @@ export function QuickEntryButton({
           categories={categories}
           suggestions={suggestions}
           onClose={() => setOpen(false)}
-          onProgressChange={trackProgress}
+          onCloseGuardChange={trackGuard}
         />
       </DialogContent>
     </Dialog>

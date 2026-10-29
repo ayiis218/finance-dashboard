@@ -7,7 +7,6 @@ import { typingDelayMs } from "@/lib/transaction-cashier/typing-delay";
 export function useChatMotion(savedCount: number) {
   const reduced = useReducedMotion() ?? false;
   return {
-    reduced,
     typingDelay: (text: string) => typingDelayMs(text, { reduced, repeatSession: savedCount > 0 }),
   };
 }

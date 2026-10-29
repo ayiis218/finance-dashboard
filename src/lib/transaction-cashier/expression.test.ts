@@ -3,7 +3,7 @@ import { expressionFor } from "@/lib/transaction-cashier/expression";
 import type { ChatState } from "@/lib/transaction-cashier/flow";
 
 function state(overrides: Partial<ChatState>): ChatState {
-  return { step: "type", draft: {}, history: [], returnToReview: false, notice: null, savedCount: 0, ...overrides };
+  return { step: "type", draft: {}, history: [], returnToReview: false, savedCount: 0, ...overrides };
 }
 
 describe("expressionFor", () => {
@@ -19,8 +19,7 @@ describe("expressionFor", () => {
     expect(expressionFor(state({ draft: { type: "EXPENSE" } }))).toBe("idle");
   });
 
-  it("is confused when the transfer notice is showing or no account exists", () => {
-    expect(expressionFor(state({ notice: "transfer-needs-two-accounts" }))).toBe("confused");
+  it("is confused when no account exists", () => {
     expect(expressionFor(state({ step: "blocked" }))).toBe("confused");
   });
 

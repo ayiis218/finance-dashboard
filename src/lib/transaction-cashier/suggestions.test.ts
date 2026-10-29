@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildSuggestions,
+  matchExistingCategory,
   rankAccounts,
   rankOptions,
   splitVisible,
@@ -65,6 +66,19 @@ describe("rankOptions", () => {
 
   it("ignores preferred options that no longer exist", () => {
     expect(rankOptions(["a", "b"], ["gone", "b"])).toEqual(["b", "a"]);
+  });
+});
+
+describe("matchExistingCategory", () => {
+  const categories = ["Kopi", "Makan Siang"];
+
+  it("reuses the existing spelling when only the case differs", () => {
+    expect(matchExistingCategory("kopi", categories)).toBe("Kopi");
+    expect(matchExistingCategory("  MAKAN siang ", categories)).toBe("Makan Siang");
+  });
+
+  it("keeps a genuinely new category, trimmed", () => {
+    expect(matchExistingCategory("  Bensin ", categories)).toBe("Bensin");
   });
 });
 

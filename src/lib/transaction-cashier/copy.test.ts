@@ -46,11 +46,6 @@ describe("promptFor", () => {
     expect(promptFor(state)).toBe("Jumlahnya jadi berapa?");
   });
 
-  it("explains why a transfer is not possible with a single account", () => {
-    const single = { ...CTX, accounts: [CTX.accounts[0]] };
-    const state = run([{ type: "pickType", value: "TRANSFER" }], single);
-    expect(promptFor(state)).toContain("minimal 2 rekening");
-  });
 
   it("tells the user to add an account when none exist", () => {
     expect(promptFor(createInitialState({ ...CTX, accounts: [] }))).toContain("Belum ada rekening");
@@ -118,6 +113,30 @@ describe("reviewLines", () => {
   });
 });
 
+describe("transfer wording", () => {
+  const TRANSFER: ChatAction[] = [
+    { type: "pickType", value: "TRANSFER" },
+    { type: "pickAccount", id: "bca" },
+    { type: "pickToAccount", id: "cash" },
+  ];
+
+  it("shows the direction in the answer chips", () => {
+    const state = run(TRANSFER);
+    expect(state.step).toBe("amount");
+    expect(collectedAnswers(state, CTX)).toEqual(["Transfer", "Dari BCA", "Ke Cash"]);
+  });
+
+  it("labels an external destination in chips and on the receipt", () => {
+    const state = run([...TRANSFER.slice(0, 2), { type: "pickToAccount", id: null }]);
+    expect(collectedAnswers(state, CTX)).toEqual(["Transfer", "Dari BCA", "Ke luar sistem"]);
+    expect(answerLabel("toAccount", state.draft, CTX)).toBe("Di luar sistem");
+  });
+
+  it("does not label an unanswered destination", () => {
+    expect(answerLabel("toAccount", {}, CTX)).toBeUndefined();
+  });
+});
+
 describe("collectedAnswers", () => {
   it("is empty before a type is chosen", () => {
     expect(collectedAnswers(createInitialState(CTX), CTX)).toEqual([]);
@@ -138,6 +157,12 @@ describe("repeatLabel", () => {
   it("names the category and amount for an expense", () => {
     const last = { type: "EXPENSE" as const, category: "Kopi", amount: 25_000, accountId: "bca", toAccountId: null };
     expect(repeatLabel(last)).toMatch(/^Ulangi: Kopi .*25\.000/);
+  });
+
+  it("masks the historical amount in privacy mode", () => {
+    const last = { type: "EXPENSE" as const, category: "Kopi", amount: 25_000, accountId: "bca", toAccountId: null };
+    expect(repeatLabel(last, { maskAmount: true })).toBe("Ulangi: Kopi ••••••");
+    expect(repeatLabel({ ...last, type: "TRANSFER" }, { maskAmount: true })).toBe("Ulangi transfer ••••••");
   });
 
   it("omits the category for a transfer", () => {

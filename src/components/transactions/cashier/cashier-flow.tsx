@@ -12,10 +12,11 @@ import {
   canGoBack,
   chatReducer,
   createInitialState,
-  hasUnsavedProgress,
+  closeGuard,
   toCompleteDraft,
   type ChatAction,
   type ChatState,
+  type CloseGuard,
   type Draft,
   type FlowAccount,
   type FlowContext,
@@ -33,14 +34,14 @@ export function CashierFlow({
   categories,
   suggestions,
   onClose,
-  onProgressChange,
+  onCloseGuardChange,
 }: Readonly<{
   accounts: FlowAccount[];
   categories: string[];
   suggestions: TransactionSuggestions;
   onClose: () => void;
-  /** Dikabari saat ada jawaban yang belum tercatat, supaya penutup dialog bisa meminta konfirmasi. */
-  onProgressChange: (inProgress: boolean) => void;
+  /** Dikabari seberapa hati-hati dialog harus ditutup, supaya penutup dialog bisa meminta konfirmasi. */
+  onCloseGuardChange: (guard: CloseGuard) => void;
 }>) {
   const [today] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const ctx = useMemo<FlowContext>(
@@ -54,11 +55,11 @@ export function CashierFlow({
   );
   const [, startTransition] = useTransition();
 
-  const inProgress = hasUnsavedProgress(state);
+  const guard = closeGuard(state);
   useEffect(() => {
-    onProgressChange(inProgress);
-    return () => onProgressChange(false);
-  }, [inProgress, onProgressChange]);
+    onCloseGuardChange(guard);
+    return () => onCloseGuardChange("free");
+  }, [guard, onCloseGuardChange]);
 
   function save(draft: Draft) {
     const complete = toCompleteDraft(draft);
@@ -74,11 +75,13 @@ export function CashierFlow({
   }
 
   function confirm() {
+    if (state.step !== "review") return;
     dispatch({ type: "submit" });
     save(state.draft);
   }
 
   function retry() {
+    if (state.step !== "error") return;
     dispatch({ type: "retry" });
     save(state.draft);
   }

@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { usePrivacyMode } from "@/components/privacy-mode";
+import { AnimatedNumber } from "@/components/motion/animated-number";
 
 export type SummaryStatItem = {
   label: string;
@@ -25,9 +26,12 @@ export function SummaryStats({
   if (compact) {
     return (
       <div className="flex flex-col divide-y rounded-lg border bg-card sm:flex-row sm:divide-x sm:divide-y-0">
-        {items.map((item) => (
-          <div
+        {items.map((item, index) => (
+          <motion.div
             key={item.label}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.05, ease: [0.16, 0.84, 0.44, 1] }}
             className="flex flex-1 items-center justify-between gap-3 px-4 py-2.5 sm:flex-col sm:items-start sm:justify-start"
           >
             <span className="text-xs text-muted-foreground">{item.label}</span>
@@ -40,13 +44,13 @@ export function SummaryStats({
                   item.tone === "highlight" && "text-primary",
                 )}
               >
-                {mask(item.value)}
+                <AnimatedNumber text={mask(item.value)} />
               </span>
               {item.sublabel && (
                 <span className="text-[11px] text-muted-foreground">{mask(item.sublabel)}</span>
               )}
             </span>
-          </div>
+          </motion.div>
         ))}
       </div>
     );
@@ -60,11 +64,13 @@ export function SummaryStats({
           className="w-full"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -3 }}
+          whileTap={{ scale: 0.985 }}
           transition={{ duration: 0.35, delay: index * 0.05, ease: [0.16, 0.84, 0.44, 1] }}
         >
           <Card
             className={cn(
-              "h-full transition-shadow hover:shadow-md",
+              "h-full transition-shadow hover:shadow-lg hover:shadow-primary/10",
               item.tone === "highlight"
                 ? "bg-brand-gradient border-none text-white"
                 : "bg-gradient-to-br from-primary/5 via-card to-accent/10",
@@ -93,7 +99,7 @@ export function SummaryStats({
                   item.tone === "negative" && "text-destructive",
                 )}
               >
-                {mask(item.value)}
+                <AnimatedNumber text={mask(item.value)} />
               </p>
               {item.sublabel && (
                 <p className="mt-1 text-xs text-muted-foreground">{mask(item.sublabel)}</p>

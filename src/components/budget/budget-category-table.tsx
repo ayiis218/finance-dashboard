@@ -1,3 +1,4 @@
+import { TableEmptyRow } from "@/components/empty-state";
 import { Pencil } from "lucide-react";
 import {
   Table,
@@ -77,11 +78,7 @@ export function BudgetCategoryTable({
               </TableRow>
             ))}
             {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
-                  No budget categories yet.
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow colSpan={4}>No budget categories yet.</TableEmptyRow>
             )}
           </TableBody>
         </Table>

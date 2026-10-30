@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
 import { usePrivacyMode } from "@/components/privacy-mode";
 import { Button } from "@/components/ui/button";
 import { AmountKeypad } from "@/components/transactions/cashier/amount-keypad";
@@ -8,6 +7,8 @@ import { ChoiceTray, type Choice } from "@/components/transactions/cashier/choic
 import { DateStep } from "@/components/transactions/cashier/date-step";
 import { NoteInput } from "@/components/transactions/cashier/note-input";
 import { ReceiptSummary } from "@/components/transactions/cashier/receipt-summary";
+import { SavingNotice } from "@/components/transactions/cashier/saving-notice";
+import { TapGuard } from "@/components/transactions/cashier/tap-guard";
 import { EXTERNAL_LABEL, repeatLabel, reviewLines, TYPE_LABELS } from "@/lib/transaction-cashier/copy";
 import type {
   ChatAction,
@@ -17,7 +18,6 @@ import type {
 } from "@/lib/transaction-cashier/flow";
 import { rankAccounts, rankOptions, type TransactionSuggestions } from "@/lib/transaction-cashier/suggestions";
 
-const REPEAT_ID = "repeat";
 const EXTERNAL_ID = "external";
 const TYPES: TransactionKind[] = ["EXPENSE", "INCOME", "TRANSFER"];
 
@@ -32,11 +32,7 @@ type Props = Readonly<{
   onClose: () => void;
 }>;
 
-function typeChoices(ctx: FlowContext, maskAmount: boolean): Choice[] {
-  const choices: Choice[] = TYPES.map((type) => ({ id: type, label: TYPE_LABELS[type] }));
-  if (!ctx.last) return choices;
-  return [{ id: REPEAT_ID, label: repeatLabel(ctx.last, { maskAmount }), emphasis: true }, ...choices];
-}
+const TYPE_CHOICES: Choice[] = TYPES.map((type) => ({ id: type, label: TYPE_LABELS[type] }));
 
 function accountChoices(ctx: FlowContext, suggestions: TransactionSuggestions, excludeId?: string): Choice[] {
   return rankAccounts(ctx.accounts, suggestions.accountIds)
@@ -44,20 +40,42 @@ function accountChoices(ctx: FlowContext, suggestions: TransactionSuggestions, e
     .map((a) => ({ id: a.id, label: a.name }));
 }
 
-/** Input untuk langkah saat ini: tombol, keypad, tanggal, catatan, atau struk. */
-export function StepInput({ state, ctx, categories, suggestions, dispatch, onConfirm, onRetry, onClose }: Props) {
+/**
+ * Input untuk langkah saat ini: tombol, keypad, tanggal, catatan, atau struk.
+ * Dibungkus `TapGuard`; pemanggil memasang ulang komponen ini per langkah (lewat `key`),
+ * jadi jeda tap dimulai ulang di setiap langkah.
+ */
+export function StepInput(props: Props) {
+  return (
+    <TapGuard>
+      <StepInputBody {...props} />
+    </TapGuard>
+  );
+}
+
+function StepInputBody({ state, ctx, categories, suggestions, dispatch, onConfirm, onRetry, onClose }: Props) {
   const { step, draft } = state;
   const { hidden: privacyMode } = usePrivacyMode();
 
   switch (step) {
     case "type":
       return (
-        <ChoiceTray
-          choices={typeChoices(ctx, privacyMode)}
-          onPick={(id) =>
-            id === REPEAT_ID ? dispatch({ type: "repeatLast" }) : dispatch({ type: "pickType", value: id as TransactionKind })
-          }
-        />
+        <div className="space-y-2">
+          <ChoiceTray choices={TYPE_CHOICES} onPick={(id) => dispatch({ type: "pickType", value: id as TransactionKind })} />
+          {/* Sengaja bukan sel pertama dan tidak ter-autofocus: tombol "Catat lagi" di langkah selesai
+              berada di posisi sel pertama, jadi double-tap/Enter beruntun tidak boleh jatuh ke sini. */}
+          {ctx.last && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="lg"
+              className="h-11 w-full text-base"
+              onClick={() => dispatch({ type: "repeatLast" })}
+            >
+              {repeatLabel(ctx.last, { today: ctx.today, maskAmount: privacyMode })}
+            </Button>
+          )}
+        </div>
       );
     case "category": {
       const preferred = draft.type ? suggestions.categoriesByType[draft.type] : [];
@@ -69,7 +87,7 @@ export function StepInput({ state, ctx, categories, suggestions, dispatch, onCon
       );
     }
     case "amount":
-      return <AmountKeypad onSubmit={(value) => dispatch({ type: "setAmount", value })} />;
+      return <AmountKeypad initialAmount={draft.amount} onSubmit={(value) => dispatch({ type: "setAmount", value })} />;
     case "account":
       return <ChoiceTray choices={accountChoices(ctx, suggestions)} onPick={(id) => dispatch({ type: "pickAccount", id })} />;
     case "toAccount":
@@ -92,12 +110,7 @@ export function StepInput({ state, ctx, categories, suggestions, dispatch, onCon
         />
       );
     case "saving":
-      return (
-        <p className="flex items-center justify-center gap-2 py-3 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          Menyimpan…
-        </p>
-      );
+      return <SavingNotice />;
     case "done":
       return (
         <ChoiceTray

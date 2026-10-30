@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { pickFormFields } from "@/lib/form-data";
 import { ensureCategoryExists } from "@/lib/actions/categories";
 import { normalizeTransactionData } from "@/lib/transaction-normalize";
+import { REQUEST_ID_PATTERN, writeOnce } from "@/lib/write-once";
 
 const transactionSchema = z.object({
   accountId: z.string().min(1),
@@ -30,7 +31,16 @@ const TRANSACTION_FIELDS = [
   "affectsBalance",
 ] as const;
 
+/** `id` opsional dari klien (idempotency key); form biasa tidak mengirimnya sehingga id dibuat otomatis. */
+const createTransactionSchema = transactionSchema.extend({
+  id: z.string().regex(REQUEST_ID_PATTERN).optional(),
+});
+
+const CREATE_TRANSACTION_FIELDS = [...TRANSACTION_FIELDS, "id"] as const;
+
 export type TransactionCoreInput = {
+  /** Bila diisi dan sudah pernah tersimpan, pembuatan diperlakukan sebagai percobaan ulang yang sudah sukses. */
+  id?: string;
   accountId: string;
   toAccountId: string | null;
   type: TransactionType;
@@ -68,13 +78,23 @@ export async function createTransactionWithClient(
   }
 }
 
+async function transactionExists(id: string | undefined): Promise<boolean> {
+  if (id === undefined) return false;
+  return (await prisma.transaction.findUnique({ where: { id }, select: { id: true } })) !== null;
+}
+
 /**
  * Logic inti pembuatan transaksi berdiri sendiri (buka transaction-nya
  * sendiri) — dipisah dari parsing `FormData` supaya bisa dipanggil ulang
  * oleh pemanggil non-form yang tidak butuh `tx` bersama.
  */
 export async function createTransactionCore(data: TransactionCoreInput) {
-  await prisma.$transaction((tx) => createTransactionWithClient(tx, data));
+  // Percobaan ulang (respons pertama hilang) gagal di primary key dan ikut rollback — termasuk
+  // perubahan saldo — lalu dianggap sukses karena barisnya memang sudah ada.
+  await writeOnce(
+    () => prisma.$transaction((tx) => createTransactionWithClient(tx, data)),
+    () => transactionExists(data.id),
+  );
 
   revalidatePath("/transactions");
   revalidatePath("/accounts");
@@ -83,7 +103,7 @@ export async function createTransactionCore(data: TransactionCoreInput) {
 
 export async function createTransaction(formData: FormData) {
   const data = normalizeTransactionData(
-    transactionSchema.parse(pickFormFields(formData, TRANSACTION_FIELDS)),
+    createTransactionSchema.parse(pickFormFields(formData, CREATE_TRANSACTION_FIELDS)),
   );
   await createTransactionCore(data);
 }

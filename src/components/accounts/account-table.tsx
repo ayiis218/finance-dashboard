@@ -1,3 +1,4 @@
+import { TableEmptyRow } from "@/components/empty-state";
 import { Pencil } from "lucide-react";
 import {
   Table,
@@ -70,11 +71,7 @@ export function AccountTable({ rows }: Readonly<{ rows: AccountRow[] }>) {
               </TableRow>
             ))}
             {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
-                  No accounts yet.
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow colSpan={4}>No accounts yet.</TableEmptyRow>
             )}
           </TableBody>
         </Table>

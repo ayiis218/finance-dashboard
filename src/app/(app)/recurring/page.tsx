@@ -19,7 +19,7 @@ export default async function RecurringTransactionsPage() {
   const accounts = accountRows.map((a) => ({ id: a.id, name: a.name }));
 
   return (
-    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+    <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
           <div>

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import type { ReviewLine } from "@/lib/transaction-cashier/copy";
 import type { EditableStep } from "@/lib/transaction-cashier/flow";
@@ -8,8 +9,16 @@ export function ReceiptSummary({
   onEdit,
   onConfirm,
 }: Readonly<{ lines: ReviewLine[]; onEdit: (step: EditableStep) => void; onConfirm: () => void }>) {
+  const summaryRef = useRef<HTMLDivElement>(null);
+
+  // Fokus ke ringkasan, BUKAN ke "Catat": tombol yang menyimpan data tidak boleh bisa terpicu
+  // oleh Enter/Spasi dari langkah sebelumnya yang masih ditahan.
+  useEffect(() => {
+    summaryRef.current?.focus();
+  }, []);
+
   return (
-    <div className="space-y-3">
+    <div ref={summaryRef} role="group" aria-label="Ringkasan transaksi" tabIndex={-1} className="space-y-3 outline-none">
       {/* drop-shadow di pembungkus: filter dihitung setelah mask, jadi bayangan ikut tepi bergerigi. */}
       <div className="drop-shadow-sm">
         <dl className="receipt-paper divide-y divide-dashed divide-chat-ink/25 px-3 pt-1 pb-4 font-mono text-sm">
@@ -35,7 +44,7 @@ export function ReceiptSummary({
           ))}
         </dl>
       </div>
-      <Button type="button" size="lg" className="h-11 w-full text-base" autoFocus onClick={onConfirm}>
+      <Button type="button" size="lg" className="h-11 w-full text-base" onClick={onConfirm}>
         Catat
       </Button>
     </div>

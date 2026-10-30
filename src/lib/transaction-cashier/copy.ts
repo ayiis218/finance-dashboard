@@ -1,4 +1,4 @@
-import { format, parseISO } from "date-fns";
+import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { formatIDR } from "@/lib/format";
 import {
@@ -32,11 +32,25 @@ export const TYPE_LABELS: Record<TransactionKind, string> = {
 
 export const AMOUNT_MASK = "••••••";
 
-/** Label tombol "ulangi transaksi terakhir"; nominal riwayat disamarkan saat privacy mode aktif. */
-export function repeatLabel(last: LastTransaction, options: { maskAmount?: boolean } = {}): string {
+/** "hari ini", "kemarin", "3 hari lalu", atau tanggal pendek untuk yang lebih lama. */
+export function relativeDayLabel(enteredAt: string, today: string): string {
+  const entered = new Date(enteredAt);
+  const days = differenceInCalendarDays(parseISO(today), entered);
+  if (days <= 0) return "hari ini";
+  if (days === 1) return "kemarin";
+  if (days < 7) return `${days} hari lalu`;
+  return format(entered, "d MMM", { locale: idLocale });
+}
+
+/**
+ * Label tombol "ulangi transaksi terakhir", lengkap dengan kapan transaksi itu dimasukkan supaya
+ * user tahu persis apa yang akan diulang. Nominal riwayat disamarkan saat privacy mode aktif.
+ */
+export function repeatLabel(last: LastTransaction, options: { today: string; maskAmount?: boolean }): string {
   const amount = options.maskAmount ? AMOUNT_MASK : formatIDR(last.amount);
-  if (last.type === "TRANSFER") return `Ulangi transfer ${amount}`;
-  return `Ulangi: ${last.category} ${amount}`;
+  const when = relativeDayLabel(last.enteredAt, options.today);
+  if (last.type === "TRANSFER") return `Ulangi transfer ${amount} · ${when}`;
+  return `Ulangi: ${last.category} ${amount} · ${when}`;
 }
 
 const EDIT_PROMPTS: Record<EditableStep, string> = {
@@ -76,7 +90,7 @@ const STATUS_PROMPTS: Record<Exclude<Step, QuestionStep>, string> = {
   review: "Cek dulu ya, sudah benar?",
   saving: "Sebentar, lagi saya catat…",
   done: "Beres, tercatat! Catat lagi?",
-  error: "Waduh, gagal mencatat. Coba lagi?",
+  error: "Waduh, gagal mencatat. Coba lagi? Aman, tidak akan tercatat dua kali.",
   blocked: "Belum ada rekening. Tambah rekening dulu di halaman Accounts, baru kita mulai.",
 };
 

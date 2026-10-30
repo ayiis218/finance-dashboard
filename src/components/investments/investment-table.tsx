@@ -1,3 +1,4 @@
+import { TableEmptyRow } from "@/components/empty-state";
 import { Pencil } from "lucide-react";
 import {
   Table,
@@ -98,11 +99,7 @@ export function InvestmentTable({ rows }: Readonly<{ rows: InvestmentRow[] }>) {
               );
             })}
             {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  No investments yet.
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow colSpan={7}>No investments yet.</TableEmptyRow>
             )}
           </TableBody>
         </Table>

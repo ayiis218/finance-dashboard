@@ -1,3 +1,4 @@
+import { TableEmptyRow } from "@/components/empty-state";
 import { formatDate } from "date-fns";
 import { Pencil } from "lucide-react";
 import {
@@ -12,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { RepaymentDialog } from "@/components/receivables/repayment-dialog";
+import { StatusStamp } from "@/components/status-stamp";
 import { MarkSettledButton } from "@/components/receivables/mark-settled-button";
 import { ReceivableFormFields } from "@/components/receivables/receivable-form-fields";
 import {
@@ -45,6 +47,11 @@ const STATUS_VARIANT = {
 } as const;
 
 type ReceivableRow = Awaited<ReturnType<typeof getReceivablesWithStatus>>[number];
+
+function ReceivableStatus({ status }: Readonly<{ status: ReceivableRow["status"] }>) {
+  if (status === "SETTLED") return <StatusStamp>{STATUS_LABEL[status]}</StatusStamp>;
+  return <Badge variant={STATUS_VARIANT[status]}>{STATUS_LABEL[status]}</Badge>;
+}
 
 function ReceivableRepayment({ item }: Readonly<{ item: ReceivableRow }>) {
   return (
@@ -128,7 +135,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col items-start gap-1">
-                    <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge>
+                    <ReceivableStatus status={r.status} />
                     {r.status !== "SETTLED" && (
                       <MarkSettledButton action={toggleReceivableSettled.bind(null, r.id, true)} />
                     )}
@@ -145,11 +152,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
               </TableRow>
             ))}
             {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  No receivables or debts yet.
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow colSpan={7}>No receivables or debts yet.</TableEmptyRow>
             )}
           </TableBody>
         </Table>
@@ -180,7 +183,7 @@ export function ReceivableTable({ rows }: Readonly<{ rows: ReceivableRow[] }>) {
               }
             />
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge>
+              <ReceivableStatus status={r.status} />
               {r.status !== "SETTLED" && (
                 <MarkSettledButton action={toggleReceivableSettled.bind(null, r.id, true)} />
               )}

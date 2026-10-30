@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { requestIdFor } from "@/lib/transaction-cashier/request-id";
 import {
   MAX_AMOUNT,
   canGoBack,
@@ -18,7 +19,7 @@ import {
 const BCA = { id: "bca", name: "BCA" };
 const CASH = { id: "cash", name: "Cash" };
 
-const CTX: FlowContext = { accounts: [BCA, CASH], today: "2026-11-07", last: null };
+const CTX: FlowContext = { accounts: [BCA, CASH], sessionId: "session", today: "2026-11-07", last: null };
 const SINGLE_CTX: FlowContext = { ...CTX, accounts: [BCA] };
 
 function run(ctx: FlowContext, actions: ChatAction[], from?: ChatState): ChatState {
@@ -336,17 +337,19 @@ describe("saving", () => {
 });
 
 describe("repeatLast", () => {
-  const last = { type: "EXPENSE" as const, category: "Kopi", amount: 25_000, accountId: "bca", toAccountId: null };
+  const last = { enteredAt: "2026-11-07T08:00:00", type: "EXPENSE" as const, category: "Kopi", amount: 25_000, accountId: "bca", toAccountId: null };
 
   it("jumps to review with today's date and no note", () => {
     const ctx = { ...CTX, last };
     const state = run(ctx, [{ type: "repeatLast" }]);
     expect(state.step).toBe("review");
-    expect(toCompleteDraft(state.draft)).toEqual({ ...last, date: "2026-11-07", note: null });
+    const { enteredAt, ...fields } = last;
+    expect(enteredAt).toBeTruthy();
+    expect(toCompleteDraft(state.draft)).toEqual({ ...fields, date: "2026-11-07", note: null });
   });
 
   it("repeats a transfer out of the system", () => {
-    const external = { type: "TRANSFER" as const, category: "Transfer", amount: 500_000, accountId: "bca", toAccountId: null };
+    const external = { enteredAt: "2026-11-07T08:00:00", type: "TRANSFER" as const, category: "Transfer", amount: 500_000, accountId: "bca", toAccountId: null };
     const ctx = { ...CTX, last: external };
     const state = run(ctx, [{ type: "repeatLast" }]);
     expect(state.step).toBe("review");
@@ -354,7 +357,7 @@ describe("repeatLast", () => {
   });
 
   it("does nothing when the last transfer destination no longer exists", () => {
-    const ctx = { ...CTX, last: { type: "TRANSFER" as const, category: "Transfer", amount: 1000, accountId: "bca", toAccountId: "deleted" } };
+    const ctx = { ...CTX, last: { enteredAt: "2026-11-07T08:00:00", type: "TRANSFER" as const, category: "Transfer", amount: 1000, accountId: "bca", toAccountId: "deleted" } };
     const state = createInitialState(ctx);
     expect(chatReducer(state, { type: "repeatLast" }, ctx)).toBe(state);
   });
@@ -420,5 +423,57 @@ describe("closeGuard", () => {
 
   it("warns differently while the transaction is being saved", () => {
     expect(closeGuard(run(CTX, [...EXPENSE_TO_REVIEW, { type: "submit" }]))).toBe("saving");
+  });
+});
+
+describe("revision (basis id permintaan simpan)", () => {
+  const idAfter = (actions: ChatAction[]) => {
+    const state = run(CTX, actions);
+    return requestIdFor(CTX.sessionId, state.revision);
+  };
+
+  it("keeps the same request id when retrying after a failed save", () => {
+    const failed = run(CTX, [...EXPENSE_TO_REVIEW, { type: "submit" }, { type: "saveFailed" }]);
+    const retried = chatReducer(failed, { type: "retry" }, CTX);
+    expect(retried.revision).toBe(failed.revision);
+  });
+
+  it("keeps the same request id after going back to review and confirming again", () => {
+    const review = run(CTX, EXPENSE_TO_REVIEW);
+    const again = run(CTX, [{ type: "submit" }, { type: "saveFailed" }, { type: "back" }, { type: "submit" }], review);
+    expect(again.step).toBe("saving");
+    expect(again.revision).toBe(review.revision);
+  });
+
+  it("keeps the same request id when merely opening a line to edit", () => {
+    const review = run(CTX, EXPENSE_TO_REVIEW);
+    expect(chatReducer(review, { type: "edit", step: "amount" }, CTX).revision).toBe(review.revision);
+  });
+
+  it("uses a new request id once an answer is changed", () => {
+    const review = run(CTX, EXPENSE_TO_REVIEW);
+    const edited = run(CTX, [{ type: "edit", step: "amount" }, { type: "setAmount", value: 30_000 }], review);
+    expect(edited.step).toBe("review");
+    expect(edited.revision).not.toBe(review.revision);
+  });
+
+  it("uses a new request id for the next transaction after one was recorded", () => {
+    const recorded = run(CTX, [...EXPENSE_TO_REVIEW, { type: "submit" }, { type: "saveSucceeded" }]);
+    const next = chatReducer(recorded, { type: "startOver" }, CTX);
+    expect(next.revision).not.toBe(recorded.revision);
+  });
+
+  it("gives every distinct draft along a path a distinct id", () => {
+    const ids = new Set<string>();
+    let state = createInitialState(CTX);
+    for (const action of EXPENSE_TO_REVIEW) {
+      state = chatReducer(state, action, CTX);
+      ids.add(requestIdFor(CTX.sessionId, state.revision));
+    }
+    expect(ids.size).toBe(EXPENSE_TO_REVIEW.length);
+  });
+
+  it("is a different id for a different session even with the same revision", () => {
+    expect(idAfter(EXPENSE_TO_REVIEW)).not.toBe(requestIdFor("other-session", run(CTX, EXPENSE_TO_REVIEW).revision));
   });
 });

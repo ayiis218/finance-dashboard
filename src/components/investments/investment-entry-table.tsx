@@ -1,3 +1,4 @@
+import { TableEmptyRow } from "@/components/empty-state";
 import { format } from "date-fns";
 import { Pencil } from "lucide-react";
 import {
@@ -95,11 +96,7 @@ export function InvestmentEntryTable({
               </TableRow>
             ))}
             {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
-                  No investment entries yet for {year}.
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow colSpan={6}>No investment entries yet for {year}.</TableEmptyRow>
             )}
           </TableBody>
         </Table>

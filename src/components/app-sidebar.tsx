@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
 import {
   Sidebar,
   SidebarContent,
@@ -33,18 +34,31 @@ export function AppSidebar() {
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton
-                    isActive={pathname === item.url}
-                    onClick={() => setOpenMobile(false)}
-                    render={<Link href={item.url} />}
-                  >
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {menuItems.map((item) => {
+                const active = pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.url}>
+                    {/* Pill aktif meluncur antar menu lewat layoutId yang sama. */}
+                    {active && (
+                      <motion.span
+                        layoutId="sidebar-active-pill"
+                        aria-hidden="true"
+                        transition={{ type: "spring", stiffness: 500, damping: 38 }}
+                        className="absolute inset-0 rounded-md bg-sidebar-accent"
+                      />
+                    )}
+                    <SidebarMenuButton
+                      isActive={active}
+                      onClick={() => setOpenMobile(false)}
+                      className="relative z-10 data-active:bg-transparent"
+                      render={<Link href={item.url} />}
+                    >
+                      <item.icon className="transition-transform duration-200 group-hover/menu-button:-rotate-6 group-hover/menu-button:scale-110" />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

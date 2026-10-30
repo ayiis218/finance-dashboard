@@ -1,3 +1,4 @@
+import { TableEmptyRow } from "@/components/empty-state";
 import { formatDate } from "date-fns";
 import { Pencil } from "lucide-react";
 import {
@@ -81,11 +82,7 @@ export function AssetTable({ rows }: Readonly<{ rows: AssetRow[] }>) {
               </TableRow>
             ))}
             {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
-                  No assets yet.
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow colSpan={6}>No assets yet.</TableEmptyRow>
             )}
           </TableBody>
         </Table>

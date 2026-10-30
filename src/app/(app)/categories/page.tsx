@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { TableEmptyRow } from "@/components/empty-state";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormDialog } from "@/components/form-dialog";
 import {
@@ -27,7 +28,7 @@ export default async function CategoriesPage() {
   const categories = await getCategories();
 
   return (
-    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+    <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-col gap-3 bg-gradient-to-r from-primary/5 to-transparent sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -76,11 +77,7 @@ export default async function CategoriesPage() {
                   </TableRow>
                 ))}
                 {categories.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-center text-muted-foreground">
-                      Belum ada kategori.
-                    </TableCell>
-                  </TableRow>
+                  <TableEmptyRow colSpan={2}>Belum ada kategori.</TableEmptyRow>
                 )}
               </TableBody>
             </Table>

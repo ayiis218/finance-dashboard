@@ -12,6 +12,8 @@ export type TransactionKind = "EXPENSE" | "INCOME" | "TRANSFER";
 export type FlowAccount = { id: string; name: string };
 
 export type LastTransaction = {
+  /** Kapan transaksi ini dimasukkan (ISO), bukan tanggal transaksinya; untuk label "kemarin" dsb. */
+  enteredAt: string;
   type: TransactionKind;
   category: string;
   amount: number;
@@ -21,6 +23,8 @@ export type LastTransaction = {
 
 export type FlowContext = {
   accounts: FlowAccount[];
+  /** Id acak per sesi dialog; bersama `ChatState.revision` membentuk id permintaan simpan (lihat `request-id.ts`). */
+  sessionId: string;
   /** Tanggal lokal user, format yyyy-MM-dd. */
   today: string;
   last: LastTransaction | null;
@@ -60,6 +64,8 @@ export type ChatState = {
   /** True saat user lompat dari ringkasan untuk mengubah satu jawaban. */
   returnToReview: boolean;
   savedCount: number;
+  /** Naik tiap isi draft berubah atau sesi mulai ulang; tidak naik saat Kembali, Coba lagi, atau membuka Ubah. */
+  revision: number;
 };
 
 export type ChatAction =
@@ -160,6 +166,7 @@ export function createInitialState(ctx: FlowContext): ChatState {
     history: [],
     returnToReview: false,
     savedCount: 0,
+    revision: 0,
   };
 }
 
@@ -167,14 +174,19 @@ function hasAccount(ctx: FlowContext, id: string): boolean {
   return ctx.accounts.some((a) => a.id === id);
 }
 
+/** Referensi draft yang berbeda = isi berubah, jadi revisi naik dan id permintaan simpan ikut baru. */
+function revisionFor(state: ChatState, draft: Draft): number {
+  return draft === state.draft ? state.revision : state.revision + 1;
+}
+
 function moveTo(state: ChatState, step: Step, draft: Draft): ChatState {
-  return { ...state, draft, step, history: [...state.history, state.step] };
+  return { ...state, draft, step, history: [...state.history, state.step], revision: revisionFor(state, draft) };
 }
 
 function backToReview(state: ChatState, draft: Draft): ChatState {
   const reviewIndex = state.history.lastIndexOf("review");
   const history = reviewIndex >= 0 ? state.history.slice(0, reviewIndex) : state.history;
-  return { ...state, draft, step: "review", history, returnToReview: false };
+  return { ...state, draft, step: "review", history, returnToReview: false, revision: revisionFor(state, draft) };
 }
 
 function firstMissingStep(draft: Draft, ctx: FlowContext): QuestionStep | null {
@@ -283,7 +295,14 @@ function submit(state: ChatState): ChatState {
 function startOver(state: ChatState): ChatState {
   if (state.step !== "done") return state;
   const { accountId, date } = state.draft;
-  return { ...state, step: "type", draft: { accountId, date }, history: [], returnToReview: false };
+  return {
+    ...state,
+    step: "type",
+    draft: { accountId, date },
+    history: [],
+    returnToReview: false,
+    revision: state.revision + 1,
+  };
 }
 
 export function chatReducer(state: ChatState, action: ChatAction, ctx: FlowContext): ChatState {

@@ -1,3 +1,4 @@
+import { ProgressBar } from "@/components/motion/progress-bar";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Pencil } from "lucide-react";
@@ -70,12 +71,7 @@ export function GoalCard({ goal }: Readonly<{ goal: GoalRow }>) {
           <span>{formatIDR(saved)} saved</span>
           <span className="text-muted-foreground">of {formatIDR(target)}</span>
         </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        <ProgressBar percent={progress} />
         <GoalProjectionLine projection={projection} />
         {goal.items.length > 0 && (
           <p className="text-xs text-muted-foreground">

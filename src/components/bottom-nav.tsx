@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
 import { LayoutDashboard, Landmark, Wallet, ClipboardList, TrendingUp } from "lucide-react";
 import { ROUTES } from "@/lib/registry/route";
 import { cn } from "@/lib/utils";
@@ -35,9 +36,14 @@ export function BottomNav() {
         className="relative flex flex-col items-center justify-end pb-1.5"
         aria-current={pathname === centerItem.url ? "page" : undefined}
       >
-        <span className="bg-brand-gradient -mt-5 flex size-12 items-center justify-center rounded-full text-white shadow-md ring-4 ring-card">
+        <motion.span
+          whileTap={{ scale: 0.88, y: 2 }}
+          whileHover={{ y: -2 }}
+          transition={{ type: "spring", stiffness: 500, damping: 18 }}
+          className="bg-brand-gradient -mt-5 flex size-12 items-center justify-center rounded-full text-white shadow-md ring-4 ring-card"
+        >
           <centerItem.icon className="size-5" />
-        </span>
+        </motion.span>
         <span className="mt-1 text-[11px] font-medium text-muted-foreground">
           {centerItem.title}
         </span>
@@ -61,12 +67,25 @@ function NavItem({
     <Link
       href={item.url}
       className={cn(
-        "flex flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-medium",
+        "relative flex flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-medium transition-colors active:scale-95",
         active ? "text-primary" : "text-muted-foreground",
       )}
       aria-current={active ? "page" : undefined}
     >
-      <item.icon className="size-5" />
+      {active && (
+        <motion.span
+          layoutId="bottom-nav-indicator"
+          aria-hidden="true"
+          transition={{ type: "spring", stiffness: 500, damping: 36 }}
+          className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-primary"
+        />
+      )}
+      <motion.span
+        animate={{ scale: active ? 1.15 : 1, y: active ? -1 : 0 }}
+        transition={{ type: "spring", stiffness: 500, damping: 22 }}
+      >
+        <item.icon className="size-5" />
+      </motion.span>
       {item.title}
     </Link>
   );

@@ -27,7 +27,7 @@ export default async function CashflowMonthPage({
   const detail = await getCashflowMonthDetail(month);
 
   return (
-    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+    <div className="space-y-4">
       <Link
         href="/cashflow"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"

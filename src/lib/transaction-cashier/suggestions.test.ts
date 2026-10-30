@@ -9,7 +9,7 @@ import {
 } from "@/lib/transaction-cashier/suggestions";
 
 function row(overrides: Partial<SuggestionRow>): SuggestionRow {
-  return { type: "EXPENSE", category: "Makan", accountId: "bca", toAccountId: null, amount: 10_000, ...overrides };
+  return { enteredAt: "2026-11-07T08:00:00", type: "EXPENSE", category: "Makan", accountId: "bca", toAccountId: null, amount: 10_000, ...overrides };
 }
 
 describe("buildSuggestions", () => {
@@ -47,9 +47,10 @@ describe("buildSuggestions", () => {
     expect(buildSuggestions(rows).accountIds).toEqual(["cash", "bca"]);
   });
 
-  it("takes the first row as the last transaction", () => {
-    const rows = [row({ category: "Kopi", amount: 25_000 }), row({ category: "Makan" })];
+  it("takes the first row (most recently entered) as the last transaction, with when it was entered", () => {
+    const rows = [row({ category: "Kopi", amount: 25_000, enteredAt: "2026-11-07T09:30:00" }), row({ category: "Makan" })];
     expect(buildSuggestions(rows).last).toEqual({
+      enteredAt: "2026-11-07T09:30:00",
       type: "EXPENSE",
       category: "Kopi",
       amount: 25_000,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { answerLabel, collectedAnswers, promptFor, repeatLabel, reviewLines } from "@/lib/transaction-cashier/copy";
+import { answerLabel, collectedAnswers, promptFor, relativeDayLabel, repeatLabel, reviewLines } from "@/lib/transaction-cashier/copy";
 import {
   chatReducer,
   createInitialState,
@@ -12,6 +12,7 @@ const CTX: FlowContext = {
     { id: "bca", name: "BCA" },
     { id: "cash", name: "Cash" },
   ],
+  sessionId: "session",
   today: "2026-11-07",
   last: null,
 };
@@ -153,20 +154,39 @@ describe("collectedAnswers", () => {
   });
 });
 
-describe("repeatLabel", () => {
-  it("names the category and amount for an expense", () => {
-    const last = { type: "EXPENSE" as const, category: "Kopi", amount: 25_000, accountId: "bca", toAccountId: null };
-    expect(repeatLabel(last)).toMatch(/^Ulangi: Kopi .*25\.000/);
+describe("relativeDayLabel", () => {
+  const today = "2026-11-07";
+
+  it.each([
+    ["2026-11-07T08:00:00", "hari ini"],
+    ["2026-11-06T23:30:00", "kemarin"],
+    ["2026-11-04T12:00:00", "3 hari lalu"],
+    ["2026-11-01T12:00:00", "6 hari lalu"],
+    ["2026-10-31T12:00:00", "31 Okt"],
+  ])("labels an entry made at %s as %s", (enteredAt, expected) => {
+    expect(relativeDayLabel(enteredAt, today)).toBe(expected);
   });
 
-  it("masks the historical amount in privacy mode", () => {
-    const last = { type: "EXPENSE" as const, category: "Kopi", amount: 25_000, accountId: "bca", toAccountId: null };
-    expect(repeatLabel(last, { maskAmount: true })).toBe("Ulangi: Kopi ••••••");
-    expect(repeatLabel({ ...last, type: "TRANSFER" }, { maskAmount: true })).toBe("Ulangi transfer ••••••");
+  it("treats a timestamp slightly in the future (clock skew) as today", () => {
+    expect(relativeDayLabel("2026-11-08T00:10:00", today)).toBe("hari ini");
+  });
+});
+
+describe("repeatLabel", () => {
+  const today = "2026-11-07";
+  const expense = { enteredAt: "2026-11-06T20:00:00", type: "EXPENSE" as const, category: "Kopi", amount: 25_000, accountId: "bca", toAccountId: null };
+
+  it("names the category, amount and when it was entered, for an expense", () => {
+    expect(repeatLabel(expense, { today })).toMatch(/^Ulangi: Kopi .*25\.000 · kemarin$/);
+  });
+
+  it("masks the historical amount in privacy mode but still says when", () => {
+    expect(repeatLabel(expense, { today, maskAmount: true })).toBe("Ulangi: Kopi •••••• · kemarin");
+    expect(repeatLabel({ ...expense, type: "TRANSFER" }, { today, maskAmount: true })).toBe("Ulangi transfer •••••• · kemarin");
   });
 
   it("omits the category for a transfer", () => {
-    const last = { type: "TRANSFER" as const, category: "Transfer", amount: 100_000, accountId: "bca", toAccountId: "cash" };
-    expect(repeatLabel(last)).toMatch(/^Ulangi transfer .*100\.000/);
+    const transfer = { ...expense, type: "TRANSFER" as const, category: "Transfer", amount: 100_000, toAccountId: "cash" };
+    expect(repeatLabel(transfer, { today })).toMatch(/^Ulangi transfer .*100\.000 · kemarin$/);
   });
 });

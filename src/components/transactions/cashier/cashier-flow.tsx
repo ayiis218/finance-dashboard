@@ -22,6 +22,7 @@ import {
   type FlowContext,
 } from "@/lib/transaction-cashier/flow";
 import type { TransactionSuggestions } from "@/lib/transaction-cashier/suggestions";
+import { createSessionId, requestIdFor } from "@/lib/transaction-cashier/request-id";
 import { toFormData } from "@/lib/transaction-cashier/to-form-data";
 
 /**
@@ -44,9 +45,10 @@ export function CashierFlow({
   onCloseGuardChange: (guard: CloseGuard) => void;
 }>) {
   const [today] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [sessionId] = useState(createSessionId);
   const ctx = useMemo<FlowContext>(
-    () => ({ accounts, today, last: suggestions.last }),
-    [accounts, today, suggestions.last],
+    () => ({ accounts, sessionId, today, last: suggestions.last }),
+    [accounts, sessionId, today, suggestions.last],
   );
   const [state, dispatch] = useReducer(
     (current: ChatState, action: ChatAction) => chatReducer(current, action, ctx),
@@ -61,12 +63,14 @@ export function CashierFlow({
     return () => onCloseGuardChange("free");
   }, [guard, onCloseGuardChange]);
 
-  function save(draft: Draft) {
+  // Id yang sama untuk draft yang sama: "Coba lagi" tidak membuat transaksi kedua bila percobaan
+  // pertama ternyata sudah tersimpan (server menolak id kembar dan menganggapnya sukses).
+  function save(draft: Draft, requestId: string) {
     const complete = toCompleteDraft(draft);
     if (!complete) return;
     startTransition(async () => {
       try {
-        await createTransaction(toFormData(complete));
+        await createTransaction(toFormData(complete, requestId));
         dispatch({ type: "saveSucceeded" });
       } catch {
         dispatch({ type: "saveFailed" });
@@ -77,19 +81,19 @@ export function CashierFlow({
   function confirm() {
     if (state.step !== "review") return;
     dispatch({ type: "submit" });
-    save(state.draft);
+    save(state.draft, requestIdFor(sessionId, state.revision));
   }
 
   function retry() {
     if (state.step !== "error") return;
     dispatch({ type: "retry" });
-    save(state.draft);
+    save(state.draft, requestIdFor(sessionId, state.revision));
   }
 
   return (
     // reducedMotion="user": semua animasi motion mengikuti preferensi sistem.
     <MotionConfig reducedMotion="user">
-      <div className="cashier-scene space-y-4">
+      <div className="space-y-4">
         <CashierStage state={state} ctx={ctx} />
         <StepInput
           // Remount tiap langkah supaya fokus dan state lokal input (keypad, catatan) mulai bersih.

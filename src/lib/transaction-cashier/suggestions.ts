@@ -4,6 +4,8 @@ import type { FlowAccount, LastTransaction, TransactionKind } from "@/lib/transa
 export const VISIBLE_OPTIONS = 6;
 
 export type SuggestionRow = {
+  /** Kapan baris ini dimasukkan (ISO). */
+  enteredAt: string;
   type: TransactionKind;
   category: string;
   accountId: string;
@@ -24,7 +26,7 @@ function rankByFrequency(values: string[]): string[] {
   return [...counts.keys()].sort((a, b) => counts.get(b)! - counts.get(a)!);
 }
 
-/** `rows` wajib terurut dari transaksi terbaru ke terlama. */
+/** `rows` wajib terurut dari yang terakhir DIMASUKKAN ke yang terlama (bukan menurut tanggal transaksi). */
 export function buildSuggestions(rows: SuggestionRow[]): TransactionSuggestions {
   const categoriesOf = (type: TransactionKind) =>
     rankByFrequency(rows.filter((r) => r.type === type).map((r) => r.category));
@@ -39,6 +41,7 @@ export function buildSuggestions(rows: SuggestionRow[]): TransactionSuggestions 
     accountIds: rankByFrequency(rows.flatMap((r) => (r.toAccountId ? [r.accountId, r.toAccountId] : [r.accountId]))),
     last: first
       ? {
+          enteredAt: first.enteredAt,
           type: first.type,
           category: first.category,
           amount: first.amount,

@@ -3,7 +3,7 @@ import { expressionFor } from "@/lib/transaction-cashier/expression";
 import type { ChatState } from "@/lib/transaction-cashier/flow";
 
 function state(overrides: Partial<ChatState>): ChatState {
-  return { step: "type", draft: {}, history: [], returnToReview: false, savedCount: 0, ...overrides };
+  return { step: "type", draft: {}, history: [], returnToReview: false, savedCount: 0, revision: 0, ...overrides };
 }
 
 describe("expressionFor", () => {

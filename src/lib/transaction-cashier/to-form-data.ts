@@ -5,8 +5,10 @@ import type { CompleteDraft } from "@/lib/transaction-cashier/flow";
  * form "Add Transaction", supaya `createTransaction` (zod, normalisasi, saldo
  * rekening, kategori baru) dipakai ulang tanpa logika simpan kedua.
  */
-export function toFormData(draft: CompleteDraft): FormData {
+export function toFormData(draft: CompleteDraft, requestId: string): FormData {
   const formData = new FormData();
+  // Menjadi `Transaction.id`: percobaan ulang dengan id yang sama tidak membuat baris kedua.
+  formData.set("id", requestId);
   formData.set("type", draft.type);
   formData.set("accountId", draft.accountId);
   if (draft.toAccountId) formData.set("toAccountId", draft.toAccountId);

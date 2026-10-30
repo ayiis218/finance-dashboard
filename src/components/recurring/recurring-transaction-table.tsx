@@ -1,5 +1,6 @@
 "use client";
 
+import { TableEmptyRow } from "@/components/empty-state";
 import { useTransition } from "react";
 import { Pencil, Pause, Play } from "lucide-react";
 import { format } from "date-fns";
@@ -138,11 +139,7 @@ export function RecurringTransactionTable({
               </TableRow>
             ))}
             {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
-                  No recurring transactions yet.
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow colSpan={6}>No recurring transactions yet.</TableEmptyRow>
             )}
           </TableBody>
         </Table>

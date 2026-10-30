@@ -1,3 +1,4 @@
+import { TableEmptyRow } from "@/components/empty-state";
 import { ChevronDown } from "lucide-react";
 import {
   Card,
@@ -82,11 +83,7 @@ export function CategoryBreakdownCards({
                     </TableRow>
                   ))}
                   {spendingDetailed.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        No expenses in this period.
-                      </TableCell>
-                    </TableRow>
+                    <TableEmptyRow colSpan={5}>No expenses in this period.</TableEmptyRow>
                   )}
                 </TableBody>
                 {spendingDetailed.length > 0 && (

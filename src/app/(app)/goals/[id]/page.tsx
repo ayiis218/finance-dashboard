@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { ProgressBar } from "@/components/motion/progress-bar";
 import Link from "next/link";
 import { ArrowLeft, Pencil } from "lucide-react";
 import {
@@ -47,7 +48,7 @@ export default async function GoalDetailPage({
   });
 
   return (
-    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+    <div className="space-y-4">
       <Link
         href="/goals"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -69,12 +70,7 @@ export default async function GoalDetailPage({
             <span>{formatIDR(totalSaved)} saved</span>
             <span className="text-muted-foreground">of {formatIDR(target)}</span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <ProgressBar percent={progress} />
           <GoalProjectionLine projection={projection} />
         </CardContent>
       </Card>

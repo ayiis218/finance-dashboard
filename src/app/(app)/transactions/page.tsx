@@ -97,7 +97,7 @@ export default async function TransactionsPage({
     : format(month, "MMMM yyyy");
 
   return (
-    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+    <div className="space-y-4">
       <SummaryStats items={summaryItems} />
       <CategoryBreakdownCards
         rangeLabel={categoryRangeLabel}

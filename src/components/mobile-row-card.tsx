@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { EmptyState } from "@/components/empty-state";
 import { cn } from "@/lib/utils";
 
 export function MobileCardList({
@@ -64,5 +65,5 @@ export function MobileRowActions({
 }
 
 export function MobileEmptyState({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <p className="py-6 text-center text-sm text-muted-foreground">{children}</p>;
+  return <EmptyState>{children}</EmptyState>;
 }

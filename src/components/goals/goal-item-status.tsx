@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { StatusStamp } from "@/components/status-stamp";
 
 const STATUS_FLOW = ["PLANNED", "BOOKED", "PAID"] as const;
 type Status = (typeof STATUS_FLOW)[number];
@@ -40,12 +41,20 @@ export function GoalItemStatusBadge({
     });
   };
 
+  const interactive = {
+    onClick: isPending ? undefined : next,
+    "aria-disabled": isPending,
+    className: "cursor-pointer select-none" + (isPending ? " opacity-50" : ""),
+  };
+
+  if (status === "PAID") {
+    return <StatusStamp {...interactive}>{STATUS_LABEL[status]}</StatusStamp>;
+  }
+
   return (
     <Badge
       variant={STATUS_VARIANT[status]}
-      className={"cursor-pointer select-none" + (isPending ? " opacity-50" : "")}
-      onClick={isPending ? undefined : next}
-      aria-disabled={isPending}
+      {...interactive}
     >
       {STATUS_LABEL[status]}
     </Badge>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { receiptTooltipProps } from "@/components/charts/tooltip-style";
 import { formatIDR } from "@/lib/format";
 import { assignDistinctColors } from "@/lib/chart-colors";
 
@@ -49,14 +50,7 @@ export function BreakdownPieChart({
             const percent = total > 0 ? (amount / total) * 100 : 0;
             return [`${formatIDR(amount)} (${percent.toFixed(0)}%)`, name];
           }}
-          contentStyle={{
-            backgroundColor: "var(--popover)",
-            borderColor: "var(--border)",
-            borderRadius: "var(--radius)",
-            fontSize: 12,
-          }}
-          itemStyle={{ color: "var(--popover-foreground)" }}
-          labelStyle={{ color: "var(--popover-foreground)" }}
+          {...receiptTooltipProps}
         />
         <Legend
           wrapperStyle={{ fontSize: 12 }}

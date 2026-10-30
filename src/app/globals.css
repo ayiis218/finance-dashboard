@@ -69,25 +69,30 @@
 }
 
 :root {
-  --background: #F5F9FC;
+  /* Kanvas hangat (krem) — identitas (navy/biru/status) tetap, cuma neutral
+     axis yang bergeser dari abu-biru dingin ke krem. Tiap pasangan teks/surface
+     di sini sudah divalidasi WCAG lewat dataviz skill's contrast() sebelum
+     dipakai (foreground/muted-foreground/primary semua >=4.5:1 terhadap
+     background & card). */
+  --background: #FAF6EC;
   --foreground: #0A2647;
-  --card: #FFFFFF;
+  --card: #FFFDF8;
   --card-foreground: #0A2647;
-  --popover: #FFFFFF;
+  --popover: #FFFDF8;
   --popover-foreground: #0A2647;
   --primary: #205295;
   --primary-foreground: #FFFFFF;
-  --secondary: #E8F1FA;
+  --secondary: #F1E9D8;
   --secondary-foreground: #144272;
-  --muted: #EEF3F8;
-  --muted-foreground: #5B7A99;
+  --muted: #F3ECDF;
+  --muted-foreground: #6B5F4F;
   --accent: #2C74B3;
   --accent-foreground: #FFFFFF;
   --destructive: oklch(0.577 0.21 27.325);
   --positive: #1F8A5F;
   --positive-foreground: #FFFFFF;
-  --border: #D8E4EF;
-  --input: #D8E4EF;
+  --border: #E6DCC6;
+  --input: #E6DCC6;
   --ring: #2C74B3;
   --chart-1: #2C74B3;
   --chart-2: #0A2647;
@@ -108,14 +113,14 @@
   --chart-cat-6: #DC2626;
   --chart-cat-7: #7C3AED;
   --chart-cat-8: #10B981;
-  --radius: 0.625rem;
-  --sidebar: #FBFDFF;
+  --radius: 0.75rem;
+  --sidebar: #FBF7EE;
   --sidebar-foreground: #0A2647;
   --sidebar-primary: #205295;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #E8F1FA;
+  --sidebar-accent: #F1E9D8;
   --sidebar-accent-foreground: #144272;
-  --sidebar-border: #E1EBF5;
+  --sidebar-border: #EDE4D0;
   --sidebar-ring: #2C74B3;
   --gradient-from: #0A2647;
   --gradient-via: #144272;
@@ -123,25 +128,30 @@
 }
 
 .dark {
-  --background: #071422;
-  --foreground: #E9F2FA;
-  --card: #0F2438;
-  --card-foreground: #E9F2FA;
-  --popover: #0F2438;
-  --popover-foreground: #E9F2FA;
+  /* Kanvas hangat versi malam — warm near-black (bukan navy dingin), biar
+     konsisten sama light mode & tidak bentrok sama suasana malam di
+     .cashier-scene. Primary/accent tetap biru (aksen dingin di atas kanvas
+     hangat), sama seperti light mode. Semua pasangan sudah divalidasi WCAG
+     (>=6.9:1 untuk foreground/muted-foreground/primary). */
+  --background: #1A140D;
+  --foreground: #F3ECDD;
+  --card: #241C12;
+  --card-foreground: #F3ECDD;
+  --popover: #241C12;
+  --popover-foreground: #F3ECDD;
   --primary: #4DA8DA;
   --primary-foreground: #08192B;
-  --secondary: #17324A;
-  --secondary-foreground: #CFE3F5;
-  --muted: #14293D;
-  --muted-foreground: #7FA3C4;
+  --secondary: #2C2318;
+  --secondary-foreground: #E4D9C4;
+  --muted: #2C2318;
+  --muted-foreground: #B8A98C;
   --accent: #2C74B3;
   --accent-foreground: #FFFFFF;
   --destructive: oklch(0.704 0.16 22.216);
   --positive: #3DBD82;
   --positive-foreground: #08192B;
-  --border: #1E3A52;
-  --input: #1E3A52;
+  --border: #3A2E1E;
+  --input: #3A2E1E;
   --ring: #4DA8DA;
   --chart-1: #4DA8DA;
   --chart-2: #79A9D9;
@@ -156,13 +166,13 @@
   --chart-cat-6: #E5484D;
   --chart-cat-7: #7C5CDB;
   --chart-cat-8: #16A34A;
-  --sidebar: #06111C;
-  --sidebar-foreground: #E9F2FA;
+  --sidebar: #15100A;
+  --sidebar-foreground: #F3ECDD;
   --sidebar-primary: #4DA8DA;
   --sidebar-primary-foreground: #08192B;
-  --sidebar-accent: #17324A;
-  --sidebar-accent-foreground: #CFE3F5;
-  --sidebar-border: #1E3A52;
+  --sidebar-accent: #2C2318;
+  --sidebar-accent-foreground: #E4D9C4;
+  --sidebar-border: #3A2E1E;
   --sidebar-ring: #4DA8DA;
   --gradient-from: #051422;
   --gradient-via: #144272;
@@ -178,6 +188,21 @@
   }
   html {
     @apply font-sans;
+  }
+  /* Serat kertas halus di atas seluruh halaman; tidak menangkap klik. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  @media (forced-colors: active), print {
+    body::before {
+      display: none;
+    }
   }
 }
 

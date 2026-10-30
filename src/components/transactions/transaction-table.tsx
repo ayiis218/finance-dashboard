@@ -1,3 +1,4 @@
+import { TableEmptyRow } from "@/components/empty-state";
 import { formatDate } from "date-fns";
 import { Pencil } from "lucide-react";
 import {
@@ -138,11 +139,7 @@ export function TransactionTable({
               );
             })}
             {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  No transactions found.
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow colSpan={7}>No transactions found.</TableEmptyRow>
             )}
           </TableBody>
         </Table>

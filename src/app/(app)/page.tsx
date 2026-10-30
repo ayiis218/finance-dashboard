@@ -8,6 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Greeting } from "@/components/greeting";
+import { Reveal } from "@/components/motion/reveal";
 import { MonthlyExpenseChartLazy } from "@/components/charts/monthly-expense-chart-lazy";
 import { NetWorthChartLazy } from "@/components/charts/net-worth-chart-lazy";
 import { NetWorthSnapshotButton } from "@/components/net-worth-snapshot-button";
@@ -78,97 +80,104 @@ export default async function DashboardPage({
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+    <div className="space-y-6">
+      <Greeting />
       <SummaryStats items={netWorthItem} />
       <SummaryStats items={compactItems} compact />
 
       <DateRangeFilter from={from} to={to} baseHref="/" />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle>Monthly Expense Comparison</CardTitle>
-            <CardDescription>
-              {rangeLabel} — Total {formatIDR(totalExpenseRange)}, rata-rata{" "}
-              {formatIDR(avgExpensePerMonth)}/bulan
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MonthlyExpenseChartLazy data={monthlyExpense} />
-          </CardContent>
-        </Card>
+        <Reveal index={2} className="lg:col-span-2 [&>*]:h-full">
+          <Card>
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
+              <CardTitle>Monthly Expense Comparison</CardTitle>
+              <CardDescription>
+                {rangeLabel} — Total {formatIDR(totalExpenseRange)}, rata-rata{" "}
+                {formatIDR(avgExpensePerMonth)}/bulan
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <MonthlyExpenseChartLazy data={monthlyExpense} />
+            </CardContent>
+          </Card>
+        </Reveal>
 
-        <Card>
-          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle>Today&apos;s Summary</CardTitle>
-            <CardDescription>
-              {new Date().toLocaleDateString("id-ID", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Income</span>
-              <Badge variant="secondary" className="text-positive">
-                {formatIDR(daily.income)}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
-                Expense
-              </span>
-              <Badge variant="secondary" className="text-destructive">
-                {formatIDR(daily.expense)}
-              </Badge>
-            </div>
+        <Reveal index={3} className="[&>*]:h-full">
+          <Card>
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
+              <CardTitle>Today&apos;s Summary</CardTitle>
+              <CardDescription>
+                {new Date().toLocaleDateString("id-ID", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Income</span>
+                <Badge variant="secondary" className="text-positive">
+                  {formatIDR(daily.income)}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Expense
+                </span>
+                <Badge variant="secondary" className="text-destructive">
+                  {formatIDR(daily.expense)}
+                </Badge>
+              </div>
 
-            <div className="space-y-2 pt-2">
-              {daily.transactions.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No transactions today.
-                </p>
-              )}
-              {daily.transactions.map((transaction) => {
-                const category = transaction?.note
-                  ? `${transaction.category} - ${transaction.note}`
-                  : transaction.category;
-                return (
-                  <div
-                    key={transaction.id}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <span>{category}</span>
-                    <span
-                      className={
-                        transaction.type === "INCOME" ? "text-positive" : "text-destructive"
-                      }
+              <div className="space-y-2 pt-2">
+                {daily.transactions.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No transactions today.
+                  </p>
+                )}
+                {daily.transactions.map((transaction) => {
+                  const category = transaction?.note
+                    ? `${transaction.category} - ${transaction.note}`
+                    : transaction.category;
+                  return (
+                    <div
+                      key={transaction.id}
+                      className="flex items-center justify-between text-sm"
                     >
-                      {transaction.type === "INCOME" ? "+" : "-"}
-                      {formatIDR(Number(transaction.amount))}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                      <span>{category}</span>
+                      <span
+                        className={
+                          transaction.type === "INCOME" ? "text-positive" : "text-destructive"
+                        }
+                      >
+                        {transaction.type === "INCOME" ? "+" : "-"}
+                        {formatIDR(Number(transaction.amount))}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </Reveal>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
-          <div>
-            <CardTitle>Net Worth History</CardTitle>
-            <CardDescription>12 bulan terakhir</CardDescription>
-          </div>
-          <NetWorthSnapshotButton />
-        </CardHeader>
-        <CardContent>
-          <NetWorthChartLazy data={netWorthHistory} />
-        </CardContent>
-      </Card>
+      <Reveal index={4}>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
+            <div>
+              <CardTitle>Net Worth History</CardTitle>
+              <CardDescription>12 bulan terakhir</CardDescription>
+            </div>
+            <NetWorthSnapshotButton />
+          </CardHeader>
+          <CardContent>
+            <NetWorthChartLazy data={netWorthHistory} />
+          </CardContent>
+        </Card>
+      </Reveal>
 
       <SpendingInsightsCard insights={spendingInsights} />
       <PushNotificationToggle />

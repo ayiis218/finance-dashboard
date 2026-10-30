@@ -1,6 +1,7 @@
 "use client";
 
 import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { receiptTooltipProps } from "@/components/charts/tooltip-style";
 import { format } from "date-fns";
 import { formatIDR } from "@/lib/format";
 
@@ -45,14 +46,7 @@ export function NetWorthChart({
         />
         <Tooltip
           formatter={(value) => [formatIDR(Number(value ?? 0)), "Net Worth"]}
-          contentStyle={{
-            backgroundColor: "var(--popover)",
-            borderColor: "var(--border)",
-            borderRadius: "var(--radius)",
-            fontSize: 12,
-          }}
-          itemStyle={{ color: "var(--popover-foreground)" }}
-          labelStyle={{ color: "var(--popover-foreground)" }}
+          {...receiptTooltipProps}
         />
         <Line type="monotone" dataKey="netWorth" stroke="var(--chart-1)" strokeWidth={2} dot={{ r: 3 }} />
       </LineChart>

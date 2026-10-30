@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { receiptTooltipProps } from "@/components/charts/tooltip-style";
 
 function formatCompact(value: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -57,14 +58,7 @@ export function MonthlyExpenseChart({
             "Expense",
           ]}
           cursor={{ fill: "var(--muted)" }}
-          contentStyle={{
-            backgroundColor: "var(--popover)",
-            borderColor: "var(--border)",
-            borderRadius: "var(--radius)",
-            fontSize: 12,
-          }}
-          itemStyle={{ color: "var(--popover-foreground)" }}
-          labelStyle={{ color: "var(--popover-foreground)" }}
+          {...receiptTooltipProps}
         />
         <Bar dataKey="total" fill="url(#expenseBarGradient)" radius={[4, 4, 0, 0]} />
       </BarChart>

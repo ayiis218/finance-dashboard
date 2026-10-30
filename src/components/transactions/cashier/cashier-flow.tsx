@@ -93,7 +93,7 @@ export function CashierFlow({
   return (
     // reducedMotion="user": semua animasi motion mengikuti preferensi sistem.
     <MotionConfig reducedMotion="user">
-      <div className="cashier-scene space-y-4">
+      <div className="space-y-4">
         <CashierStage state={state} ctx={ctx} />
         <StepInput
           // Remount tiap langkah supaya fokus dan state lokal input (keypad, catatan) mulai bersih.
